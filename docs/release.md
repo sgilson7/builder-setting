@@ -4,6 +4,10 @@
 
 Version 0.1.0 is the first public version of the template, the minimal example and the checks. A version is a git tag on the commit whose `./scripts/check.sh` passed in CI.
 
+## The live example
+
+`scripts/publish-example.sh` builds `examples/minimal` and force-pushes it to the `gh-pages` branch, which GitHub Pages serves. Run it after `./scripts/check.sh` passes, then run the example's browser check against the live origin with `BUILDER_ORIGIN` set. Publishing is the person's action.
+
 ## A frozen snapshot for the paper
 
 The paper should refer to one immutable snapshot. When the camera-ready version is due:

@@ -2,7 +2,7 @@
 
 The source request is Team 4's Feedback Generator in a six-week teacher–developer co-design program (manuscript under review; details withheld): teachers wanted "teacher-editable drafts for feedback based on student work and rubric information", inspected and revised before sharing, with student submissions kept separate from course-wide materials. As described, that feature needs a generative model while the teacher uses it, which falls outside a static Builder tool. This prompt set keeps the purpose and moves the generation to authoring time: the comments come from a bank the teacher writes, or generates beforehand with any tool, and ships as a file. The teacher reads the student's work, picks a level for each criterion, and the tool composes a draft that the teacher edits and copies. Student work never enters the tool.
 
-Give everything below the line, unchanged, to a fresh coding-agent session whose working directory holds only a copy of `template/` from this repository. Its labels are the AI-literacy step labels the procedure uses (`B1`–`B4`, `C1`–`C5`).
+Give everything below the line, unchanged, to a fresh coding-agent session whose working directory holds only a copy of `template/` from this repository. Its labels are the AI-literacy step labels the procedure uses (`B1`–`B4`, `C1`–`C5`). The recorded run, and the setup text it received with the set, are described at the end of this file.
 
 ---
 
@@ -55,3 +55,28 @@ Done means: `./scripts/check.sh` passes, including the browser check in Chromium
 ## Handoff (C5 consolidate in your own words)
 
 Finish with `HANDOFF.md`: what was built, what passed (the end of `./scripts/check.sh`), what is open, and what the teacher should check by hand before using the tool with a class.
+
+---
+
+## The recorded run
+
+On 7 October 2026 this set was given once, unchanged, to a fresh agent session (Claude Opus 5.5, a subagent launched from Claude Code with no prior context) whose working directory held a copy of `template/` committed as "Start from the Builder template", with the Playwright environment already installed. The session was told the following before the set. It is setup, not part of the prompt set, and is reproduced so that the run can be repeated:
+
+```text
+Session setup (not part of the prompt set): your working directory is
+<the copy of template/>. Use absolute paths or cd into it in each shell
+command. A Python virtual environment with Playwright and the three
+browsers is already at .venv (scripts/check.sh finds it). Rust with the
+wasm32 target, wasm-bindgen-cli 0.2.127, clippy, rustfmt and
+cargo-mutants are installed. Git is initialised with one commit; commit
+with the repository's configured identity. As your very first action run
+`date "+%Y-%m-%d %H:%M:%S"` and write TIMING.md with a line
+`- Start: <that time>`; as your very last action, after the handoff
+commit, append `- Finish: <date output>` and commit it. Work only inside
+that directory. Do not push, do not create remote repositories, do not
+deploy. When you are done, reply with a short summary: number of
+commits, number of core tests, whether ./scripts/check.sh passed, and
+any open items.
+```
+
+The result is the Feedback Drafts repository: its `TIMING.md`, `PLAN.md`, `MEASUREMENTS.md`, `SECOND-ORDER.md`, `HANDOFF.md` and commit history are the session's own record. Deployment, the live browser check and the mutation run were done afterwards, outside the session, and are recorded in that repository's `REVIEW.md`.
