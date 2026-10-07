@@ -42,4 +42,4 @@ The paper's measurements were made on the pilot's own repositories with their ow
 
 ## Prompt sets
 
-The paper describes prompt sets that turn teacher requests into briefs for Builder, given once to a fresh agent session. `prompts/sets/C-feedback-drafts.md` is a prompt set written after the paper's two, from a third teacher request in the same co-design program, and run from `template/` in this repository. Its session record is in the Feedback Drafts repository: `TIMING.md`, `PLAN.md`, `SECOND-ORDER.md`, `HANDOFF.md` and the commit history.
+The paper describes prompt sets that turn teacher requests into briefs for Builder, given once to a fresh agent session. `prompts/sets/C-feedback-drafts.md` is a prompt set written after the paper's two, from a third teacher request from the same prior work, and run from `template/` in this repository. Its session record is in the Feedback Drafts repository: `TIMING.md`, `PLAN.md`, `SECOND-ORDER.md`, `HANDOFF.md` and the commit history.

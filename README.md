@@ -78,7 +78,7 @@ The labels name steps from two AI-literacy procedures taught to computing studen
 
 - [`examples/minimal/`](examples/minimal/) is a bounded counter: one rule in the core, its tests, the shim, a page, a browser interaction and the full check. It exists to show the parts, and nothing more.
 - [`prompts/`](prompts/) holds the prompts for starting from a brief, reviewing a plan and auditing the boundary, and a template for writing a prompt set.
-- [`prompts/sets/C-feedback-drafts.md`](prompts/sets/C-feedback-drafts.md) is a prompt set written from a teacher request in a co-design program. A fresh agent session built [Feedback Drafts](https://github.com/sgilson7/feedback-drafts) from it, starting from `template/`. The session record is in that repository.
+- [`prompts/sets/C-feedback-drafts.md`](prompts/sets/C-feedback-drafts.md) is a prompt set written from a request teachers have made for editable feedback drafts. A fresh agent session built [Feedback Drafts](https://github.com/sgilson7/feedback-drafts) from it, starting from `template/`. The session record is in that repository.
 
 ## Documentation
 
