@@ -1,17 +1,35 @@
 # Handoff
 
-Stage 9, written by the agent. `C5 Consolidate in your own words`.
+Stage 9, written by the agent. `C5 Consolidate in your own words`. A fresh session starts from this file, not from memory.
 
-A fresh session starts from this file, not from memory.
+## What this is
 
-## What changed
+Five sentences at most: what the tool does, for whom, and where it lives.
+
+## Rules that hold it up
+
+The rules that break silently if a later change ignores them, and the test that guards each.
+
+## Shape of the code
+
+Where each kind of thing lives, in a short table.
+
+## Commands
+
+Build, test, check, publish, and the probes, with what each prints when it passes.
+
+## What will bite within the hour
+
+What a new session gets wrong first.
+
+## Mistakes so far
+
+By system, from `SECOND-ORDER.md`, with the rule each one produced.
 
 ## What passed
 
-Paste the last lines of `./scripts/check.sh`, with the date and commit.
+The last lines of `./scripts/check.sh` and `./scripts/count-tests.sh`, with the date and commit.
 
-## What remains
+## The next action
 
-Open notebook rows, triage rows, and what the person should check by hand.
-
-## What the next session must not assume
+One action.

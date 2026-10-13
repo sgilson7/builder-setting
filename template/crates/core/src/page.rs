@@ -35,8 +35,7 @@ impl StringsError {
 /// Parses and checks the strings file. A field that is only whitespace counts
 /// as empty, because the page would draw nothing.
 pub fn parse_strings(json: &str) -> Result<Strings, StringsError> {
-    let strings: Strings =
-        serde_json::from_str(json).map_err(|e| StringsError::NotJson(e.to_string()))?;
+    let strings: Strings = serde_json::from_str(json).map_err(|e| StringsError::NotJson(e.to_string()))?;
     if strings.title.trim().is_empty() {
         return Err(StringsError::Empty("title"));
     }
@@ -80,9 +79,6 @@ mod tests {
 
     #[test]
     fn text_that_is_not_json_is_rejected() {
-        assert!(matches!(
-            parse_strings("title: T"),
-            Err(StringsError::NotJson(_))
-        ));
+        assert!(matches!(parse_strings("title: T"), Err(StringsError::NotJson(_))));
     }
 }

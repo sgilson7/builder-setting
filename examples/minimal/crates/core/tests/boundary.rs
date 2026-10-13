@@ -7,8 +7,14 @@
 //!   copy of a rule and names no other origin.
 //! - Reference default: the core uses no floats, hash maps, clocks or
 //!   randomness; the page JavaScript holds no numeric literal other than 0 and
-//!   1; the page carries a Content-Security-Policy. Change these only by
-//!   recording the change in SECOND-ORDER.md and BUILDER-SPEC.md.
+//!   1; shaders under data/shaders/ hold no numeric literal other than 0 and
+//!   1; the page carries a Content-Security-Policy; the page neither navigates
+//!   away on its own nor behaves differently under automation. Change these
+//!   only by recording the change in SECOND-ORDER.md and BUILDER-SPEC.md.
+//!
+//! The page scans read every file under web/ at any depth, except a
+//! directory named `vendor`, whose files are pinned by SHA256SUMS instead
+//! (scripts/build.sh checks them).
 //!
 //! These tests do file I/O themselves. That is fine: they are tests, not the
 //! core library, and only `crates/core/src` is held to the core rules.
@@ -95,26 +101,37 @@ const PAGE_FORBIDDEN_IDENTIFIERS: &[(&str, &str)] = &[
         "XMLHttpRequest",
         "no network requests beyond the page's own files",
     ),
-    (
-        "WebSocket",
-        "no network requests beyond the page's own files",
-    ),
-    (
-        "EventSource",
-        "no network requests beyond the page's own files",
-    ),
+    ("WebSocket", "no network requests beyond the page's own files"),
+    ("EventSource", "no network requests beyond the page's own files"),
     (
         "RTCPeerConnection",
         "no network requests beyond the page's own files",
     ),
-    (
-        "sendBeacon",
-        "no network requests beyond the page's own files",
-    ),
+    ("sendBeacon", "no network requests beyond the page's own files"),
     ("importScripts", "no code from another file at run time"),
     ("eval", "no code from strings"),
     ("Function", "no code from strings"),
+    (
+        "webdriver",
+        "the page must behave the same under the browser check",
+    ),
 ];
+
+/// Builder requirement (R7): ways a page can send the reader, and data, to
+/// another address. A meta CSP cannot stop navigation, so the scan does. The
+/// scan reads code with strings blanked, so `location.href` may still be read.
+const PAGE_NAVIGATION: &[&str] = &[
+    "location.href =",
+    "location.href=",
+    "location.assign",
+    "location.replace",
+    "location =",
+    "location=",
+    "window.open",
+];
+
+/// Absolute URLs that are names, not addresses: the page may write them.
+const ALLOWED_ABSOLUTE_URLS: &[&str] = &["http://www.w3.org/2000/svg"];
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).join("..").join("..")
@@ -508,8 +525,7 @@ fn scan_page_js(src: &str) -> Vec<Violation> {
                     i += 1;
                 }
                 let token: String = chars[start..i].iter().collect();
-                if let Some((_, why)) = PAGE_FORBIDDEN_IDENTIFIERS.iter().find(|(w, _)| *w == token)
-                {
+                if let Some((_, why)) = PAGE_FORBIDDEN_IDENTIFIERS.iter().find(|(w, _)| *w == token) {
                     found.push(Violation {
                         line: n + 1,
                         token,
@@ -524,15 +540,111 @@ fn scan_page_js(src: &str) -> Vec<Violation> {
     found
 }
 
+/// Finds code that navigates the page, with strings and comments blanked.
+fn scan_page_navigation(src: &str) -> Vec<Violation> {
+    let code = strip_js(src);
+    let mut found = Vec::new();
+    for (n, line) in code.lines().enumerate() {
+        for pattern in PAGE_NAVIGATION {
+            let mut from = 0;
+            while let Some(at) = line[from..].find(pattern) {
+                let start = from + at;
+                let end = start + pattern.len();
+                // `location ==` is a comparison, not an assignment
+                let comparison = pattern.ends_with('=') && line[end..].starts_with('=');
+                if !comparison {
+                    found.push(Violation {
+                        line: n + 1,
+                        token: pattern.trim_end_matches([' ', '=']).to_string(),
+                        why: "the page navigates; R7".into(),
+                    });
+                }
+                from = end;
+            }
+        }
+    }
+    found
+}
+
+/// A line of page source with the allowed absolute URLs removed.
+fn without_allowed_urls(line: &str) -> String {
+    let mut out = line.to_string();
+    for url in ALLOWED_ABSOLUTE_URLS {
+        out = out.replace(url, "");
+    }
+    out
+}
+
+/// Every file under `dir` at any depth, skipping directories named `vendor`.
+fn files_under(dir: &Path) -> Vec<PathBuf> {
+    let mut out = Vec::new();
+    let mut stack = vec![dir.to_path_buf()];
+    while let Some(d) = stack.pop() {
+        let Ok(read) = fs::read_dir(&d) else {
+            continue;
+        };
+        for entry in read {
+            let path = entry.expect("entry").path();
+            if path.is_dir() {
+                if path.file_name().map(|n| n != "vendor").unwrap_or(true) {
+                    stack.push(path);
+                }
+            } else {
+                out.push(path);
+            }
+        }
+    }
+    out.sort();
+    out
+}
+
 fn web_files() -> Vec<PathBuf> {
-    let web = repo_root().join("web");
-    let mut entries: Vec<PathBuf> = fs::read_dir(&web)
-        .expect("read web/")
-        .map(|e| e.expect("entry").path())
-        .filter(|p| p.is_file())
-        .collect();
-    entries.sort();
-    entries
+    files_under(&repo_root().join("web"))
+}
+
+/// Scans a shader for numeric literals other than 0 and 1 (and 0.0, 1.0).
+/// A number a rule depends on reaches the shader as a uniform from the core.
+fn scan_shader(src: &str) -> Vec<Violation> {
+    let mut found = Vec::new();
+    for (n, raw) in src.lines().enumerate() {
+        let line = raw.split("//").next().unwrap_or("");
+        if line.trim_start().starts_with("#version") {
+            continue;
+        }
+        let chars: Vec<char> = line.chars().collect();
+        let mut i = 0;
+        while i < chars.len() {
+            let c = chars[i];
+            let prev = if i > 0 { Some(chars[i - 1]) } else { None };
+            let after_ident = prev.map(is_ident_char).unwrap_or(false);
+            let starts_number = c.is_ascii_digit()
+                || (c == '.' && chars.get(i + 1).map(|d| d.is_ascii_digit()).unwrap_or(false));
+            if starts_number && !after_ident {
+                let start = i;
+                while i < chars.len() && (is_ident_char(chars[i]) || chars[i] == '.') {
+                    i += 1;
+                }
+                let token: String = chars[start..i].iter().collect();
+                let plain = token.trim_end_matches(['f', 'u']);
+                if !["0", "1", "0.0", "1.0", "0.", "1."].contains(&plain) {
+                    found.push(Violation {
+                        line: n + 1,
+                        token,
+                        why: "number in a shader; pass it as a uniform from the core".into(),
+                    });
+                }
+                continue;
+            }
+            if is_ident_char(c) {
+                while i < chars.len() && is_ident_char(chars[i]) {
+                    i += 1;
+                }
+                continue;
+            }
+            i += 1;
+        }
+    }
+    found
 }
 
 #[test]
@@ -602,7 +714,7 @@ fn page_keeps_no_rule_and_names_no_other_origin() {
     for path in web_files() {
         let text = fs::read_to_string(&path).expect("read page file");
         for (n, line) in text.lines().enumerate() {
-            if line.contains("://") {
+            if without_allowed_urls(line).contains("://") {
                 problems.push(format!(
                     "{}:{}: absolute URL (another origin?)",
                     path.display(),
@@ -613,14 +725,25 @@ fn page_keeps_no_rule_and_names_no_other_origin() {
         if path.extension().map(|x| x == "js").unwrap_or(false) {
             js_files += 1;
             problems.extend(report(&path, &scan_page_js(&text)));
+            problems.extend(report(&path, &scan_page_navigation(&text)));
         }
     }
     assert!(js_files > 0, "no page JavaScript found in web/");
-    assert!(
-        problems.is_empty(),
-        "page problems:\n{}",
-        problems.join("\n")
-    );
+    assert!(problems.is_empty(), "page problems:\n{}", problems.join("\n"));
+}
+
+/// Reference default: shaders keep no tuning numbers of their own.
+#[test]
+fn shaders_hold_no_numbers_of_their_own() {
+    let mut problems = Vec::new();
+    for path in files_under(&repo_root().join("data/shaders")) {
+        let ext = path.extension().and_then(|x| x.to_str()).unwrap_or("");
+        if ["vert", "frag", "glsl"].contains(&ext) {
+            let text = fs::read_to_string(&path).expect("read shader");
+            problems.extend(report(&path, &scan_shader(&text)));
+        }
+    }
+    assert!(problems.is_empty(), "shader problems:\n{}", problems.join("\n"));
 }
 
 /// Reference default: every HTML page carries a Content-Security-Policy that
@@ -632,12 +755,8 @@ fn every_page_sets_the_content_security_policy() {
         if path.extension().map(|x| x == "html").unwrap_or(false) {
             pages += 1;
             let text = fs::read_to_string(&path).expect("read html");
-            let csp = csp_of(&text).unwrap_or_else(|| {
-                panic!(
-                    "{}: no Content-Security-Policy meta element",
-                    path.display()
-                )
-            });
+            let csp = csp_of(&text)
+                .unwrap_or_else(|| panic!("{}: no Content-Security-Policy meta element", path.display()));
             for needed in [
                 "default-src 'self'",
                 "connect-src 'self'",
@@ -672,10 +791,7 @@ fn csp_of(html: &str) -> Option<String> {
 #[test]
 fn dependency_reader_sees_every_form() {
     let toml = "[package]\nname = \"x\"\n\n[dependencies]\nserde = \"1\"\n\n[dev-dependencies]\nregex = \"1\"\n\n[build-dependencies.cc]\nversion = \"1\"\n\n[target.'cfg(unix)'.dependencies]\nlibc = \"0.2\"\n";
-    assert_eq!(
-        declared_dependencies(toml),
-        vec!["serde", "regex", "cc", "libc"]
-    );
+    assert_eq!(declared_dependencies(toml), vec!["serde", "regex", "cc", "libc"]);
 }
 
 #[test]
@@ -724,16 +840,15 @@ let h = 100u32 * 7;
 
 #[test]
 fn shim_scanner_catches_decisions() {
-    assert!(!scan_shim_code(
-        "pub fn f(x: &str) -> String { if x.is_empty() { a() } else { b() } }"
-    )
-    .is_empty());
+    assert!(
+        !scan_shim_code("pub fn f(x: &str) -> String { if x.is_empty() { a() } else { b() } }").is_empty()
+    );
     assert!(!scan_shim_code("pub fn f(x: &str) -> Result<String, E> { Ok(g(x)?) }").is_empty());
     assert!(!scan_shim_code("pub fn f(x: u32) -> u32 { match x { 0 => 1, _ => x } }").is_empty());
-    assert!(scan_shim_code(
-        "// if this were a decision\npub fn f(x: &str) -> String { core::api::f(x) }"
-    )
-    .is_empty());
+    assert!(
+        scan_shim_code("// if this were a decision\npub fn f(x: &str) -> String { core::api::f(x) }")
+            .is_empty()
+    );
 }
 
 #[test]
@@ -743,6 +858,32 @@ fn page_scanner_catches_rules_and_ignores_text() {
     assert!(!scan_page_js("navigator.sendBeacon(u, d);").is_empty());
     assert!(!scan_page_js("new WebSocket(u);").is_empty());
     assert!(scan_page_js("// 70 in a comment\nconst s = \"70% of 9\"; x[0] = y[1];").is_empty());
+    assert!(!scan_page_js("if (!navigator.webdriver) lock();").is_empty());
+}
+
+#[test]
+fn navigation_scanner_catches_navigation_and_ignores_reads() {
+    assert!(!scan_page_navigation("window.location.href = ui.navigate;").is_empty());
+    assert!(!scan_page_navigation("location.assign(next);").is_empty());
+    assert!(!scan_page_navigation("window.open(link);").is_empty());
+    assert!(scan_page_navigation("const here = location.href;").is_empty());
+    assert!(scan_page_navigation("if (location == other) x();").is_empty());
+    assert!(scan_page_navigation("// location.href = x in a comment").is_empty());
+}
+
+#[test]
+fn shader_scanner_catches_tuning_numbers() {
+    assert!(!scan_shader("float leaf = base.g > base.r * 1.15 ? 1.0 : 0.0;").is_empty());
+    assert!(!scan_shader("vec3 c = mix(a, b, 0.82);").is_empty());
+    assert!(!scan_shader("float h = .5;").is_empty());
+    assert!(scan_shader("#version 300 es\nprecision highp float;\nout vec4 o; // 0.5 here\nvoid main() { o = vec4(u_colour, 1.0); }").is_empty());
+}
+
+#[test]
+fn the_svg_namespace_is_a_name_not_an_address() {
+    let line = "const ns = \"http://www.w3.org/2000/svg\";";
+    assert!(!without_allowed_urls(line).contains("://"));
+    assert!(without_allowed_urls("fetch(\"https://example.invalid\")").contains("://"));
 }
 
 #[test]

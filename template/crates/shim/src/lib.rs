@@ -8,6 +8,11 @@
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn load(strings_json: &str) -> String {
-    tool_core::api::load(strings_json)
+pub fn start(strings_json: &str, glossary_md: &str) -> String {
+    tool_core::api::start(strings_json, glossary_md)
+}
+
+#[wasm_bindgen]
+pub fn act(state_json: &str, glossary_md: &str, name: &str, value: &str) -> String {
+    tool_core::api::act(state_json, glossary_md, name, value)
 }

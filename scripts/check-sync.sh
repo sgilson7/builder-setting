@@ -14,11 +14,20 @@ scripts/serve.py
 scripts/setup.sh
 scripts/mutants.sh
 scripts/wasm_imports.py
+scripts/break_tests.py
+scripts/count-tests.sh
+scripts/publish.sh
 tests/browser/check.py
 crates/core/tests/boundary.rs
+crates/core/tests/copy.rs
+crates/core/tests/no_storage.rs
+crates/core/src/glossary.rs
 crates/shim/Cargo.toml
 crates/core/Cargo.toml
 Cargo.toml
+rustfmt.toml
+rust-toolchain.toml
+TONE.md
 "
 bad=0
 for f in $SHARED; do

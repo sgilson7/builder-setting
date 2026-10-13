@@ -19,7 +19,10 @@ feature the interactions never start is a feature this check never saw.
     python3 tests/browser/check.py
 
 Environment:
-    BUILDER_ENGINES   space-separated engines (default "chromium firefox webkit")
+    BUILDER_ENGINES   space-separated engines (default "chromium firefox webkit");
+                      add "webkit-iphone" for WebKit as an iPhone 15 with touch.
+                      CI may run "chromium" alone (D7); run all three locally
+                      before a push.
     BUILDER_IDLE      seconds to idle after load (default 10)
     BUILDER_ORIGIN    check a deployed origin instead of serving dist/, e.g.
                       https://example.github.io/my-tool  (no trailing slash)
@@ -84,8 +87,13 @@ def run_engine(p, engine, base, interactions):
     def same_origin(url):
         return url.startswith(origin + "/") or url.startswith("blob:" + origin) or url.startswith("data:")
 
-    browser = getattr(p, engine).launch()
-    context = browser.new_context(accept_downloads=True)
+    # "webkit-iphone": WebKit with Playwright's iPhone 15 profile (touch, a
+    # phone viewport). Emulation shows layout and touch events; it cannot show
+    # real multitouch, fullscreen or install, which stay a person's check.
+    launcher, _, device = engine.partition("-")
+    profile = dict(p.devices["iPhone 15"]) if device == "iphone" else {}
+    browser = getattr(p, launcher).launch()
+    context = browser.new_context(accept_downloads=True, **profile)
     context.on("request", lambda r: None if same_origin(r.url) else seen["foreign"].append(r.url))
 
     def route(r):
@@ -110,7 +118,7 @@ def run_engine(p, engine, base, interactions):
     page.on("popup", lambda pg: seen["popups"].append(pg.url))
 
     page.goto(base + "/index.html")
-    page.wait_for_selector("body[data-ready='true']", timeout=20000)
+    page.wait_for_selector("body[data-ready='true']", state="attached", timeout=20000)
     check(True, "page reported ready")
     page.wait_for_timeout(IDLE_MS)
     check(not seen["foreign"], f"no off-origin request during load and {IDLE_MS // 1000}s idle {seen['foreign']}")

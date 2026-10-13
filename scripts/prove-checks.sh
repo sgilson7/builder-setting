@@ -154,6 +154,90 @@ expect_failure "a broken rule (no stop at the maximum), core suite" "adding_stop
   cargo test -q -p tool_core --lib
 expect_failure "the same broken rule, browser check" "FAIL Add steps by 3 and stops at 10" browser
 
+
+# ---- Added with the second round of reference defaults ----
+
+fresh
+mkdir -p "$WORK/p/data/shaders"
+printf '#version 300 es\nprecision highp float;\nout vec4 o;\nvoid main() { o = vec4(0.82, 0.45, 1.0, 1.0); }\n' > "$WORK/p/data/shaders/scene.frag"
+expect_failure "a tuning number in a shader" "number in a shader" boundary
+
+fresh
+mkdir -p "$WORK/p/web/lib"
+printf 'export const stopsAt = 10;\n' > "$WORK/p/web/lib/rule.js"
+expect_failure "a copy of a rule in a nested page file" "number in the page" boundary
+
+fresh
+printf '\nfunction leave(next) { window.location.href = next; }\n' >> "$WORK/p/web/app.js"
+expect_failure "a page that navigates on its own" "the page navigates" boundary
+
+fresh
+printf '\nif (!navigator.webdriver) document.body.requestPointerLock();\n' >> "$WORK/p/web/app.js"
+expect_failure "a page that behaves differently under automation" "behave the same under the browser check" boundary
+
+fresh
+printf '\nlocalStorage.setItem("count", "0");\n' >> "$WORK/p/web/app.js"
+expect_failure "browser storage in the page" "browser storage in the page" \
+  cargo test -q -p tool_core --test no_storage
+
+copy_test() { cargo test -q -p tool_core --test copy; }
+
+fresh
+"$PY" - "$WORK/p/data/counter.json" <<'EOF2'
+import json, sys; p = sys.argv[1]; d = json.load(open(p))
+d["add_label"] = "Add to the tally"
+json.dump(d, open(p, "w"), indent=2)
+EOF2
+expect_failure "a word the glossary rules out" "is ruled out for" copy_test
+
+fresh
+"$PY" - "$WORK/p/data/counter.json" <<'EOF2'
+import json, sys; p = sys.argv[1]; d = json.load(open(p))
+d["intro"] = "Let us delve into counting."
+json.dump(d, open(p, "w"), indent=2)
+EOF2
+expect_failure "a stock phrase in a string" "(TONE.md)" copy_test
+
+fresh
+"$PY" - "$WORK/p/GLOSSARY.md" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+s = s.replace("How much one press of Add or Remove changes the count.", "Each press of Add or Remove changes the count by 3.")
+open(p, "w").write(s)
+EOF2
+expect_failure "a rule's number typed into the glossary" "{placeholder}" copy_test
+
+fresh
+mkdir -p "$WORK/p/web/vendor"
+printf 'export const lib = 0;\n' > "$WORK/p/web/vendor/lib.js"
+(cd "$WORK/p/web/vendor" && printf '%s  lib.js\n' "$(printf 'something else' | shasum -a 256 | cut -d' ' -f1)" > SHA256SUMS)
+expect_failure "a vendored file that does not match its checksum" "does not match its SHA256SUMS" ./scripts/build.sh
+
+fresh
+printf '[{"name": "a break no test sees", "file": "web/style.css", "find": "box-sizing", "replace": "box-sizing", "test": "adding_stops_at_the_maximum"}]\n' > "$WORK/p/tests/breaks.json"
+expect_failure "a break its test does not catch" "still passes with the behaviour broken" "$PY" scripts/break_tests.py
+
+fresh
+printf '[]\n' > "$WORK/p/tests/breaks.json"
+expect_failure "an empty list of breaks" "the proof would prove nothing" "$PY" scripts/break_tests.py
+
+# The style pack and the art pipeline live in template/, not the example.
+mkdir -p "$WORK/leak/template/styles/default" "$WORK/leak/template/web"
+cp "$ROOT/template/styles/default/palette.json" "$WORK/leak/template/styles/default/"
+pack_hex="$("$PY" -c 'import json,sys; d=json.load(open(sys.argv[1])); print(next(v for k,v in d.items() if not k.startswith("_")))' "$ROOT/template/styles/default/palette.json")"
+printf 'body { color: %s; }\n' "$pack_hex" > "$WORK/leak/template/web/style.css"
+rm -rf "$WORK/p"; mkdir -p "$WORK/p"
+expect_failure "a default-style colour in the template's CSS" "default-style token" \
+  "$PY" "$ROOT/scripts/check-style-leak.py" "$WORK/leak"
+
+rm -rf "$WORK/art"; mkdir -p "$WORK/art"
+(cd "$ROOT/template" && tar --exclude=__pycache__ -cf - tools tests/art_check.py data/art.json styles) | (cd "$WORK/art" && tar -xf -)
+printf '\nSTRAY = "#123456"\n' >> "$WORK/art/tools/art/artlib.py"
+expect_failure "a colour literal in the art code" "colour literal" "$PY" "$WORK/art/tests/art_check.py"
+
 echo
 echo "caught $pass, missed $fail"
+if [ $((pass + fail)) -eq 0 ]; then
+  echo "no planted defects ran: the proof would prove nothing" >&2
+  exit 1
+fi
 [ "$fail" -eq 0 ]

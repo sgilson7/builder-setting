@@ -6,3 +6,4 @@
 
 pub mod api;
 pub mod counter;
+pub mod glossary;

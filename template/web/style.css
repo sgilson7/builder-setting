@@ -8,6 +8,8 @@
   :root { --ink: #e8eaed; --paper: #15181c; --muted: #a9b1ba; --accent: #f08c8c; }
 }
 * { box-sizing: border-box; }
+/* A display rule elsewhere must not show what the page hid. */
+[hidden] { display: none !important; }
 body {
   margin: 0;
   background: var(--paper);
@@ -17,3 +19,6 @@ body {
 main { max-width: 44rem; margin: 0 auto; padding: 2rem 1rem; }
 h1 { font-size: 1.6rem; margin: 0 0 0.5rem; }
 #message:not(:empty) { color: var(--accent); }
+section { margin: 0 0 1rem; }
+button { font: inherit; padding: 0.3rem 0.8rem; margin: 0 0.5rem 0.5rem 0; }
+[data-term] { text-decoration: underline dotted; cursor: help; }

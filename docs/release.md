@@ -4,9 +4,24 @@
 
 Version 0.1.0 is the first public version of the template, the minimal example and the checks. A version is a git tag on the commit whose `./scripts/check.sh` passed in CI.
 
+Version 0.2.0 (13 October 2026) folds in what thirteen of the author's projects and Peter's two games found:
+
+- the description-first procedure for people who do not write code (`prompts/start-from-description.md`), and the root `CLAUDE.md` routing a described tool into a new project;
+- a view model and one action function in the template's core, and a generic page renderer (from Peter's Mandible);
+- `GLOSSARY.md`, `TONE.md` and the copy tests; `no_storage.rs`;
+- boundary scans for nested page files, navigation, automation checks and numbers in shaders;
+- cache-busting, checksum verification and `build.txt` in the build; a test profile, `rustfmt.toml` and a pinned toolchain;
+- `scripts/break_tests.py`, `count-tests.sh` and `publish.sh`; a phone engine in the browser check;
+- the stage files reshaped (numbered triage, a seven-part handoff, `DECISIONS.md`, `LICENSES.md`);
+- the art pipeline and the default style pack, kept in `template/styles/` by a leak check;
+- optional kits for online play, canvas rendering, real-time input, mobile and strict privacy;
+- 27 planted defects, up from 14.
+
+No tag is made for it; tagging is the author's action.
+
 ## The live example
 
-`scripts/publish-example.sh` builds `examples/minimal` and force-pushes it to the `gh-pages` branch, which GitHub Pages serves. Run it after `./scripts/check.sh` passes, then run the example's browser check against the live origin with `BUILDER_ORIGIN` set. Publishing is the person's action.
+`scripts/publish-example.sh` builds `examples/minimal` and force-pushes it to the `gh-pages` branch, which GitHub Pages serves. Run it after `./scripts/check.sh` passes, then run the example's browser check against the live origin with `BUILDER_ORIGIN` set. Publishing is the person's action. A project publishes with its own `scripts/publish.sh`, which refuses uncommitted changes, runs the check, and pushes `dist/` with the message "Built from <commit>". The build stamps a content hash on every internal URL, so a returning reader gets the new module, not one GitHub Pages cached for ten minutes.
 
 ## A frozen snapshot for the paper
 

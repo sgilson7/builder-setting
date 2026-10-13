@@ -6,6 +6,12 @@ Builder suits a small browser application whose behaviour can be stated apart fr
 
 Examples built this way include an assignment-perturbation workbench, a PDF redactor that runs in the browser, warm-ups and exit tickets drawn from a question bank, practice results aggregated by topic from files students hand in, rubric-based feedback drafts, and several games whose rules (a fight simulation, a city's flood, a belt of cups) live in the core.
 
+## People who do not write code
+
+The strongest case for Builder so far is a person who knows a field and does not write code. Most of the thirteen projects in the README began as a plain-prose description from such a person; the author turned each into a brief, and a working tool was published the same day or the next. [`prompts/start-from-description.md`](../prompts/start-from-description.md) lets that person start the build themselves: clone the repository, start an agent, describe the tool, and make later changes in prose.
+
+What they bring is the part no check can supply: the content, the terms of their field (which go into `GLOSSARY.md` first), and a case worked out by hand to try the tool on. What the setting supplies is the part they cannot read: the rules in a tested core, the tests that hold the code to its layout, and a static page that is cheap to publish and keeps a person's data in their browser.
+
 ## Four moves to start
 
 1. Choose a tool whose core behaviour you can state without describing the screen.
@@ -22,8 +28,10 @@ The default build is static files with no off-origin request on load, and some f
 - **Accounts, identity or access control across people.**
 - **A third-party service** such as a whiteboard or a document store.
 
+Peer-to-peer play between browsers is the exception with a pattern: [`online.md`](online.md) and `kits/online/`.
+
 A project that needs one of these can still keep its rules in a tested core. The rest of the design (the server, its data handling and its approvals) needs its own checks, and the browser check's off-origin rule has to be changed deliberately and recorded in `BUILDER-SPEC.md`.
 
 ## What you need
 
-Rust with the `wasm32-unknown-unknown` target, `wasm-bindgen-cli` at the pinned version, Python 3 with Playwright for the browser check, a static host, and a coding agent that reads `CLAUDE.md` or `AGENTS.md`. The agent can do the build work. The person supplies the brief, reads the plan, uses the result, and decides the boundaries the brief left open.
+Rust (the template pins the toolchain and the `wasm32-unknown-unknown` target), `wasm-bindgen-cli` at the pinned version, Python 3 with Playwright for the browser check, a static host, and a coding agent that reads `CLAUDE.md` or `AGENTS.md`. The agent can do the build work. The person supplies the brief, reads the plan, uses the result, and decides the boundaries the brief left open.

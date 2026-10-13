@@ -6,7 +6,9 @@ shows with `check(condition, "what this shows")`. Assert the effect a person
 would see (the text drawn, the file saved), not the markup that should cause it.
 
 Expected values in these checks are worked out by hand from the brief (C4),
-never copied from the tool's own output.
+never copied from the tool's own output. Wait on a selector or a data-*
+attribute the page sets, never on a fixed time: on CI the page may draw with
+a CPU and run slowly.
 """
 
 import json
@@ -17,5 +19,6 @@ STRINGS = json.loads((pathlib.Path(__file__).resolve().parents[2] / "data" / "st
 
 def run(page, check, engine):
     check(page.inner_text("#title") == STRINGS["title"], "the title from data/strings.json is drawn")
-    check(page.inner_text("#intro") == STRINGS["intro"], "the intro from data/strings.json is drawn")
+    check(page.inner_text("#intro p") == STRINGS["intro"], "the intro from data/strings.json is drawn")
+    check(page.get_attribute("body", "data-screen") == "start", "the core's start screen is shown")
     check(page.inner_text("#message") == "", "no error message is shown")

@@ -15,8 +15,8 @@ fn error(message: String) -> String {
 }
 
 fn settings(json: &str) -> Result<Settings, String> {
-    let s: Settings = serde_json::from_str(json)
-        .map_err(|e| format!("The settings file could not be read: {e}"))?;
+    let s: Settings =
+        serde_json::from_str(json).map_err(|e| format!("The settings file could not be read: {e}"))?;
     counter::check_settings(&s)?;
     Ok(s)
 }
@@ -47,8 +47,8 @@ pub fn start(settings_json: &str) -> String {
 pub fn act(settings_json: &str, state_json: &str, action: &str) -> String {
     let run = || -> Result<String, String> {
         let s = settings(settings_json)?;
-        let state: State = serde_json::from_str(state_json)
-            .map_err(|e| format!("The state could not be read: {e}"))?;
+        let state: State =
+            serde_json::from_str(state_json).map_err(|e| format!("The state could not be read: {e}"))?;
         let action: Action = serde_json::from_value(serde_json::Value::String(action.to_string()))
             .map_err(|_| format!("Unknown action \"{action}\"."))?;
         let next = counter::apply(&s, state, action);
@@ -65,7 +65,8 @@ pub fn act(settings_json: &str, state_json: &str, action: &str) -> String {
 mod tests {
     use super::*;
 
-    const SETTINGS: &str = r#"{"title":"T","intro":"I","max":2,"step":1,"add_label":"+","remove_label":"-","reset_label":"0"}"#;
+    const SETTINGS: &str =
+        r#"{"title":"T","intro":"I","max":2,"step":1,"add_label":"+","remove_label":"-","reset_label":"0"}"#;
 
     #[test]
     fn start_returns_count_zero_with_remove_disabled() {
@@ -77,8 +78,7 @@ mod tests {
 
     #[test]
     fn act_adds_and_reports_the_stop() {
-        let v: serde_json::Value =
-            serde_json::from_str(&act(SETTINGS, r#"{"count":1}"#, "add")).unwrap();
+        let v: serde_json::Value = serde_json::from_str(&act(SETTINGS, r#"{"count":1}"#, "add")).unwrap();
         assert_eq!(v["ok"]["state"]["count"], 2);
         assert_eq!(v["ok"]["view"]["note"], "The counter stops at 2.");
     }
