@@ -20,6 +20,8 @@ public repository called balance-lab and publish it on my GitHub Pages.
 You may publish once the checks pass.
 ```
 
+The agent creates the project in a new folder next to the clone, so it may ask permission to write there. For later sessions, start the agent inside that project folder.
+
 Everything after that is in plain prose too: "the hint should name the element, not the side", "add a timer", "the buttons are too small on a phone".
 
 ## What the agent does
@@ -29,7 +31,9 @@ The root `CLAUDE.md` sends the agent here when a person describes a tool. The ag
 ```text
 1. Make the project. Copy template/ to a sibling directory named after the
    tool (lowercase, hyphens), run git init there, and work only there. Do
-   not edit the reference repository.
+   not edit the reference repository. Then read the project's CLAUDE.md
+   (or AGENTS.md) in full: an agent started in the reference repository is
+   not given it automatically, and its rules govern everything below.
 
 2. Write BRIEF.md. Paste the description word for word under "The
    description, word for word". Then fill the rest of the brief from it:
@@ -51,7 +55,12 @@ The root `CLAUDE.md` sends the agent here when a person describes a tool. The ag
    SECOND-ORDER.md, and continues. The person may answer by number.
 
 5. Plan, measure, build with tests, keep the notebook, as CLAUDE.md says.
-   The plan is approved in advance unless the person asked to read it.
+   The plan is approved in advance unless the person asked to read it, so
+   the notebook is where the person will see what was decided for them.
+   Write a row in SECOND-ORDER.md at the moment you make a choice the
+   brief did not fix, find that an assumption was wrong, or find something
+   only the person can do, and commit it with the change it describes.
+   Number rows R1.1, R1.2 …; mark the person's rows with status person.
 
 6. Run ./scripts/check.sh. If the brief grants publishing: create the
    repository the person named, push, run ./scripts/publish.sh, and run
@@ -61,7 +70,9 @@ The root `CLAUDE.md` sends the agent here when a person describes a tool. The ag
 7. Write HANDOFF.md, and tell the person in plain words what was built,
    what they should try by hand first, and what is still open: each
    SECOND-ORDER.md row with status person, by its number, so they can
-   answer by number.
+   answer by number. Tell them that later sessions start in the project
+   directory (cd ../<name> && claude), where the project's own CLAUDE.md
+   is loaded from the start.
 
 8. For each later request: add a numbered row to TRIAGE.md with the
    person's words, make the change with its test, cite the row in the

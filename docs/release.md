@@ -23,7 +23,8 @@ Since 0.2.0, not yet in a version:
 
 - the reason for the second-order notebook, and how a row becomes a rule, in `docs/procedure.md`;
 - a **Rule** column in `SECOND-ORDER.md` and an "Open for the person" section in `HANDOFF.md`;
-- `scripts/notebook_check.py`, step 7 of a project's check, with two planted defects (29 in all).
+- `scripts/notebook_check.py`, step 7 of a project's check: round numbers, kinds, statuses, person rows in the handoff, and no empty notebook once the plan holds decisions, with four planted defects (31 in all);
+- the root `CLAUDE.md` and the description procedure tell an agent started in the reference repository to read the new project's instructions, and the person to start later sessions in the project.
 
 ## The live example
 

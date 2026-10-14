@@ -34,7 +34,7 @@ cd builder-setting
 claude          # or another coding agent that reads CLAUDE.md or AGENTS.md
 ```
 
-Then describe the tool in your own words: what it is for, who uses it, what a good result looks like, and what from your own field it has to get right. If you want it published, name the repository and say the agent may publish. The agent does the step the author did by hand for the projects above: it copies the template into a new directory, writes the brief from your words, builds the tool with its tests, and publishes it if you allowed that. Later changes are more plain prose ("the hint should name the element, not the side"). [`prompts/start-from-description.md`](prompts/start-from-description.md) is the procedure the agent follows.
+Then describe the tool in your own words: what it is for, who uses it, what a good result looks like, and what from your own field it has to get right. If you want it published, name the repository and say the agent may publish. The agent does the step the author did by hand for the projects above: it copies the template into a new directory, writes the brief from your words, builds the tool with its tests, and publishes it if you allowed that. Later changes are more plain prose ("the hint should name the element, not the side"). [`prompts/start-from-description.md`](prompts/start-from-description.md) is the procedure the agent follows. The project is a new folder next to the clone; start later sessions inside it, so the agent reads the project's own rules from the beginning.
 
 What you still own: the content and whether it is right in your field, whether the tool does what you meant, and the decision to make it public. Use the tool on one case you have worked out by hand before you share it.
 

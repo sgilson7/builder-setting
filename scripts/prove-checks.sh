@@ -242,6 +242,27 @@ open(p, "w").write(s)
 EOF2
 expect_failure "a person's notebook row that the handoff does not name" "R1.1 is the person's to do" notebook
 
+fresh
+"$PY" - "$WORK/p/SECOND-ORDER.md" "$WORK/p/HANDOFF.md" <<'EOF2'
+import sys; p, h = sys.argv[1:]; s = open(p).read()
+old = "| R1.1 | | | | | | |"
+assert old in s
+s = s.replace(old, "| 13 | worklist | The labels were written by the agent. | No teacher has read them. | Listed for the person. | | person |")
+open(p, "w").write(s)
+open(h, "a").write("\nPress 13 times to reach the maximum.\n")
+EOF2
+expect_failure "a notebook row numbered outside the rounds" "13 is not a round number" notebook
+
+fresh
+"$PY" - "$WORK/p/PLAN.md" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = "| 1 | | | |"
+assert old in s
+s = s.replace(old, "| 1 | The count stops at the maximum. | The brief says so. | adding_stops_at_the_maximum |")
+open(p, "w").write(s)
+EOF2
+expect_failure "a plan with decisions and an empty notebook" "SECOND-ORDER.md has no rows, but PLAN.md holds decisions" notebook
+
 # The style pack and the art pipeline live in template/, not the example.
 mkdir -p "$WORK/leak/template/styles/default" "$WORK/leak/template/web"
 cp "$ROOT/template/styles/default/palette.json" "$WORK/leak/template/styles/default/"
