@@ -9,7 +9,7 @@ Each Builder build follows nine stages. The person owns four of them and the age
 | 3 Read the plan | **person** | C3 Interrogate the claim | Accept the plan, revise it, or answer its open questions. A plan that is not approved goes back to stage 2. | `PLAN.md` |
 | 4 Measure | agent | B2 | Record the starting state: toolchain, test count, check result. | `MEASUREMENTS.md` |
 | 5 Build with tests | agent | B2 | Implement in small steps. Each core rule lands with its test, and each new test is broken once and seen failing. | code, tests |
-| 6 Second-order notebook | agent | B3 Build in self-questioning | Record assumptions, surprises, divergences from the plan, and work the person must do, when they are noticed. | `SECOND-ORDER.md` |
+| 6 Second-order notebook | agent | B3 Build in self-questioning | Record assumptions, surprises, divergences from the plan, and work the person must do, when they are noticed ([why](#the-second-order-notebook)). | `SECOND-ORDER.md` |
 | 7 Use and triage | **person** | C4 Verify against hand-computed cases | Use the build. Compare at least one result with a case worked out by hand. Each request, in plain words, becomes a numbered row (T1, T2 …); the commit that answers it cites the number. Triage rows return to stage 5. | `TRIAGE.md` |
 | 8 Publish and check | **person**, or the agent when the brief grants it | C4 | Publish with `scripts/publish.sh` (it refuses uncommitted changes and records the commit it was built from) and run the browser check against the live address. | `BUILDER_ORIGIN=… tests/browser/check.py` |
 | 9 Handoff | agent | C5 Consolidate in your own words | Record what changed, what passed, what remains, and what the next session must not assume. | `HANDOFF.md` |
@@ -33,9 +33,23 @@ The projects behind this round of Builder mostly began as a few paragraphs of pl
 - **Numbered requests.** Peter's commits cite "(feedback 1)" through "(feedback 27)" and TRIAGE rows; code comments cite the row that asked for them. The habit stopped in his last fourteen commits, which is why `scripts/publish.sh` writes "Built from <commit>" itself and does not leave it to memory.
 - **TRY commits.** An experiment can go live from a branch as one commit whose message says what it tries and how to undo it: "TRY: the sky follows the exact speed. Built from branch try/speed, commit 04b9d26. Revert this commit to go back." An experiment the person keeps becomes a TRIAGE row with the disposition *try*, then *done*.
 
-## Recording failure
+## The second-order notebook
 
-A divergence row says what was assumed, what turned out to be true and what changed. Three kinds recur and are worth naming in the row: *reversion* (the build quietly swaps in the textbook rule the design departs from), *a check that cannot fail* (the form is right and the assertion is empty, or the test compares a value with the function under test), and *a miscount* (a count or a size off by one, a unit helper misread). The rule each produced goes into `CLAUDE.md` when it applies to every later session.
+The code, the tests and the page are the build. `SECOND-ORDER.md` is the agent's record about the build: what it assumed, what it noticed, where the work departed from the plan, and what only the person can do. It is written at the moment each thing is noticed, because a reason reconstructed at the end of a session is a different and less reliable record.
+
+**Why it matters.** The person reads four things: the brief, the plan, the notebook and the tool. The tests read everything else. The brief cannot settle every question in advance, so the agent decides many small things alone during stage 5, and the notebook is where those decisions become the person's to see. When the plan is approved in advance and stages 2 to 6 run without stopping, the notebook is the main place they surface before the person uses the tool at stage 7. In the pilot behind this repository, five projects kept 598 notebook entries, and 347 of them recorded a defect. Tests, lint or the browser check surfaced 139 of those defects, the agent noticed 132 itself, the person found 30, and 46 named no source. The entries were coded by model instances against a codebook, so the split is approximate. Most of what went wrong was found by the checks and the agent, and the notebook is how the person learns of it.
+
+**What goes in a row.** One row per assumption, surprise, divergence from the plan, or item the person must do, with a kind, a number and a status:
+
+- *divergence*: what was assumed, what turned out to be true and what changed;
+- *finding*: something learned that did not contradict the plan, such as a test that needed a workaround to pass (the workaround is the finding) or a break that a test did not catch;
+- *worklist*: the person's to do, such as content only they can supply, a decision the brief leaves to them, a list the agent generated that a reader will see, or a Builder requirement that seems to block the work (the agent stops and names the requirement, what the feature needs and the options).
+
+Rows are numbered by round (R1.1, R1.2, then R2.1 after the first triage), so a commit, a handoff or the person's answer can cite one row and the number never changes. The status is *done*, *open* or *person*. Every reader-visible string the agent wrote goes in the table at the foot, because a test reads text and cannot judge whether the wording is right.
+
+**From row to rule.** Three kinds of divergence recur and are worth naming in the row: *reversion* (the build quietly swaps in the textbook rule the design departs from), *a check that cannot fail* (the form is right and the assertion is empty, or the test compares a value with the function under test), and *a miscount* (a count or a size off by one, a unit helper misread). A row that produces a rule names where the rule now lives in its **Rule** column: a line in `CLAUDE.md` and `AGENTS.md` when it applies to every later session, a test when the core can enforce it, a row in `tests/breaks.json` when it is a behaviour a test must be seen to catch. A rule that reaches a test no longer depends on any session reading the notebook.
+
+**Where it is read.** The person reads the notebook at stage 7, with the tool open, and answers *person* rows by number. At stage 9 the agent copies the *person* rows into `HANDOFF.md` under "Open for the person" and summarises the rest under "Mistakes so far", by system, with the rule each produced. `scripts/notebook_check.py`, a step of `./scripts/check.sh`, fails when a row has no kind or status, when a number is used twice, or when a *person* row is missing from `HANDOFF.md`. It checks the form of the notebook, not whether the right things were written in it.
 
 ## Several agents at once
 

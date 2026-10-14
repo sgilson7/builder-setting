@@ -12,7 +12,7 @@ A paper describing Builder and the pilot behind it is under review. Its title an
 | page: plain JavaScript that draws what the core computed, served as static files | `template/web`; requirement R6 |
 | instruction file the agent reads at the start of every session | `template/CLAUDE.md`, `template/AGENTS.md` |
 | nine-stage procedure and its labels | `docs/procedure.md`; the stage files in `template/` |
-| second-order notebook | `template/SECOND-ORDER.md` |
+| second-order notebook: the agent's record about the build, kept as the work happens | `template/SECOND-ORDER.md`; [`docs/procedure.md`](procedure.md#the-second-order-notebook); checked for form by `scripts/notebook_check.py` |
 | default load-and-idle path | `tests/browser/check.py`: load, wait for `data-ready`, idle 10 s |
 | prompt set | `prompts/prompt-set-template.md`; `prompts/sets/` |
 

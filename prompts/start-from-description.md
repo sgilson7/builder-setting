@@ -59,7 +59,9 @@ The root `CLAUDE.md` sends the agent here when a person describes a tool. The ag
    address and the repository link.
 
 7. Write HANDOFF.md, and tell the person in plain words what was built,
-   what they should try by hand first, and what is still open.
+   what they should try by hand first, and what is still open: each
+   SECOND-ORDER.md row with status person, by its number, so they can
+   answer by number.
 
 8. For each later request: add a numbered row to TRIAGE.md with the
    person's words, make the change with its test, cite the row in the

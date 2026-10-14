@@ -1,6 +1,6 @@
 # What each check establishes
 
-`./scripts/check.sh` runs seven steps. Each one establishes something specific, and each leaves something for another check or a person. The right-hand column is the part to remember.
+`./scripts/check.sh` runs eight steps. Each one establishes something specific, and each leaves something for another check or a person. The right-hand column is the part to remember.
 
 | Check | Command | Establishes | Does not establish |
 | --- | --- | --- | --- |
@@ -11,6 +11,7 @@
 | Release build | `scripts/build.sh` | the module builds with the pinned `wasm-bindgen`; every vendored file matches its `SHA256SUMS`; every internal URL carries the build's content hash | that the vendored code is safe; only that it is the code that was pinned |
 | WebAssembly import audit | `scripts/wasm_imports.py dist` | the module's imports, each followed into the generated glue and any snippet, name no network API; the glue holds one `fetch`, which loads the module; when `wasm-tools` is installed, its import list matches the script's | the page's own JavaScript; vendored modules the page loads separately |
 | Art checks | `tests/art_check.py` | the pipeline's checks catch each kind of bad picture; the art code holds no colour literal | how the pictures look; rendering itself needs TeX and is a person-run step |
+| Notebook form | `scripts/notebook_check.py` | every row of `SECOND-ORDER.md` has a number used once, a kind and a status; every row with status *person* is named in `HANDOFF.md` | that the notebook records what happened; whether the agent wrote a row at the moment it noticed something is for the person's reading |
 | Browser check | `tests/browser/check.py` | in Chromium, Firefox and WebKit, on load, a 10 s idle and the project's interactions: no uncaught error, console error, CSP violation, off-origin request, WebSocket, popup, worker or service worker; the interactions' hand-computed values were drawn | features the interactions never start; behaviour on another day, browser version or network |
 
 ## Show that a check can fail
@@ -19,7 +20,7 @@ A check that has only been seen passing has not been shown to check anything. `s
 
 One finding from writing that script: with the CSP in place, the browser blocks a forbidden fetch before it becomes a request, so a check that only listens for requests sees nothing. The browser check therefore records CSP violations as their own failure.
 
-For each new behaviour test in a project, do the same by hand: break the behaviour once, watch the test fail, restore it, and note the message in `SECOND-ORDER.md`.
+For each new behaviour test in a project, do the same by hand: break the behaviour once, watch the test fail, restore it, and note the message in `SECOND-ORDER.md`. A test that needed a workaround to pass is a *finding* row, and the workaround is the finding.
 
 ## Break each test once
 

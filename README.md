@@ -152,7 +152,7 @@ Online play is the main departure, and Builder handles it as a declared one. A p
 | 8 Publish and check | person, or the agent if the brief grants it | `scripts/publish.sh`, then the browser check against the live address |
 | 9 Handoff | agent | `HANDOFF.md` |
 
-The person describes the tool, uses it and decides whether it is published. The agent writes everything in between and records its assumptions and divergences in `SECOND-ORDER.md` as it works. Each later request becomes a numbered `TRIAGE.md` row, and the commit that answers it cites the number. [`docs/procedure.md`](docs/procedure.md) describes each stage.
+The person describes the tool, uses it and decides whether it is published. The agent writes everything in between and records its assumptions and divergences in `SECOND-ORDER.md` as it works, which is how the person sees what the agent decided alone ([why](docs/procedure.md#the-second-order-notebook)). Each later request becomes a numbered `TRIAGE.md` row, and the commit that answers it cites the number. [`docs/procedure.md`](docs/procedure.md) describes each stage.
 
 ## What a pass does not show
 

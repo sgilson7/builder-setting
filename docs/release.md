@@ -19,6 +19,12 @@ Version 0.2.0 (13 October 2026) folds in what thirteen of the author's projects 
 
 No tag is made for it; tagging is the author's action.
 
+Since 0.2.0, not yet in a version:
+
+- the reason for the second-order notebook, and how a row becomes a rule, in `docs/procedure.md`;
+- a **Rule** column in `SECOND-ORDER.md` and an "Open for the person" section in `HANDOFF.md`;
+- `scripts/notebook_check.py`, step 7 of a project's check, with two planted defects (29 in all).
+
 ## The live example
 
 `scripts/publish-example.sh` builds `examples/minimal` and force-pushes it to the `gh-pages` branch, which GitHub Pages serves. Run it after `./scripts/check.sh` passes, then run the example's browser check against the live origin with `BUILDER_ORIGIN` set. Publishing is the person's action. A project publishes with its own `scripts/publish.sh`, which refuses uncommitted changes, runs the check, and pushes `dist/` with the message "Built from <commit>". The build stamps a content hash on every internal URL, so a returning reader gets the new module, not one GitHub Pages cached for ten minutes.

@@ -220,6 +220,28 @@ fresh
 printf '[]\n' > "$WORK/p/tests/breaks.json"
 expect_failure "an empty list of breaks" "the proof would prove nothing" "$PY" scripts/break_tests.py
 
+notebook() { "$PY" scripts/notebook_check.py; }
+
+fresh
+"$PY" - "$WORK/p/SECOND-ORDER.md" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = "| R1.1 | | | | | | |"
+assert old in s
+s = s.replace(old, "| R1.1 | finding | The count starts at 0. | It does. | Nothing. | | finished |")
+open(p, "w").write(s)
+EOF2
+expect_failure "a notebook row with a status the procedure does not use" "has status 'finished'" notebook
+
+fresh
+"$PY" - "$WORK/p/SECOND-ORDER.md" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = "| R1.1 | | | | | | |"
+assert old in s
+s = s.replace(old, "| R1.1 | worklist | The labels were written by the agent. | No teacher has read them. | Listed for the person. | | person |")
+open(p, "w").write(s)
+EOF2
+expect_failure "a person's notebook row that the handoff does not name" "R1.1 is the person's to do" notebook
+
 # The style pack and the art pipeline live in template/, not the example.
 mkdir -p "$WORK/leak/template/styles/default" "$WORK/leak/template/web"
 cp "$ROOT/template/styles/default/palette.json" "$WORK/leak/template/styles/default/"

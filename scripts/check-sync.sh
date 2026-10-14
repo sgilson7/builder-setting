@@ -15,6 +15,7 @@ scripts/setup.sh
 scripts/mutants.sh
 scripts/wasm_imports.py
 scripts/break_tests.py
+scripts/notebook_check.py
 scripts/count-tests.sh
 scripts/publish.sh
 tests/browser/check.py
