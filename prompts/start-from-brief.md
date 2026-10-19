@@ -5,6 +5,10 @@ Use after `BRIEF.md` is written, in a fresh session in the project directory. St
 ```text
 Read CLAUDE.md, BUILDER-SPEC.md and BRIEF.md, in that order.
 
+Unless BRIEF.md's Journal section says none, start the design journal
+(python3 tools/journal/new_journal.py) and write its opening entry, as
+tools/journal/ENTRIES.md describes, before the plan.
+
 Write PLAN.md from the brief: each decision in build order, with the
 reason for it and the test that will show it holds. Put every rule in
 crates/core. Name any rule you think belongs in the shim or the page,

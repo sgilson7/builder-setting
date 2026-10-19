@@ -16,6 +16,11 @@ scripts/mutants.sh
 scripts/wasm_imports.py
 scripts/break_tests.py
 scripts/notebook_check.py
+scripts/journal_check.py
+tools/journal/index.html
+tools/journal/ENTRIES.md
+tools/journal/new_journal.py
+.claude/skills/design-journal/SKILL.md
 scripts/count-tests.sh
 scripts/publish.sh
 tests/browser/check.py

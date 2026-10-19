@@ -42,6 +42,7 @@ This file has three parts. **Builder requirements** define Builder; a project th
 | D16 | Reader-visible strings, glossary definitions and the README follow `TONE.md`; the phrases between its lint markers fail a test. | `no_text_uses_a_phrase_the_tone_file_rules_out` | stock phrasing is the easiest drift to catch mechanically |
 | D17 | The page uses no browser storage. | `no_storage.rs` | storage is a decision about a person's data |
 | D18 | When the brief names no style, 2D art uses the default style pack in `styles/default/`. The pack's colours and name appear nowhere else in Builder. | `scripts/check-style-leak.py` | a fallback that does not become Builder's identity |
+| D19 | Every project keeps a design journal unless `BRIEF.md`'s Journal section says `none`: an HTML page of dated entries beside the project (`../<project>-journal/`), its own repository, never pushed. It opens with the agent's reading of Builder and the brief, written before the plan, and its entries cite the rows of `SECOND-ORDER.md` and `TRIAGE.md`. | `scripts/journal_check.py` | the person reads the build in one place, with pictures, and the agent's reading of the rules is corrected before the plan rather than discovered in the code |
 
 ## Project decisions
 
@@ -56,6 +57,7 @@ These stay with the person and go in `BRIEF.md` or `PLAN.md`:
 - any list an agent generated that a reader will see (names, labels, word lists);
 - any study of the people who use the tool, which needs approval before any data is kept;
 - the visual style, or `default`;
+- where the design journal lives, or `none` with the reason;
 - any feature that needs a server, a live model, an account, or a request to another origin. These fall outside the default build (R7). Say so in the brief and give the feature its own checks and approvals.
 
 ## Changes to the defaults in this project

@@ -34,7 +34,7 @@ cd builder-setting
 claude          # or another coding agent that reads CLAUDE.md or AGENTS.md
 ```
 
-Then describe the tool in your own words: what it is for, who uses it, what a good result looks like, and what from your own field it has to get right. If you want it published, name the repository and say the agent may publish. The agent does the step the author did by hand for the projects above: it copies the template into a new directory, writes the brief from your words, builds the tool with its tests, and publishes it if you allowed that. Later changes are more plain prose ("the hint should name the element, not the side"). [`prompts/start-from-description.md`](prompts/start-from-description.md) is the procedure the agent follows. The project is a new folder next to the clone; start later sessions inside it, so the agent reads the project's own rules from the beginning.
+Then describe the tool in your own words: what it is for, who uses it, what a good result looks like, and what from your own field it has to get right. If you want it published, name the repository and say the agent may publish. The agent does the step the author did by hand for the projects above: it copies the template into a new directory, writes the brief from your words, starts a design journal beside the project and reads Builder and your description back to you there, builds the tool with its tests, and publishes it if you allowed that. Later changes are more plain prose ("the hint should name the element, not the side"). [`prompts/start-from-description.md`](prompts/start-from-description.md) is the procedure the agent follows. The project is a new folder next to the clone; start later sessions inside it, so the agent reads the project's own rules from the beginning.
 
 What you still own: the content and whether it is right in your field, whether the tool does what you meant, and the decision to make it public. Use the tool on one case you have worked out by hand before you share it.
 
@@ -116,7 +116,7 @@ When a requirement seems to block necessary work, the agent stops and writes a r
 
 ## A check is trusted after it has been seen to fail
 
-`scripts/prove-checks.sh` copies the minimal example, plants one defect at a time, and requires the check meant to catch it to fail with a message that names the defect. It plants 27, among them a float, a `println!` and a hash map in the core, a branch in the shim, a copy of a rule in a nested page file, a tuning number in a shader, a page that navigates or checks for automation, browser storage, a word the glossary rules out, a stock phrase, a vendored file that does not match its checksum, an empty list of breaks, and a default-style colour in the template's CSS. A run with nothing planted fails too.
+`scripts/prove-checks.sh` copies the minimal example, plants one defect at a time, and requires the check meant to catch it to fail with a message that names the defect. It plants 38, among them a float, a `println!` and a hash map in the core, a branch in the shim, a copy of a rule in a nested page file, a tuning number in a shader, a page that navigates or checks for automation, browser storage, a word the glossary rules out, a stock phrase, a vendored file that does not match its checksum, an empty list of breaks, and a default-style colour in the template's CSS. A run with nothing planted fails too.
 
 Writing that script found a gap. With the CSP in place, the browser blocks a forbidden fetch before it becomes a request, so a check that listened only for requests saw nothing. The browser check now records CSP violations as their own failure.
 
@@ -142,6 +142,7 @@ Online play is the main departure, and Builder handles it as a declared one. A p
 
 | Stage | Who | File |
 | --- | --- | --- |
+| 0 Opening entry | agent, then person | the design journal |
 | 1 Brief | person, or the agent from the person's description | `BRIEF.md`, `GLOSSARY.md` |
 | 2 Plan | agent | `PLAN.md` |
 | 3 Read the plan | person, unless approved in advance | `PLAN.md` |
@@ -153,6 +154,10 @@ Online play is the main departure, and Builder handles it as a declared one. A p
 | 9 Handoff | agent | `HANDOFF.md` |
 
 The person describes the tool, uses it and decides whether it is published. The agent writes everything in between and records its assumptions and divergences in `SECOND-ORDER.md` as it works, which is how the person sees what the agent decided alone ([why](docs/procedure.md#the-second-order-notebook)). Each later request becomes a numbered `TRIAGE.md` row, and the commit that answers it cites the number. [`docs/procedure.md`](docs/procedure.md) describes each stage.
+
+## The design journal
+
+Every project keeps a design journal unless its brief says `none`: an HTML page of dated entries beside the project, never pushed, where the person reads the build and answers by number. It opens, before the plan, with the agent reading Builder and the brief back to the person as numbered rules, each with what holds it, plus the question prefix, the stop points and its questions. The person corrects that reading before anything is built on it, and the answers move the lasting rules into `CLAUDE.md` and tests. After that, each decision put to the person (with the default the agent builds on), each visible change (with pictures of the running build), each divergence from the plan and each deploy gets an entry that cites the notebook and triage rows it reports. `scripts/journal_check.py` checks the journal's form and its links to those rows. The form comes from Peter's Ape Race and the games built after it; [`docs/journal.md`](docs/journal.md) describes it.
 
 ## What a pass does not show
 
@@ -174,7 +179,7 @@ The full contract is [`BUILDER-SPEC.md`](BUILDER-SPEC.md). It separates **Builde
 ./scripts/check.sh
 ```
 
-In a project, that runs format and lint, the core, boundary, copy and storage tests, the release build with cache-busting and checksum verification, the WebAssembly import audit, the art pipeline's checks, and the browser check. In this repository it also checks that the template and example agree, that links resolve, that the style pack stays put, that every break in the template and example is caught, and that every planted defect is caught. [`docs/checks.md`](docs/checks.md) says what each establishes and what still needs a person.
+In a project, that runs format and lint, the core, boundary, copy and storage tests, the release build with cache-busting and checksum verification, the WebAssembly import audit, the art pipeline's checks, the notebook and journal checks, and the browser check. In this repository it also checks that the template and example agree, that links resolve, that the style pack stays put, that every break in the template and example is caught, and that every planted defect is caught. [`docs/checks.md`](docs/checks.md) says what each establishes and what still needs a person.
 
 ## Examples and prompts
 
@@ -184,11 +189,11 @@ In a project, that runs format and lint, the core, boundary, copy and storage te
 
 ## Documentation
 
-[Architecture](docs/architecture.md) · [Procedure](docs/procedure.md) · [Checks](docs/checks.md) · [Glossary and tone](docs/glossary.md) · [Art](docs/art.md) · [Online play](docs/online.md) · [Adoption](docs/adoption.md) · [Mapping to the paper](docs/paper-mapping.md) · [Releases](docs/release.md)
+[Architecture](docs/architecture.md) · [Procedure](docs/procedure.md) · [Design journal](docs/journal.md) · [Checks](docs/checks.md) · [Glossary and tone](docs/glossary.md) · [Art](docs/art.md) · [Online play](docs/online.md) · [Adoption](docs/adoption.md) · [Mapping to the paper](docs/paper-mapping.md) · [Releases](docs/release.md)
 
 ## Credits
 
-Builder is designed by Sam Gilson with Peter (ptonkle), who tested it by building from a clean copy and contributed the view model, the one-door action function, the draw-list renderer, the glossary and the online transport's design from his games.
+Builder is designed by Sam Gilson with Peter (ptonkle), who tested it by building from a clean copy and contributed the view model, the one-door action function, the draw-list renderer, the glossary, the online transport's design and the design journal from his games.
 
 ## Citation
 

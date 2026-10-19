@@ -84,3 +84,7 @@ Peter's Ape Race takes the same approach to WebGL 2. Its `gl.js` uploads what th
 ## Credits
 
 The draw-list design is Peter's (GitHub [ptonkle](https://github.com/ptonkle)): Mandible's `render.js` replays an `Int32Array` from the core with op codes, palette, shapes and scales sent once, and Ape Race's `?tile=<spec>` screenshots gave `tiles.py` its shape. Reading colours from CSS custom properties by role is this kit's addition. The code was written fresh for the kit.
+
+## Pictures for the design journal
+
+A game's journal shows the running build at the size the person views it, usually 1920×1080. `scripts/tiles.py` already saves a still for each `?tile=<spec>`; extend the spec with a camera (position, yaw, pitch, distance) so each shot is framed on what changed, and add a flyover parameter (`?map=<key>&at=<metres>`) for a course. Capture headless, look at every shot before it goes in the journal, and retake one that is too dark, cluttered or cropped. A sheet of every model in every colourway, shot the same way, is the journal's *models* entry. `tools/journal/ENTRIES.md` lists the entry kinds.

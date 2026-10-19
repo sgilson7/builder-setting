@@ -10,6 +10,7 @@ The smallest tool that exercises every part of Builder. Add, Remove and Reset ch
 | the shim | `crates/shim/src/lib.rs`: two functions, one call each |
 | the page | `web/`: draws the count, the labels and the note, and disables what the core says to disable |
 | a browser interaction | `tests/browser/interactions.py`: 0, 3, 6, 9, 10, then Remove to 7 and Reset to 0 |
+| the design journal | `../minimal-journal/`: the opening entry and the brief entry; a project's journal is its own repository, this one sits in the reference repository so its check runs here |
 
 ```bash
 ./scripts/setup.sh     # once

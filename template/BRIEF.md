@@ -42,6 +42,12 @@ One paragraph: what the agent may do alone, what it must ask about, and what it 
 
 A paragraph that has worked for one-day builds: *The plan is approved in advance. Where this brief is silent, the agent decides, records the decision in `SECOND-ORDER.md`, and continues. The agent may not loosen a Builder requirement or a boundary test, and may not add a server, an account, analytics or any off-origin request. The agent may create a public repository named ____ and publish it with `./scripts/publish.sh` once `./scripts/check.sh` passes.*
 
+## Journal
+
+`default`
+
+Where the design journal lives. `default` is a folder beside this project, `../<this folder>-journal/`, kept as its own repository and never pushed; a relative path puts it elsewhere. Write `none`, with the reason, to build without a journal. With any other value the agent starts the journal and writes its opening entry before the plan, and `scripts/journal_check.py` fails while it is missing.
+
 ## Allowed core dependencies
 
 `serde`, `serde_json` (reference default). Add others only here, with the reason.

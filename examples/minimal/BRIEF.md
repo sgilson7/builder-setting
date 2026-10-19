@@ -23,6 +23,10 @@ None beyond the reference defaults.
 
 The plan is approved in advance. The agent may build and test; it may not push or deploy.
 
+## Journal
+
+`default`: `../minimal-journal/`, kept in the reference repository beside this example so its form check runs here.
+
 ## Allowed core dependencies
 
 `serde`, `serde_json`.

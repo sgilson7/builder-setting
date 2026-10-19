@@ -1,9 +1,10 @@
 # The nine-stage procedure
 
-Each Builder build follows nine stages. The person owns four of them and the agent owns five. Each stage carries a label naming a step from two AI-literacy procedures taught to computing students: the four parts of a strong prompt (B1–B4) and working a problem with a chatbot (C1–C5). The labels are used as a naming scheme, so that a student who has met the steps in a mathematics course can recognise the same move when directing a coding agent.
+Each Builder build follows nine stages, after an opening entry in the design journal. The person owns four stages and the agent owns five. Each stage carries a label naming a step from two AI-literacy procedures taught to computing students: the four parts of a strong prompt (B1–B4) and working a problem with a chatbot (C1–C5). The labels are used as a naming scheme, so that a student who has met the steps in a mathematics course can recognise the same move when directing a coding agent.
 
 | Stage | Who | Label | What happens | File |
 | --- | --- | --- | --- | --- |
+| 0 Opening entry | agent, then **person** | B1 Establish context; C3 Interrogate the claim | Before planning, the agent reads Builder and the brief back to the person in the design journal: numbered rules with what holds each, the question prefix, where it stops, and its questions. The person's answers move the lasting rules into `CLAUDE.md` and tests ([why](journal.md#the-opening-entry)). Skipped only when the brief's Journal section says `none`. | the journal |
 | 1 Brief | **person** | C1 Frame the problem and set the rules; B1 Establish context | Describe the tool in your own words. The description goes into the brief word for word; the rest of the brief (done means, decisions that stay with the person, accessibility, style, words, autonomy) is written from it, by the person or by the agent for the person to read. Terms from the person's field go into `GLOSSARY.md`. | `BRIEF.md`, `GLOSSARY.md` |
 | 2 Plan | agent | B2 Require step-by-step justification | Turn the brief into decisions in build order, each with its reason and the test that will show it holds. Then stop. | `PLAN.md` |
 | 3 Read the plan | **person** | C3 Interrogate the claim | Accept the plan, revise it, or answer its open questions. A plan that is not approved goes back to stage 2. | `PLAN.md` |
@@ -16,6 +17,8 @@ Each Builder build follows nine stages. The person owns four of them and the age
 
 B4 (plan the corrective dialogue) has no stage of its own. A prompt set writes it out: when a check fails, record the file and line, what was expected and what happened, and fix the rule in the core. C2 (elicit one step with its rule named) is done by stage 2's reasons.
 
+Each stage also leaves an entry in the design journal, where the person reads the build and answers by number. The files above stay the record, and every entry cites their rows. [`journal.md`](journal.md) describes the journal and its entries.
+
 ## Approving the plan in advance
 
 A person may approve the plan in advance and let the agent run through stages 2 to 6 and 9 without stopping, as the prompt sets in `prompts/sets/` do. That is faster, and it defers the person's review of the plan to after the build. When the stops are set aside, make stage 7 the gate: the person uses the tool and checks a hand-computed case before stage 8. Record in `BRIEF.md` that the plan was approved in advance.
@@ -26,7 +29,7 @@ The agent does not deploy on its own judgement. In a project where the person ha
 
 ## Starting from a description
 
-The projects behind this round of Builder mostly began as a few paragraphs of plain prose from a friend of the author who does not write code. The author rewrote each into a brief in the shape above and started the build. [`prompts/start-from-description.md`](../prompts/start-from-description.md) gives that rewriting step to the agent: a person who does not write code clones the repository, starts an agent in it, and describes the tool. The agent keeps the description word for word at the top of the brief, writes the rest of the brief from it, asks only what blocks the build, and records every other decision in the notebook. The person's later requests, also in prose, become numbered triage rows.
+The projects behind this round of Builder mostly began as a few paragraphs of plain prose from a friend of the author who does not write code. The author rewrote each into a brief in the shape above and started the build. [`prompts/start-from-description.md`](../prompts/start-from-description.md) gives that rewriting step to the agent: a person who does not write code clones the repository, starts an agent in it, and describes the tool. The agent keeps the description word for word at the top of the brief, starts the design journal and writes its opening entry, writes the rest of the brief from it, asks only what blocks the build, and records every other decision in the notebook. The person's later requests, also in prose, become numbered triage rows.
 
 ## Numbered requests and experiments
 

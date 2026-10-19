@@ -22,6 +22,10 @@ Build, test, check, publish, and the probes, with what each prints when it passe
 
 What a new session gets wrong first.
 
+## The journal
+
+Where the design journal is, its link if it is published, and its newest entry.
+
 ## Open for the person
 
 Every `SECOND-ORDER.md` row with status *person*, by number, with what the person has to decide or supply. `scripts/notebook_check.py` fails while one is missing.

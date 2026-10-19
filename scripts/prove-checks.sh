@@ -29,6 +29,8 @@ pass=0; fail=0
 fresh() {
   rm -rf "$WORK/p"; mkdir -p "$WORK/p"
   (cd "$SRC" && tar --exclude=./target --exclude=./dist --exclude=./.venv -cf - .) | (cd "$WORK/p" && tar -xf -)
+  # the example's journal sits beside it, as a project's does
+  rm -rf "$WORK/p-journal"; cp -R "$ROOT/examples/minimal-journal" "$WORK/p-journal"
   # build.sh reads the module from target/; point it at the shared target dir
   ln -s "$CARGO_TARGET_DIR" "$WORK/p/target"
 }
@@ -262,6 +264,64 @@ s = s.replace(old, "| 1 | The count stops at the maximum. | The brief says so. |
 open(p, "w").write(s)
 EOF2
 expect_failure "a plan with decisions and an empty notebook" "SECOND-ORDER.md has no rows, but PLAN.md holds decisions" notebook
+
+journal() { env -u CI "$PY" scripts/journal_check.py; }
+
+fresh
+rm -rf "$WORK/p-journal"
+expect_failure "a started build with no journal" "the journal is missing" journal
+
+fresh
+"$PY" - "$WORK/p-journal/index.html" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = 'data-kind="reading"'
+assert old in s
+s = s.replace(old, 'data-kind="plan"')
+open(p, "w").write(s)
+EOF2
+expect_failure "a journal with no opening entry" "the journal has no opening entry" journal
+
+fresh
+"$PY" - "$WORK/p-journal/index.html" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = 'data-kind="reading">'
+assert old in s
+s = s.replace(old, 'data-kind="reading" data-blank>')
+open(p, "w").write(s)
+EOF2
+expect_failure "an opening entry left blank" "still the template's blank one" journal
+
+fresh
+"$PY" - "$WORK/p/SECOND-ORDER.md" "$WORK/p/HANDOFF.md" <<'EOF2'
+import sys; p, h = sys.argv[1:]; s = open(p).read()
+old = "| R1.1 | | | | | | |"
+assert old in s
+s = s.replace(old, "| R1.1 | worklist | The labels were written by the agent. | No teacher has read them. | Listed for the person. | | person |")
+open(p, "w").write(s)
+open(h, "a").write("\nOpen for the person: R1.1.\n")
+EOF2
+expect_failure "a person's notebook row the journal does not name" "R1.1 is the person's to do and the journal does not name it" journal
+
+fresh
+"$PY" - "$WORK/p-journal/index.html" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = "<h4>Where I stop</h4>"
+assert old in s
+s = s.replace(old, "<p>Recorded as R4.2 and answered in T9.</p>" + old)
+open(p, "w").write(s)
+EOF2
+expect_failure "a journal that cites a notebook row that does not exist" "the journal cites R4.2" journal
+expect_failure "a journal that cites a triage row that does not exist" "the journal cites T9" journal
+
+fresh
+(cd "$WORK/p-journal" && git init -q && git add -A && git -c user.name=prove -c user.email=prove@invalid commit -qm journal)
+"$PY" - "$WORK/p-journal/index.html" <<'EOF2'
+import re, sys; p = sys.argv[1]; s = open(p).read()
+s2 = re.sub(r'\n    <article class="entry" id="brief".*?</article>', "", s, flags=re.S)
+assert s2 != s
+open(p, "w").write(s2)
+EOF2
+expect_failure "a journal entry removed since the journal's last commit" "entry brief was in the journal's last commit and is gone" journal
 
 # The style pack and the art pipeline live in template/, not the example.
 mkdir -p "$WORK/leak/template/styles/default" "$WORK/leak/template/web"

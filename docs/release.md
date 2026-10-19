@@ -24,7 +24,8 @@ Since 0.2.0, not yet in a version:
 - the reason for the second-order notebook, and how a row becomes a rule, in `docs/procedure.md`;
 - a **Rule** column in `SECOND-ORDER.md` and an "Open for the person" section in `HANDOFF.md`;
 - `scripts/notebook_check.py`, step 7 of a project's check: round numbers, kinds, statuses, person rows in the handoff, and no empty notebook once the plan holds decisions, with four planted defects (31 in all);
-- the root `CLAUDE.md` and the description procedure tell an agent started in the reference repository to read the new project's instructions, and the person to start later sessions in the project.
+- the root `CLAUDE.md` and the description procedure tell an agent started in the reference repository to read the new project's instructions, and the person to start later sessions in the project;
+- the design journal (D19): `tools/journal/` (the page, `ENTRIES.md`, `new_journal.py`), a `design-journal` skill, a Journal section in `BRIEF.md`, rules 13 to 15 and "Rules agreed for this project" in `CLAUDE.md` and `AGENTS.md`, a stage 0 opening entry in the procedure and both start prompts, `docs/journal.md`, an example journal for `examples/minimal`, and `scripts/journal_check.py`, step 8 of a project's check, with seven planted defects (38 in all).
 
 ## The live example
 

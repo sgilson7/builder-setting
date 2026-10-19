@@ -1,6 +1,6 @@
 # What each check establishes
 
-`./scripts/check.sh` runs eight steps. Each one establishes something specific, and each leaves something for another check or a person. The right-hand column is the part to remember.
+`./scripts/check.sh` runs nine steps. Each one establishes something specific, and each leaves something for another check or a person. The right-hand column is the part to remember.
 
 | Check | Command | Establishes | Does not establish |
 | --- | --- | --- | --- |
@@ -12,11 +12,12 @@
 | WebAssembly import audit | `scripts/wasm_imports.py dist` | the module's imports, each followed into the generated glue and any snippet, name no network API; the glue holds one `fetch`, which loads the module; when `wasm-tools` is installed, its import list matches the script's | the page's own JavaScript; vendored modules the page loads separately |
 | Art checks | `tests/art_check.py` | the pipeline's checks catch each kind of bad picture; the art code holds no colour literal | how the pictures look; rendering itself needs TeX and is a person-run step |
 | Notebook form | `scripts/notebook_check.py` | every row of `SECOND-ORDER.md` has a round number (R1.1) used once, a kind and a status; every row with status *person* is named in `HANDOFF.md`; once `PLAN.md` holds a decision, the notebook has a row. It prints, without failing, how many commits that changed code also changed the notebook | that the notebook records everything that happened, or that rows were written at the moment; the commit count is evidence for the person, not a pass mark |
+| Design journal | `scripts/journal_check.py` | once the brief holds a description, the journal it names exists (on CI a missing journal is reported, not failed); it has a filled opening entry; every entry has an id and a kind; every *person* notebook row is named in it; every notebook and triage row it cites exists; no entry in its last commit is gone | that an entry is right, that a picture shows what its caption says, or that the agent left nothing out ([journal.md](journal.md)) |
 | Browser check | `tests/browser/check.py` | in Chromium, Firefox and WebKit, on load, a 10 s idle and the project's interactions: no uncaught error, console error, CSP violation, off-origin request, WebSocket, popup, worker or service worker; the interactions' hand-computed values were drawn | features the interactions never start; behaviour on another day, browser version or network |
 
 ## Show that a check can fail
 
-A check that has only been seen passing has not been shown to check anything. `scripts/prove-checks.sh` copies `examples/minimal`, plants one defect at a time, runs the check meant to catch it, and requires that check to fail with the message that names the defect. The planted defects include a float, a `println!` and a hash map in the core, a dependency outside the allowlist, a branch in the shim, a copy of a rule in the page, an absolute URL, a missing CSP, an import that reaches `sendBeacon`, an off-origin fetch assembled at run time (once with the CSP in place and once without it), a console error, and a broken rule seen by both the core suite and the browser check.
+A check that has only been seen passing has not been shown to check anything. `scripts/prove-checks.sh` copies `examples/minimal`, plants one defect at a time, runs the check meant to catch it, and requires that check to fail with the message that names the defect. The planted defects include a float, a `println!` and a hash map in the core, a dependency outside the allowlist, a branch in the shim, a copy of a rule in the page, an absolute URL, a missing CSP, an import that reaches `sendBeacon`, an off-origin fetch assembled at run time (once with the CSP in place and once without it), a console error, a broken rule seen by both the core suite and the browser check, a notebook row the handoff does not name, and a started build with no journal, a blank opening entry, a journal citing a row that does not exist, and a journal entry removed since its last commit.
 
 One finding from writing that script: with the CSP in place, the browser blocks a forbidden fetch before it becomes a request, so a check that only listens for requests sees nothing. The browser check therefore records CSP violations as their own failure.
 
