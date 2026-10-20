@@ -369,6 +369,16 @@ kit_edit tools/intake/layout.json '"10. AI use statement"' '"10. AI use statemen
 expect_failure "a template missing a heading the layout names" "test_the_blank_templates_match_the_layout" kit_tests
 
 kit_fresh
+kit_edit tools/intake/intake.py '        return tool
+' '        return game
+'
+expect_failure "an intake that checks a tool document against the game headings" "test_a_tool_design_document_lands_in_the_brief_with_nothing_missing" kit_tests
+
+kit_fresh
+kit_edit tools/intake/layout.json '"5. Inputs and outputs",' '"5. Inputs, outputs and errors",'
+expect_failure "a tool template missing a heading the layout names" "test_the_blank_templates_match_the_layout" kit_tests
+
+kit_fresh
 "$PY" - "$WORK/k/kits/office-intake/templates/GameDesign.docx" <<'EOF2'
 import re, shutil, sys, zipfile
 p = sys.argv[1]; tmp = p + ".tmp"

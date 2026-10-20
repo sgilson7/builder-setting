@@ -4,7 +4,7 @@ This kit turns a student team's game design, written in Word, PowerPoint, and Ex
 
 The kit has three parts:
 
-- **Templates** that students start from: `templates/GameDesign.docx`, `templates/GamePitch.pptx`, and `templates/GameData.xlsx`. A filled sample, an invented game called Lava Lanes, is in `templates/sample/`.
+- **Templates** that students start from: `templates/GameDesign.docx`, `templates/GamePitch.pptx`, and `templates/GameData.xlsx`. A filled sample, an invented game called Lava Lanes, is in `templates/sample/`. A team that designs a tool instead of a game uses `templates/tool/GameDesign.docx`, which keeps the file name and the ten-heading shape but asks about the tool's user, inputs and outputs. Its filled sample, an invented tool called Recipe Scaler, is `templates/sample-tool/GameDesign.docx`.
 - **An intake script**, `tools/intake/intake.py`, that copies a submission into a fresh copy of `template/` and reports what is missing.
 - **Tests**, `tests/test_intake.py`, that run the intake on the sample.
 
@@ -18,7 +18,7 @@ The fixed shape of a submission is in `tools/intake/layout.json`. The templates 
 
 | From the team | Goes to | Notes |
 | --- | --- | --- |
-| `GameDesign.docx`, ten fixed headings | `BRIEF.md`, under "The description, word for word" | Every heading and paragraph, unchanged. |
+| `GameDesign.docx`, ten fixed headings | `BRIEF.md`, under "The description, word for word" | Every heading and paragraph, unchanged. The intake checks the document against the game headings or the tool headings, whichever it follows more closely, and says in `INTAKE.md` when it is the tool version. |
 | `GameData.xlsx`, Words sheet | `GLOSSARY.md` | A meaning that states a number is flagged, because Builder's glossary writes numbers as `{placeholders}`. |
 | `GameData.xlsx`, Rules, Levels, Things, Controls, and any extra sheet | `data/game.json` | Values stay as text, as the team wrote them. The Rules sheet's worked examples are the hand-worked cases for the core's tests. |
 | `GameData.xlsx`, Assets sheet | `LICENSES.md` | For you to confirm before you publish. |
@@ -64,5 +64,6 @@ Each test listed here was seen to fail against a planted defect in `scripts/prov
 | `test_no_private_text_reaches_any_output` | `layout.json` no longer marks the Team sheet private |
 | `test_a_name_in_the_text_stops_the_intake_before_it_writes` | the name search is switched off |
 | `test_a_missing_heading_is_reported` | the heading check reports nothing |
-| `test_the_blank_templates_match_the_layout` | `layout.json` names a heading the template lacks |
+| `test_the_blank_templates_match_the_layout` | `layout.json` names a heading the game or tool template lacks |
+| `test_a_tool_design_document_lands_in_the_brief_with_nothing_missing` | the intake checks a tool document against the game headings |
 | `test_the_blank_templates_carry_no_author` | a template carries an author's name |

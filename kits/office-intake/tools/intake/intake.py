@@ -13,7 +13,9 @@ in the team's words, for the agent to turn into core code and tests.
 What goes where:
 
 - GameDesign.docx, every heading and paragraph, word for word -> BRIEF.md,
-  under "The description, word for word"
+  under "The description, word for word". The document is either the game
+  version or the tool version (layout.json "headings" or "tool_headings");
+  the intake checks it against the set it follows more closely.
 - GameData.xlsx: Words -> GLOSSARY.md; Rules, Levels, Things, Controls and
   any extra sheet the team added -> data/game.json; Assets -> LICENSES.md;
   Changes -> TRIAGE.md rows T1, T2, ...
@@ -278,6 +280,15 @@ def licences_with(licences, assets):
     return licences.rstrip("\n") + "\n" + "\n".join(table) + "\n"
 
 
+def design_headings(got):
+    """The heading set a design document follows: the tool version only when
+    more of its headings match the tool set than the game set."""
+    game, tool = LAYOUT["headings"], LAYOUT["tool_headings"]
+    if sum(h in got for h in tool) > sum(h in got for h in game):
+        return tool
+    return game
+
+
 def plan(files):
     """Everything the intake would write, as {relative path: bytes or str}, plus the report."""
     found, missing, notes = [], [], []
@@ -290,14 +301,18 @@ def plan(files):
     sections, doc_media = read_docx(design)
     found.append(names["design"])
     got = [h for h, _ in sections if h]
-    for h in LAYOUT["headings"]:
+    headings = design_headings(got)
+    if headings is LAYOUT["tool_headings"]:
+        notes.append(f"{names['design']} is the tool version: the team is designing a tool. "
+                     "Read the game words in the other files (levels, player) in that light.")
+    for h in headings:
         if h not in got:
             missing.append(f"{names['design']}: the heading \"{h}\"")
     for h, paras in sections:
-        if h in LAYOUT["headings"] and not paras:
+        if h in headings and not paras:
             missing.append(f"{names['design']}: text under \"{h}\"")
     for h in got:
-        if h not in LAYOUT["headings"]:
+        if h not in headings:
             notes.append(f"{names['design']}: an extra heading \"{h}\" was kept in the brief.")
 
     pitch = find(files, names["pitch"])

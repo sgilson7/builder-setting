@@ -13,6 +13,19 @@
     "9. Scope",
     "10. AI use statement"
   ],
+  "_tool_note": "The tool version of the design document, for a team that designs a tool instead of a game. Same file name, same number of headings; the intake accepts either set.",
+  "tool_headings": [
+    "1. Pitch",
+    "2. User and goal",
+    "3. Controls",
+    "4. Rules: what the tool does",
+    "5. Inputs and outputs",
+    "6. Walkthrough: one use from start to finish",
+    "7. Screens and interface",
+    "8. Look, wording and privacy",
+    "9. Scope",
+    "10. AI use statement"
+  ],
   "slides": ["Title", "The central idea", "The gameplay loop", "Key rules", "Screen mock-up", "What we cut and why"],
   "sheets": [
     {"name": "Start Here", "columns": []},

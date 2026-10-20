@@ -22,6 +22,7 @@ sys.path.insert(0, str(KIT / "tools" / "intake"))
 import intake  # noqa: E402
 
 SAMPLE = KIT / "templates" / "sample"
+SAMPLE_TOOL = KIT / "templates" / "sample-tool" / "GameDesign.docx"
 TEMPLATES = KIT / "templates"
 PRIVATE = ["Student A Placeholder", "Student B Placeholder", "Student C Placeholder",
            "Student D Placeholder", "Sundays at 7", "Team charter", "Made the folder"]
@@ -49,12 +50,16 @@ class IntakeTest(unittest.TestCase):
     def tearDown(self):
         shutil.rmtree(self.tmp)
 
-    def submission(self, change=None):
-        """A copy of the sample, with its design document passed through change."""
+    def submission(self, change=None, tool=False):
+        """A copy of the sample, with its design document passed through change.
+        With tool, the design document is the tool sample's (Recipe Scaler)."""
         sub = self.tmp / "submission"
         shutil.copytree(SAMPLE, sub)
+        design = SAMPLE_TOOL if tool else SAMPLE / "GameDesign.docx"
         if change:
-            rewrite_docx(SAMPLE / "GameDesign.docx", sub / "GameDesign.docx", change)
+            rewrite_docx(design, sub / "GameDesign.docx", change)
+        elif tool:
+            shutil.copy(design, sub / "GameDesign.docx")
         return sub
 
     def read(self, name):
@@ -128,6 +133,28 @@ class IntakeTest(unittest.TestCase):
         self.assertIn('the heading "5. Winning and losing"', report)
         self.assertIn('an extra heading "Winning"', report)
 
+    def test_a_game_design_document_is_not_called_a_tool(self):
+        self.run_intake(self.submission())
+        self.assertNotIn("tool version", self.read("INTAKE.md"))
+
+    def test_a_tool_design_document_lands_in_the_brief_with_nothing_missing(self):
+        self.run_intake(self.submission(tool=True))
+        brief = self.read("BRIEF.md")
+        self.assertIn("> **5. Inputs and outputs**", brief)
+        self.assertIn("> Recipe Scaler changes a recipe to feed a different number of people.", brief)
+        report = self.read("INTAKE.md")
+        self.assertEqual(report.split("## Missing")[1].split("##")[0].strip(), "- nothing")
+        self.assertIn("GameDesign.docx is the tool version", report)
+        self.assertNotIn("extra heading", report)
+
+    def test_a_missing_tool_heading_is_reported_against_the_tool_set(self):
+        sub = self.submission(lambda x: x.replace(">5. Inputs and outputs<", ">Inputs<"), tool=True)
+        self.run_intake(sub)
+        report = self.read("INTAKE.md")
+        self.assertIn('the heading "5. Inputs and outputs"', report)
+        self.assertNotIn('the heading "5. Winning and losing"', report)
+        self.assertIn('an extra heading "Inputs"', report)
+
     def test_a_missing_file_is_reported(self):
         sub = self.submission()
         (sub / "GamePitch.pptx").unlink()
@@ -149,6 +176,8 @@ class IntakeTest(unittest.TestCase):
     def test_the_blank_templates_match_the_layout(self):
         sections, _ = intake.read_docx((TEMPLATES / "GameDesign.docx").read_bytes())
         self.assertEqual([h for h, _ in sections if h], intake.LAYOUT["headings"])
+        sections, _ = intake.read_docx((TEMPLATES / "tool" / "GameDesign.docx").read_bytes())
+        self.assertEqual([h for h, _ in sections if h], intake.LAYOUT["tool_headings"])
         slides, _ = intake.read_pptx((TEMPLATES / "GamePitch.pptx").read_bytes())
         self.assertEqual(len(slides), len(intake.LAYOUT["slides"]))
         sheets = intake.read_xlsx((TEMPLATES / "GameData.xlsx").read_bytes())
@@ -158,7 +187,7 @@ class IntakeTest(unittest.TestCase):
                 self.assertEqual(sheets[spec["name"]][0], spec["columns"], spec["name"])
 
     def test_the_blank_templates_carry_no_author(self):
-        for name in ("GameDesign.docx", "GamePitch.pptx", "GameData.xlsx"):
+        for name in ("GameDesign.docx", "tool/GameDesign.docx", "GamePitch.pptx", "GameData.xlsx"):
             with zipfile.ZipFile(TEMPLATES / name) as z:
                 core = z.read("docProps/core.xml").decode()
             self.assertIsNone(re.search(r"<dc:creator>[^<]+</dc:creator>", core), name)

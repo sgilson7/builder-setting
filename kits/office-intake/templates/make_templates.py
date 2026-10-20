@@ -35,6 +35,20 @@ PROMPTS = [
     "If you used AI for any part of this project, say which tool, what you asked it, and how you checked its answer. If you did not use AI, write \"We did not use AI.\"",
 ]
 
+# The tool version, in the order of layout.json's "tool_headings".
+TOOL_PROMPTS = [
+    "Describe your tool in two sentences. Say who uses it and what job it does for them.",
+    "Say who uses the tool and what they are trying to get done. Say how they do it today without the tool, and what is slow or annoying about that.",
+    "List every button, key, click, or box the person uses, and what each one does.",
+    "Write each rule of the tool as one sentence. Use exact numbers. Put the full list, with a worked example for each rule, in the Rules sheet of GameData.xlsx.",
+    "Say what the person puts in, such as a file, typed text, numbers, or a choice. Say what the tool gives back, such as a file, a list, a number, or a picture. Say what happens when the input is wrong or missing.",
+    "Walk through one use from start to finish: what the person sees, decides, and does, and what they end up with.",
+    "Describe each screen or panel, from the first thing the person sees to the result. Say what is on each one.",
+    "Describe the look and the wording, such as plain, friendly, or formal. Say what information the person puts in and whether any of it is private. List any images or sounds in the Assets sheet.",
+    "Make three lists: Must have, Nice to have, and Left out. Keep Must have short enough to build in a week.",
+    PROMPTS[-1],
+]
+
 SLIDE_PROMPTS = [
     "Game name\nTeam number",
     "Say the idea of your game in one or two sentences.",
@@ -58,17 +72,17 @@ START_HERE = [
 COLUMNS = {s["name"]: s["columns"] for s in LAYOUT["sheets"]}
 
 
-def write_docx(path, title, bodies, author):
+def write_docx(path, title, bodies, author, headings=None):
     doc = Document()
     doc.core_properties.author = author
     doc.core_properties.last_modified_by = author
     doc.add_heading(title, level=0)
-    for heading, body in zip(LAYOUT["headings"], bodies):
+    for heading, body in zip(headings or LAYOUT["headings"], bodies):
         doc.add_heading(heading, level=1)
         for line in body:
             p = doc.add_paragraph()
             run = p.add_run(line)
-            if body is not None and line in PROMPTS:
+            if line in PROMPTS or line in TOOL_PROMPTS:
                 run.italic = True
             run.font.size = Pt(11)
     doc.save(path)
@@ -118,6 +132,9 @@ def write_xlsx(path, rows, author):
 def templates():
     out = HERE
     write_docx(out / "GameDesign.docx", "Game name: Game design document", [[p] for p in PROMPTS], "")
+    (out / "tool").mkdir(exist_ok=True)
+    write_docx(out / "tool" / "GameDesign.docx", "Tool name: Tool design document",
+               [[p] for p in TOOL_PROMPTS], "", LAYOUT["tool_headings"])
     write_pptx(out / "GamePitch.pptx", SLIDE_PROMPTS, "")
     write_xlsx(out / "GameData.xlsx", {"Team": [["", "", ""], ["Team charter", "", ""],
                                                 ["When we meet", "", ""], ["How to reach each other", "", ""],
@@ -208,12 +225,32 @@ SAMPLE_ROWS = {
 }
 
 
+# The tool sample: an invented tool, for the intake's tests. Only the design
+# document differs; the tests pair it with the game sample's other two files.
+SAMPLE_TOOL_DOC = [
+    ["Recipe Scaler changes a recipe to feed a different number of people. You paste a recipe, choose how many servings you want, and get the new amounts."],
+    ["Home cooks who want to make a recipe for more or fewer people. Today they do the math on paper, and fractions like 3/4 cup times 2.5 are easy to get wrong."],
+    ["A text box for the recipe. A number box for servings, from 1 to 50. A Scale button. A Copy button that copies the new recipe."],
+    ["Each amount is multiplied by new servings divided by old servings. Amounts are rounded to the nearest 1/8 for cups and spoons. 16 tablespoons make 1 cup, and an amount of 16 tablespoons or more is shown in cups."],
+    ["In: the recipe as text, with the servings on the first line, and the new number of servings. Out: the same recipe with new amounts. A line with no amount, like \"salt to taste\", stays as it is. If the first line has no servings, the tool asks for them."],
+    ["You paste a cookie recipe for 12. You type 30 in the servings box and select Scale. The tool shows 2 1/2 cups of flour instead of 1 cup, and you select Copy."],
+    ["One screen: the recipe box on the left, the servings box and Scale button in the middle, and the scaled recipe on the right."],
+    ["Plain and friendly, like a recipe card. Recipes are not private, but the tool keeps them in the browser and sends them nowhere."],
+    ["Must have: scaling, rounding, cups and spoons. Nice to have: grams. Left out: saving recipes and nutrition facts."],
+    ["We asked Copilot how many tablespoons are in a cup and checked the answer on a measuring cup."],
+]
+
+
 def sample():
     out = HERE / "sample"
     out.mkdir(exist_ok=True)
     write_docx(out / "GameDesign.docx", "Lava Lanes: Game design document", SAMPLE_DOC, SAMPLE_AUTHOR)
     write_pptx(out / "GamePitch.pptx", SAMPLE_SLIDES, SAMPLE_AUTHOR)
     write_xlsx(out / "GameData.xlsx", SAMPLE_ROWS, SAMPLE_AUTHOR)
+    tool = HERE / "sample-tool"
+    tool.mkdir(exist_ok=True)
+    write_docx(tool / "GameDesign.docx", "Recipe Scaler: Tool design document", SAMPLE_TOOL_DOC, SAMPLE_AUTHOR,
+               LAYOUT["tool_headings"])
 
 
 if __name__ == "__main__":
