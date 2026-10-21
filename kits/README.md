@@ -19,6 +19,7 @@ A kit never changes a Builder requirement. When a project copies a kit that chan
 | [`realtime/`](realtime/) | games with a fixed tick: pointer lock with a fallback, taps between ticks, Q16.16 maths, seeded chance, probes, frame counting | none |
 | [`mobile/`](mobile/) | touch screens: pointer events, a CSS touch baseline, a manifest, a tablet pass in the browser check | D4 (adds `manifest-src 'self'`), D7 (adds a tablet engine) |
 | [`privacy/`](privacy/) | tools that handle a reader's own data and promise to keep it on the device | tightens D4 and D7; changes nothing else |
+| [`office-intake/`](office-intake/) | a game designed by students in Word, PowerPoint and Excel templates, copied into a new project by an intake script that keeps students' names out | none |
 
 ## Copying a kit
 

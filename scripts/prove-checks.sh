@@ -337,6 +337,74 @@ rm -rf "$WORK/art"; mkdir -p "$WORK/art"
 printf '\nSTRAY = "#123456"\n' >> "$WORK/art/tools/art/artlib.py"
 expect_failure "a colour literal in the art code" "colour literal" "$PY" "$WORK/art/tests/art_check.py"
 
+# The office-intake kit's tests, each against a planted defect in a copy of the kit.
+kit_fresh() {
+  rm -rf "$WORK/k" "$WORK/p"; mkdir -p "$WORK/k/kits" "$WORK/k/template" "$WORK/p"
+  (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - office-intake) | (cd "$WORK/k/kits" && tar -xf -)
+  for f in BRIEF GLOSSARY TRIAGE LICENSES; do cp "$ROOT/template/$f.md" "$WORK/k/template/"; done
+}
+kit_tests() { "$PY" -m unittest discover -s "$WORK/k/kits/office-intake/tests"; }
+kit_edit() {  # kit_edit FILE OLD NEW: a scripted edit that asserts it matched
+  "$PY" - "$WORK/k/kits/office-intake/$1" "$2" "$3" <<'EOF2'
+import sys; p, old, new = sys.argv[1:]; s = open(p).read()
+assert old in s, old
+open(p, "w").write(s.replace(old, new))
+EOF2
+}
+
+kit_fresh
+kit_edit tools/intake/layout.json '"private_sheets": ["Team"]' '"private_sheets": []'
+expect_failure "an intake that reads the Team sheet" "test_no_private_text_reaches_any_output" kit_tests
+
+kit_fresh
+kit_edit tools/intake/intake.py 'bad = leaks(out_text, private_words(files))' 'bad = []'
+expect_failure "an intake with its name guard switched off" "test_a_name_in_the_text_stops_the_intake_before_it_writes" kit_tests
+
+kit_fresh
+kit_edit tools/intake/intake.py 'missing.append(f"{names['"'"'design'"'"']}: the heading \"{h}\"")' 'pass'
+expect_failure "an intake that does not report a missing heading" "test_a_missing_heading_is_reported" kit_tests
+
+kit_fresh
+kit_edit tools/intake/layout.json '"10. AI use statement"' '"10. AI use statement", "11. Credits"'
+expect_failure "a template missing a heading the layout names" "test_the_blank_templates_match_the_layout" kit_tests
+
+kit_fresh
+kit_edit tools/intake/intake.py '        return "tool", {**tool, "private_sheets": LAYOUT["private_sheets"]}' '        return "game", LAYOUT'
+expect_failure "an intake that reads a tool folder as a game" "test_a_tool_design_document_lands_in_the_brief_with_nothing_missing" kit_tests
+
+kit_fresh
+kit_edit tools/intake/intake.py '    for name in (LAYOUT["files"]["data"], LAYOUT["tool"]["files"]["data"]):' '    for name in (LAYOUT["files"]["data"],):'
+expect_failure "a name guard that skips the tool workbook's Team sheet" "test_a_name_from_a_tool_team_sheet_stops_the_intake" kit_tests
+
+kit_fresh
+kit_edit tools/intake/intake.py '        if PurePosixPath(path).suffix.lower() in IMAGES:' '        if True:'
+expect_failure "an intake that copies audio from inside the slides" "test_the_presentation_recording_is_never_copied" kit_tests
+
+kit_fresh
+kit_edit tools/intake/intake.py '        if p.stem.lower() == recording_stem.lower() and p.suffix.lower() != PurePosixPath(names["pitch"]).suffix:' '        if False:'
+expect_failure "an intake that copies the recording file" "test_the_presentation_recording_is_never_copied" kit_tests
+
+kit_fresh
+kit_edit tools/intake/layout.json '"5. Inputs and outputs",' '"5. Inputs, outputs and errors",'
+expect_failure "a tool template missing a heading the layout names" "test_the_blank_templates_match_the_layout" kit_tests
+
+kit_fresh
+"$PY" - "$WORK/k/kits/office-intake/templates/GameDesign.docx" <<'EOF2'
+import re, shutil, sys, zipfile
+p = sys.argv[1]; tmp = p + ".tmp"
+with zipfile.ZipFile(p) as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
+    for item in zin.infolist():
+        data = zin.read(item.filename)
+        if item.filename == "docProps/core.xml":
+            s = data.decode()
+            s2 = re.sub(r"<dc:creator\s*/>|<dc:creator>[^<]*</dc:creator>", "<dc:creator>A Planted Author</dc:creator>", s)
+            assert s2 != s
+            data = s2.encode()
+        zout.writestr(item, data)
+shutil.move(tmp, p)
+EOF2
+expect_failure "a blank template that carries an author's name" "test_the_blank_templates_carry_no_author" kit_tests
+
 echo
 echo "caught $pass, missed $fail"
 if [ $((pass + fail)) -eq 0 ]; then

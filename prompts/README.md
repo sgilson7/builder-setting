@@ -3,6 +3,7 @@
 | File | Stage | Use |
 | --- | --- | --- |
 | [`start-from-description.md`](start-from-description.md) | 1–9 | a person who does not write code describes the tool in prose; the agent writes the brief, builds, and publishes if allowed |
+| [`start-from-submission.md`](start-from-submission.md) | 0–9 | a student team designed a game in the office-intake templates; unzip their folder, start the agent there, and it builds the game |
 | [`start-from-brief.md`](start-from-brief.md) | 1–2 | turn a written brief into a plan, and stop |
 | [`review-plan.md`](review-plan.md) | 3 | read a plan against the brief before any code |
 | [`audit-boundary.md`](audit-boundary.md) | before 8 | find a rule that leaked out of the core, and hard-coded strings |
