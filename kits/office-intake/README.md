@@ -4,7 +4,7 @@ This kit turns a student team's game design, written in Word, PowerPoint, and Ex
 
 The kit has three parts:
 
-- **Templates** that students start from: `templates/GameDesign.docx`, `templates/GamePitch.pptx`, and `templates/GameData.xlsx`. A filled sample, an invented game called Lava Lanes, is in `templates/sample/`. A team that designs a tool instead of a game uses `templates/tool/GameDesign.docx`, which keeps the file name and the ten-heading shape but asks about the tool's user, inputs and outputs. Its filled sample, an invented tool called Recipe Scaler, is `templates/sample-tool/GameDesign.docx`.
+- **Templates** that students start from: `templates/GameDesign.docx`, `templates/GamePitch.pptx`, and `templates/GameData.xlsx`. A filled sample, an invented game called Lava Lanes, is in `templates/sample/`. A team that designs a tool instead of a game starts from `templates/tool/`: `ToolDesign.docx`, `ToolPitch.pptx`, and `ToolData.xlsx`. They have the same shape as the game files, with headings, slides and sheets about the tool's user, inputs and outputs. A filled sample, an invented tool called Recipe Scaler, is in `templates/sample-tool/`.
 - **An intake script**, `tools/intake/intake.py`, that copies a submission into a fresh copy of `template/` and reports what is missing.
 - **Tests**, `tests/test_intake.py`, that run the intake on the sample.
 
@@ -14,11 +14,11 @@ It changes no reference default. The intake script reads and writes files, so it
 
 ## How the files map to Builder
 
-The fixed shape of a submission is in `tools/intake/layout.json`. The templates are generated from it, and the intake checks submissions against it.
+The fixed shape of a submission is in `tools/intake/layout.json`. The templates are generated from it, and the intake checks submissions against it. The `tool` block in that file holds the tool version. The intake reads a folder as the tool version when it holds `ToolDesign.docx`, checks it against the tool headings, slides and sheets, and says so in `INTAKE.md`. The table names the game files; the tool files map the same way, with an Inputs sheet in place of Levels.
 
 | From the team | Goes to | Notes |
 | --- | --- | --- |
-| `GameDesign.docx`, ten fixed headings | `BRIEF.md`, under "The description, word for word" | Every heading and paragraph, unchanged. The intake checks the document against the game headings or the tool headings, whichever it follows more closely, and says in `INTAKE.md` when it is the tool version. |
+| `GameDesign.docx`, ten fixed headings | `BRIEF.md`, under "The description, word for word" | Every heading and paragraph, unchanged. A tool team's `ToolDesign.docx` goes to the same place. |
 | `GameData.xlsx`, Words sheet | `GLOSSARY.md` | A meaning that states a number is flagged, because Builder's glossary writes numbers as `{placeholders}`. |
 | `GameData.xlsx`, Rules, Levels, Things, Controls, and any extra sheet | `data/game.json` | Values stay as text, as the team wrote them. The Rules sheet's worked examples are the hand-worked cases for the core's tests. |
 | `GameData.xlsx`, Assets sheet | `LICENSES.md` | For you to confirm before you publish. |
@@ -65,5 +65,6 @@ Each test listed here was seen to fail against a planted defect in `scripts/prov
 | `test_a_name_in_the_text_stops_the_intake_before_it_writes` | the name search is switched off |
 | `test_a_missing_heading_is_reported` | the heading check reports nothing |
 | `test_the_blank_templates_match_the_layout` | `layout.json` names a heading the game or tool template lacks |
-| `test_a_tool_design_document_lands_in_the_brief_with_nothing_missing` | the intake checks a tool document against the game headings |
+| `test_a_tool_design_document_lands_in_the_brief_with_nothing_missing` | the intake reads a tool folder as a game |
+| `test_a_name_from_a_tool_team_sheet_stops_the_intake` | the name guard skips the tool workbook's Team sheet |
 | `test_the_blank_templates_carry_no_author` | a template carries an author's name |

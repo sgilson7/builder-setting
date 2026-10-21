@@ -20,6 +20,7 @@ from pptx.util import Inches, Pt as PPt
 
 HERE = Path(__file__).resolve().parent
 LAYOUT = json.loads((HERE.parent / "tools" / "intake" / "layout.json").read_text())
+TOOL = {**LAYOUT["tool"], "private_sheets": LAYOUT["private_sheets"]}
 
 # Each Word heading's prompt, in the order of layout.json's "headings".
 PROMPTS = [
@@ -35,16 +36,16 @@ PROMPTS = [
     "If you used AI for any part of this project, say which tool, what you asked it, and how you checked its answer. If you did not use AI, write \"We did not use AI.\"",
 ]
 
-# The tool version, in the order of layout.json's "tool_headings".
+# The tool version, in the order of layout.json's tool "headings".
 TOOL_PROMPTS = [
     "Describe your tool in two sentences. Say who uses it and what job it does for them.",
     "Say who uses the tool and what they are trying to get done. Say how they do it today without the tool, and what is slow or annoying about that.",
     "List every button, key, click, or box the person uses, and what each one does.",
-    "Write each rule of the tool as one sentence. Use exact numbers. Put the full list, with a worked example for each rule, in the Rules sheet of GameData.xlsx.",
+    "Write each rule of the tool as one sentence. Use exact numbers. Put the full list, with a worked example for each rule, in the Rules sheet of ToolData.xlsx.",
     "Say what the person puts in, such as a file, typed text, numbers, or a choice. Say what the tool gives back, such as a file, a list, a number, or a picture. Say what happens when the input is wrong or missing.",
     "Walk through one use from start to finish: what the person sees, decides, and does, and what they end up with.",
     "Describe each screen or panel, from the first thing the person sees to the result. Say what is on each one.",
-    "Describe the look and the wording, such as plain, friendly, or formal. Say what information the person puts in and whether any of it is private. List any images or sounds in the Assets sheet.",
+    "Describe the look and the wording, such as plain, friendly, or formal. Say what information the person puts in and whether any of it is private. List any images or sounds in the Assets sheet of ToolData.xlsx.",
     "Make three lists: Must have, Nice to have, and Left out. Keep Must have short enough to build in a week.",
     PROMPTS[-1],
 ]
@@ -58,6 +59,28 @@ SLIDE_PROMPTS = [
     "List the ideas you cut, and say why you cut each one.",
 ]
 
+TOOL_SLIDE_PROMPTS = [
+    "Tool name\nTeam number",
+    "Say what your tool does, and for whom, in one or two sentences.",
+    "Draw the steps a person takes, from opening the tool to getting the result, with a SmartArt process or arrows.",
+    "List the three to five rules that matter most.",
+    "Draw one screen of your tool with shapes. Label each part.",
+    "List the ideas you cut, and say why you cut each one.",
+]
+
+TOOL_START_HERE = [
+    "How to use this workbook",
+    "Fill in one row for each item. Keep the header row as it is.",
+    "Use exact numbers. Write 3, not \"a few\".",
+    "Rules: write each rule with a worked example and the result you expect.",
+    "Inputs: list everything the person gives the tool, what is allowed, and what happens when it is wrong.",
+    "Things: list the items your tool works with, such as units, categories, or file types.",
+    "Words: list the words your tool uses, what each one means, and any word not to use for it.",
+    "Assets: list every image or sound, who made it, and its licence.",
+    "Changes: after you try the prototype, write each change you want in your own words.",
+    "Team: this sheet stays private. It is never copied into the tool.",
+]
+
 START_HERE = [
     "How to use this workbook",
     "Fill in one row for each thing in your game. Keep the header row as it is.",
@@ -69,7 +92,6 @@ START_HERE = [
     "Team: this sheet stays private. It is never copied into the game.",
 ]
 
-COLUMNS = {s["name"]: s["columns"] for s in LAYOUT["sheets"]}
 
 
 def write_docx(path, title, bodies, author, headings=None):
@@ -88,11 +110,11 @@ def write_docx(path, title, bodies, author, headings=None):
     doc.save(path)
 
 
-def write_pptx(path, texts, author):
+def write_pptx(path, texts, author, layout=LAYOUT):
     prs = Presentation()
     prs.core_properties.author = author
     prs.core_properties.last_modified_by = author
-    for i, (title, text) in enumerate(zip(LAYOUT["slides"], texts)):
+    for i, (title, text) in enumerate(zip(layout["slides"], texts)):
         slide = prs.slides.add_slide(prs.slide_layouts[0 if i == 0 else 1])
         slide.shapes.title.text = title if i else text.split("\n")[0]
         body = slide.placeholders[1]
@@ -103,42 +125,48 @@ def write_pptx(path, texts, author):
     prs.save(path)
 
 
-def write_xlsx(path, rows, author):
+def write_xlsx(path, rows, author, layout=LAYOUT, start_here=START_HERE):
+    columns = {s["name"]: s["columns"] for s in layout["sheets"]}
     wb = Workbook()
     wb.properties.creator = author
     wb.properties.lastModifiedBy = author
     first = True
-    for name in [s["name"] for s in LAYOUT["sheets"]]:
+    for name in [s["name"] for s in layout["sheets"]]:
         ws = wb.active if first else wb.create_sheet()
         first = False
         ws.title = name
         if name == "Start Here":
-            for line in START_HERE:
+            for line in start_here:
                 ws.append([line])
             ws["A1"].font = Font(bold=True, size=14)
             ws.column_dimensions["A"].width = 100
             continue
-        ws.append(COLUMNS[name])
+        ws.append(columns[name])
         for cell in ws[1]:
             cell.font = Font(bold=True)
         ws.freeze_panes = "A2"
-        for col, header in zip("ABCDEFGH", COLUMNS[name]):
+        for col, header in zip("ABCDEFGH", columns[name]):
             ws.column_dimensions[col].width = max(14, len(header) + 6)
         for row in rows.get(name, []):
             ws.append(row)
     wb.save(path)
 
 
+TEAM_ROWS = [["", "", ""], ["Team charter", "", ""], ["When we meet", "", ""],
+             ["How to reach each other", "", ""], ["If someone goes quiet", "", ""]]
+
+
 def templates():
     out = HERE
     write_docx(out / "GameDesign.docx", "Game name: Game design document", [[p] for p in PROMPTS], "")
-    (out / "tool").mkdir(exist_ok=True)
-    write_docx(out / "tool" / "GameDesign.docx", "Tool name: Tool design document",
-               [[p] for p in TOOL_PROMPTS], "", LAYOUT["tool_headings"])
+    tool = out / "tool"
+    tool.mkdir(exist_ok=True)
+    write_docx(tool / TOOL["files"]["design"], "Tool name: Tool design document",
+               [[p] for p in TOOL_PROMPTS], "", TOOL["headings"])
+    write_pptx(tool / TOOL["files"]["pitch"], TOOL_SLIDE_PROMPTS, "", TOOL)
+    write_xlsx(tool / TOOL["files"]["data"], {"Team": TEAM_ROWS}, "", TOOL, TOOL_START_HERE)
     write_pptx(out / "GamePitch.pptx", SLIDE_PROMPTS, "")
-    write_xlsx(out / "GameData.xlsx", {"Team": [["", "", ""], ["Team charter", "", ""],
-                                                ["When we meet", "", ""], ["How to reach each other", "", ""],
-                                                ["If someone goes quiet", "", ""]]}, "")
+    write_xlsx(out / "GameData.xlsx", {"Team": TEAM_ROWS}, "")
 
 
 # The sample: an invented game from an invented team. The names are
@@ -225,8 +253,8 @@ SAMPLE_ROWS = {
 }
 
 
-# The tool sample: an invented tool, for the intake's tests. Only the design
-# document differs; the tests pair it with the game sample's other two files.
+# The tool sample: an invented tool from an invented team, with the same
+# placeholder names and planted author as the game sample.
 SAMPLE_TOOL_DOC = [
     ["Recipe Scaler changes a recipe to feed a different number of people. You paste a recipe, choose how many servings you want, and get the new amounts."],
     ["Home cooks who want to make a recipe for more or fewer people. Today they do the math on paper, and fractions like 3/4 cup times 2.5 are easy to get wrong."],
@@ -239,6 +267,59 @@ SAMPLE_TOOL_DOC = [
     ["Must have: scaling, rounding, cups and spoons. Nice to have: grams. Left out: saving recipes and nutrition facts."],
     ["We asked Copilot how many tablespoons are in a cup and checked the answer on a measuring cup."],
 ]
+SAMPLE_TOOL_SLIDES = [
+    "Recipe Scaler\nTeam 07",
+    "Paste a recipe, choose the servings, and get the new amounts, rounded the way a cook measures.",
+    "Paste the recipe → type the servings → select Scale → select Copy.",
+    "Multiply by new servings over old servings. Round to the nearest 1/8. 16 tablespoons make 1 cup.",
+    "The recipe box on the left, servings and Scale in the middle, the scaled recipe on the right.",
+    "We cut saving recipes and nutrition facts so we could get the rounding right.",
+]
+SAMPLE_TOOL_ROWS = {
+    "Rules": [
+        ["Amounts scale by new over old servings", "1 cup of flour, 12 servings scaled to 30", "2 1/2 cups of flour"],
+        ["Amounts round to the nearest 1/8", "1/3 cup scaled by 2", "5/8 cup"],
+        ["16 tablespoons or more show as cups", "6 tablespoons scaled by 3", "1 1/8 cups"],
+        ["A line with no amount stays the same", "salt to taste, scaled by 2", "salt to taste"],
+        ["Servings must be 1 to 50", "The person types 60", "The tool asks for a number from 1 to 50"],
+    ],
+    "Inputs": [
+        ["Recipe", "Pasted text", "Any text; the first line gives the servings", "The tool asks for the servings"],
+        ["New servings", "Whole number", "1 to 50", "The tool asks for a number from 1 to 50"],
+    ],
+    "Things": [
+        ["Cup", "Unit", "16 tablespoons", "Shown for 16 tablespoons or more"],
+        ["Tablespoon", "Unit", "3 teaspoons", ""],
+        ["Teaspoon", "Unit", "1", "The smallest unit"],
+        ["Eighth", "Rounding step", "1/8", "Every amount rounds to this"],
+    ],
+    "Controls": [
+        ["Scale the recipe", "Select Scale or press Enter"],
+        ["Copy the result", "Select Copy"],
+        ["Clear everything", "Select Clear"],
+    ],
+    "Words": [
+        ["Servings", "How many people the recipe feeds.", "portions, yield"],
+        ["Scale", "Change every amount for a new number of servings.", "convert, resize"],
+        ["Amount", "The number and unit at the start of a recipe line.", "quantity"],
+    ],
+    "Assets": [
+        ["whisk.png", "Our team", "Our own drawing", ""],
+    ],
+    "Changes": [
+        ["1", "Show grams beside cups.", "ToolDesign.docx, section 9", "Our baking teacher uses grams."],
+        ["2", "Keep the scaled recipe when I change the servings again.", "Rules sheet", "I had to paste it twice."],
+    ],
+    "Team": [
+        ["Student A Placeholder", "Coordinator", "Made the folder, kept the dates, wrote section 9."],
+        ["Student B Placeholder", "Design writer", "Wrote sections 1 to 6 of the design document."],
+        ["Student C Placeholder", "Data lead", "Filled in the Rules, Inputs and Things sheets."],
+        ["Team charter", "", ""],
+        ["When we meet", "Tuesdays at 8 p.m. on Teams", ""],
+        ["How to reach each other", "Comments with @mentions in the files", ""],
+        ["If someone goes quiet", "We message them, then tell the instructor after two days", ""],
+    ],
+}
 
 
 def sample():
@@ -249,8 +330,10 @@ def sample():
     write_xlsx(out / "GameData.xlsx", SAMPLE_ROWS, SAMPLE_AUTHOR)
     tool = HERE / "sample-tool"
     tool.mkdir(exist_ok=True)
-    write_docx(tool / "GameDesign.docx", "Recipe Scaler: Tool design document", SAMPLE_TOOL_DOC, SAMPLE_AUTHOR,
-               LAYOUT["tool_headings"])
+    write_docx(tool / TOOL["files"]["design"], "Recipe Scaler: Tool design document", SAMPLE_TOOL_DOC,
+               SAMPLE_AUTHOR, TOOL["headings"])
+    write_pptx(tool / TOOL["files"]["pitch"], SAMPLE_TOOL_SLIDES, SAMPLE_AUTHOR, TOOL)
+    write_xlsx(tool / TOOL["files"]["data"], SAMPLE_TOOL_ROWS, SAMPLE_AUTHOR, TOOL, TOOL_START_HERE)
 
 
 if __name__ == "__main__":

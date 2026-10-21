@@ -369,10 +369,12 @@ kit_edit tools/intake/layout.json '"10. AI use statement"' '"10. AI use statemen
 expect_failure "a template missing a heading the layout names" "test_the_blank_templates_match_the_layout" kit_tests
 
 kit_fresh
-kit_edit tools/intake/intake.py '        return tool
-' '        return game
-'
-expect_failure "an intake that checks a tool document against the game headings" "test_a_tool_design_document_lands_in_the_brief_with_nothing_missing" kit_tests
+kit_edit tools/intake/intake.py '        return "tool", {**tool, "private_sheets": LAYOUT["private_sheets"]}' '        return "game", LAYOUT'
+expect_failure "an intake that reads a tool folder as a game" "test_a_tool_design_document_lands_in_the_brief_with_nothing_missing" kit_tests
+
+kit_fresh
+kit_edit tools/intake/intake.py '    for name in (LAYOUT["files"]["data"], LAYOUT["tool"]["files"]["data"]):' '    for name in (LAYOUT["files"]["data"],):'
+expect_failure "a name guard that skips the tool workbook's Team sheet" "test_a_name_from_a_tool_team_sheet_stops_the_intake" kit_tests
 
 kit_fresh
 kit_edit tools/intake/layout.json '"5. Inputs and outputs",' '"5. Inputs, outputs and errors",'

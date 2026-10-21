@@ -22,7 +22,7 @@ sys.path.insert(0, str(KIT / "tools" / "intake"))
 import intake  # noqa: E402
 
 SAMPLE = KIT / "templates" / "sample"
-SAMPLE_TOOL = KIT / "templates" / "sample-tool" / "GameDesign.docx"
+SAMPLE_TOOL = KIT / "templates" / "sample-tool"
 TEMPLATES = KIT / "templates"
 PRIVATE = ["Student A Placeholder", "Student B Placeholder", "Student C Placeholder",
            "Student D Placeholder", "Sundays at 7", "Team charter", "Made the folder"]
@@ -52,14 +52,13 @@ class IntakeTest(unittest.TestCase):
 
     def submission(self, change=None, tool=False):
         """A copy of the sample, with its design document passed through change.
-        With tool, the design document is the tool sample's (Recipe Scaler)."""
+        With tool, a copy of the tool sample (Recipe Scaler) instead."""
         sub = self.tmp / "submission"
-        shutil.copytree(SAMPLE, sub)
-        design = SAMPLE_TOOL if tool else SAMPLE / "GameDesign.docx"
+        source = SAMPLE_TOOL if tool else SAMPLE
+        shutil.copytree(source, sub)
+        name = "ToolDesign.docx" if tool else "GameDesign.docx"
         if change:
-            rewrite_docx(design, sub / "GameDesign.docx", change)
-        elif tool:
-            shutil.copy(design, sub / "GameDesign.docx")
+            rewrite_docx(source / name, sub / name, change)
         return sub
 
     def read(self, name):
@@ -136,6 +135,7 @@ class IntakeTest(unittest.TestCase):
     def test_a_game_design_document_is_not_called_a_tool(self):
         self.run_intake(self.submission())
         self.assertNotIn("tool version", self.read("INTAKE.md"))
+        self.assertIn("levels", json.loads(self.read("data/game.json")))
 
     def test_a_tool_design_document_lands_in_the_brief_with_nothing_missing(self):
         self.run_intake(self.submission(tool=True))
@@ -144,8 +144,36 @@ class IntakeTest(unittest.TestCase):
         self.assertIn("> Recipe Scaler changes a recipe to feed a different number of people.", brief)
         report = self.read("INTAKE.md")
         self.assertEqual(report.split("## Missing")[1].split("##")[0].strip(), "- nothing")
-        self.assertIn("GameDesign.docx is the tool version", report)
+        self.assertIn("This is the tool version (ToolDesign.docx)", report)
         self.assertNotIn("extra heading", report)
+        self.assertNotIn("headers differ", report)
+        self.assertIn("3. How someone uses it / Paste the recipe", report)
+
+    def test_a_tool_workbook_lands_in_data_and_triage(self):
+        self.run_intake(self.submission(tool=True))
+        game = json.loads(self.read("data/game.json"))
+        self.assertNotIn("levels", game)
+        self.assertEqual(game["inputs"][1]["allowed_values"], "1 to 50")
+        self.assertEqual(game["rules"][1]["expected_result"], "5/8 cup")
+        self.assertIn("| T1 | Show grams beside cups. |", self.read("TRIAGE.md"))
+        self.assertIn("### Servings\n\nHow many people the recipe feeds.\n\nNot: portions, yield\n", self.read("GLOSSARY.md"))
+
+    def test_a_name_from_a_tool_team_sheet_stops_the_intake(self):
+        before = self.read("BRIEF.md")
+        sub = self.submission(lambda x: x.replace("Recipe Scaler changes a recipe",
+                                                  "Student C Placeholder made Recipe Scaler, which changes a recipe"), tool=True)
+        with self.assertRaises(intake.IntakeError):
+            self.run_intake(sub)
+        self.assertEqual(self.read("BRIEF.md"), before)
+
+    def test_no_private_text_reaches_any_output_from_a_tool_folder(self):
+        self.run_intake(self.submission(tool=True))
+        written = [p for p in self.tmp.rglob("*") if p.is_file() and "submission" not in p.parts[len(self.tmp.parts):][0]]
+        self.assertTrue(written)
+        for path in written:
+            text = path.read_bytes().decode("utf-8", "ignore")
+            for word in PRIVATE[:3] + ["Tuesdays at 8", "Team charter"]:
+                self.assertNotIn(word, text, f"{word!r} reached {path}")
 
     def test_a_missing_tool_heading_is_reported_against_the_tool_set(self):
         sub = self.submission(lambda x: x.replace(">5. Inputs and outputs<", ">Inputs<"), tool=True)
@@ -176,8 +204,16 @@ class IntakeTest(unittest.TestCase):
     def test_the_blank_templates_match_the_layout(self):
         sections, _ = intake.read_docx((TEMPLATES / "GameDesign.docx").read_bytes())
         self.assertEqual([h for h, _ in sections if h], intake.LAYOUT["headings"])
-        sections, _ = intake.read_docx((TEMPLATES / "tool" / "GameDesign.docx").read_bytes())
-        self.assertEqual([h for h, _ in sections if h], intake.LAYOUT["tool_headings"])
+        tool = intake.LAYOUT["tool"]
+        sections, _ = intake.read_docx((TEMPLATES / "tool" / tool["files"]["design"]).read_bytes())
+        self.assertEqual([h for h, _ in sections if h], tool["headings"])
+        slides, _ = intake.read_pptx((TEMPLATES / "tool" / tool["files"]["pitch"]).read_bytes())
+        self.assertEqual([texts[0] for texts in slides[1:]], tool["slides"][1:])
+        sheets = intake.read_xlsx((TEMPLATES / "tool" / tool["files"]["data"]).read_bytes())
+        self.assertEqual(list(sheets), [s["name"] for s in tool["sheets"]])
+        for spec in tool["sheets"]:
+            if spec["columns"]:
+                self.assertEqual(sheets[spec["name"]][0], spec["columns"], spec["name"])
         slides, _ = intake.read_pptx((TEMPLATES / "GamePitch.pptx").read_bytes())
         self.assertEqual(len(slides), len(intake.LAYOUT["slides"]))
         sheets = intake.read_xlsx((TEMPLATES / "GameData.xlsx").read_bytes())
@@ -187,7 +223,8 @@ class IntakeTest(unittest.TestCase):
                 self.assertEqual(sheets[spec["name"]][0], spec["columns"], spec["name"])
 
     def test_the_blank_templates_carry_no_author(self):
-        for name in ("GameDesign.docx", "tool/GameDesign.docx", "GamePitch.pptx", "GameData.xlsx"):
+        for name in ("GameDesign.docx", "GamePitch.pptx", "GameData.xlsx",
+                     "tool/ToolDesign.docx", "tool/ToolPitch.pptx", "tool/ToolData.xlsx"):
             with zipfile.ZipFile(TEMPLATES / name) as z:
                 core = z.read("docProps/core.xml").decode()
             self.assertIsNone(re.search(r"<dc:creator>[^<]+</dc:creator>", core), name)

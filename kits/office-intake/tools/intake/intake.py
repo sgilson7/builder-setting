@@ -13,9 +13,12 @@ in the team's words, for the agent to turn into core code and tests.
 What goes where:
 
 - GameDesign.docx, every heading and paragraph, word for word -> BRIEF.md,
-  under "The description, word for word". The document is either the game
-  version or the tool version (layout.json "headings" or "tool_headings");
-  the intake checks it against the set it follows more closely.
+  under "The description, word for word"
+
+A team that designs a tool hands in ToolDesign.docx, ToolData.xlsx and
+ToolPitch.pptx instead (layout.json "tool"). The intake reads a folder as the
+tool version when it holds ToolDesign.docx, and then checks it against the
+tool headings, slides and sheets.
 - GameData.xlsx: Words -> GLOSSARY.md; Rules, Levels, Things, Controls and
   any extra sheet the team added -> data/game.json; Assets -> LICENSES.md;
   Changes -> TRIAGE.md rows T1, T2, ...
@@ -51,7 +54,6 @@ NS = {
     "dc": "http://purl.org/dc/elements/1.1/",
 }
 MEDIA = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".wav", ".mp3", ".ogg"}
-DATA_SHEETS = ["Rules", "Levels", "Things", "Controls"]
 SKIP_SHEETS = {"Start Here", "Words", "Assets", "Changes"}
 
 
@@ -170,10 +172,25 @@ def read_xlsx(data, skip=()):
     return sheets
 
 
+def layout_for(files):
+    """("game" or "tool", the layout for that version). A folder is the tool
+    version when it holds the tool design document."""
+    tool = LAYOUT["tool"]
+    if find(files, tool["files"]["design"]) is not None:
+        return "tool", {**tool, "private_sheets": LAYOUT["private_sheets"]}
+    return "game", LAYOUT
+
+
+def data_sheets(layout):
+    """The sheets that hold the team's data: every sheet but the skipped and private ones."""
+    return [s["name"] for s in layout["sheets"]
+            if s["name"] not in SKIP_SHEETS and s["name"] not in layout["private_sheets"]]
+
+
 def private_words(files):
     """Names the intake must not write: Team-sheet names and author metadata. Read only to search for them."""
     words = set()
-    for name in LAYOUT["files"].values():
+    for name in [*LAYOUT["files"].values(), *LAYOUT["tool"]["files"].values()]:
         data = find(files, name)
         if data is None:
             continue
@@ -184,8 +201,10 @@ def private_words(files):
                     for el in core.iter(tag):
                         if el.text and el.text.strip():
                             words.add(el.text.strip())
-    data = find(files, LAYOUT["files"]["data"])
-    if data is not None:
+    for name in (LAYOUT["files"]["data"], LAYOUT["tool"]["files"]["data"]):
+        data = find(files, name)
+        if data is None:
+            continue
         team = read_xlsx(data).get("Team") or []
         for row in team[1:]:
             if row and row[0] and row[0].lower() == "team charter":
@@ -280,20 +299,16 @@ def licences_with(licences, assets):
     return licences.rstrip("\n") + "\n" + "\n".join(table) + "\n"
 
 
-def design_headings(got):
-    """The heading set a design document follows: the tool version only when
-    more of its headings match the tool set than the game set."""
-    game, tool = LAYOUT["headings"], LAYOUT["tool_headings"]
-    if sum(h in got for h in tool) > sum(h in got for h in game):
-        return tool
-    return game
-
-
 def plan(files):
     """Everything the intake would write, as {relative path: bytes or str}, plus the report."""
     found, missing, notes = [], [], []
-    names = LAYOUT["files"]
+    kind, layout = layout_for(files)
+    names = layout["files"]
     out_text, out_bin = {}, {}
+    if kind == "tool":
+        notes.append(f"This is the tool version ({names['design']}): the team designed a tool, not a game.")
+        if find(files, LAYOUT["files"]["design"]) is not None:
+            notes.append(f"The folder also holds {LAYOUT['files']['design']}; the intake read {names['design']} and left it.")
 
     design = find(files, names["design"])
     if design is None:
@@ -301,10 +316,7 @@ def plan(files):
     sections, doc_media = read_docx(design)
     found.append(names["design"])
     got = [h for h, _ in sections if h]
-    headings = design_headings(got)
-    if headings is LAYOUT["tool_headings"]:
-        notes.append(f"{names['design']} is the tool version: the team is designing a tool. "
-                     "Read the game words in the other files (levels, player) in that light.")
+    headings = layout["headings"]
     for h in headings:
         if h not in got:
             missing.append(f"{names['design']}: the heading \"{h}\"")
@@ -331,17 +343,17 @@ def plan(files):
         missing.append(names["data"])
     else:
         found.append(names["data"])
-        sheets = read_xlsx(data, skip=set(LAYOUT["private_sheets"]))
-        for spec in LAYOUT["sheets"]:
+        sheets = read_xlsx(data, skip=set(layout["private_sheets"]))
+        for spec in layout["sheets"]:
             if spec["name"] not in sheets:
                 missing.append(f"{names['data']}: the sheet \"{spec['name']}\"")
             elif spec["columns"] and sheets[spec["name"]] is not None:
                 rows = sheets[spec["name"]]
                 if not rows or rows[0][:len(spec["columns"])] != spec["columns"]:
                     notes.append(f"{names['data']}: the \"{spec['name']}\" headers differ from the template's.")
-        filled = sum(len(sheets.get(n) or []) - 1 for n in DATA_SHEETS if sheets.get(n))
+        filled = sum(len(sheets.get(n) or []) - 1 for n in data_sheets(layout) if sheets.get(n))
         if filled < 5:
-            notes.append(f"{names['data']} has {max(filled, 0)} rows of game data; the assignment asks for at least 5.")
+            notes.append(f"{names['data']} has {max(filled, 0)} rows of data; the assignment asks for at least 5.")
 
     game = {"_source": f"{names['data']}, copied by the intake; values are the team's, word for word"}
     for name, rows in sheets.items():
