@@ -29,7 +29,7 @@ The fixed shape of a submission is in `tools/intake/layout.json`. The templates 
 
 ## Privacy
 
-Student names never reach the project. The intake doesn't copy the Team sheet, the files' author metadata, or comments. It reads Team-sheet names and author names only to search for them in what it's about to write. If a name appears, for example in the design document's text, the intake writes nothing and tells you which file the name would have reached.
+Student names and voices never reach the project. The intake doesn't copy the Team sheet, the files' author metadata, comments, or the presentation recording: a file named like the pitch (`GamePitch.mp4`, `ToolPitch.m4a`, and so on) or audio and video inside the slides. It reports the recording as found or missing in `INTAKE.md`. It reads Team-sheet names and author names only to search for them in what it's about to write. If a name appears, for example in the design document's text, the intake writes nothing and tells you which file the name would have reached.
 
 The search finds names exactly as the Team sheet and the metadata spell them. It can't find a nickname or a first name that appears on its own, so read `BRIEF.md` before you publish.
 
@@ -66,5 +66,6 @@ Each test listed here was seen to fail against a planted defect in `scripts/prov
 | `test_a_missing_heading_is_reported` | the heading check reports nothing |
 | `test_the_blank_templates_match_the_layout` | `layout.json` names a heading the game or tool template lacks |
 | `test_a_tool_design_document_lands_in_the_brief_with_nothing_missing` | the intake reads a tool folder as a game |
+| `test_the_presentation_recording_is_never_copied` | the intake copies audio from inside the slides, or the recording file |
 | `test_a_name_from_a_tool_team_sheet_stops_the_intake` | the name guard skips the tool workbook's Team sheet |
 | `test_the_blank_templates_carry_no_author` | a template carries an author's name |

@@ -138,7 +138,9 @@ class IntakeTest(unittest.TestCase):
         self.assertIn("levels", json.loads(self.read("data/game.json")))
 
     def test_a_tool_design_document_lands_in_the_brief_with_nothing_missing(self):
-        self.run_intake(self.submission(tool=True))
+        sub = self.submission(tool=True)
+        (sub / "ToolPitch.mp4").write_bytes(b"a recording")
+        self.run_intake(sub)
         brief = self.read("BRIEF.md")
         self.assertIn("> **5. Inputs and outputs**", brief)
         self.assertIn("> Recipe Scaler changes a recipe to feed a different number of people.", brief)
@@ -182,6 +184,26 @@ class IntakeTest(unittest.TestCase):
         self.assertIn('the heading "5. Inputs and outputs"', report)
         self.assertNotIn('the heading "5. Winning and losing"', report)
         self.assertIn('an extra heading "Inputs"', report)
+
+    def test_the_presentation_recording_is_never_copied(self):
+        sub = self.submission()
+        voice = b"RECORDED-VOICE-OF-A-STUDENT"
+        (sub / "GamePitch.mp4").write_bytes(voice)
+        (sub / "GamePitch.m4a").write_bytes(voice)
+        pitch = sub / "GamePitch.pptx"
+        with zipfile.ZipFile(pitch, "a") as z:
+            z.writestr("ppt/media/media1.m4a", voice)
+        self.run_intake(sub)
+        written = [p for p in self.tmp.rglob("*") if p.is_file() and "submission" not in p.parts[len(self.tmp.parts):][0]]
+        for path in written:
+            self.assertNotIn(voice, path.read_bytes(), f"the recording reached {path}")
+        report = self.read("INTAKE.md")
+        self.assertIn("The presentation recording (GamePitch.m4a, GamePitch.mp4) was left in the folder", report)
+        self.assertNotIn("the presentation recording (GamePitch.mp4", report.split("## Missing")[1].split("##")[0])
+
+    def test_a_missing_recording_is_reported(self):
+        self.run_intake(self.submission())
+        self.assertIn("- the presentation recording (GamePitch.mp4", self.read("INTAKE.md").split("## Missing")[1].split("##")[0])
 
     def test_a_missing_file_is_reported(self):
         sub = self.submission()

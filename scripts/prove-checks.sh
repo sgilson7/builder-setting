@@ -377,6 +377,14 @@ kit_edit tools/intake/intake.py '    for name in (LAYOUT["files"]["data"], LAYOU
 expect_failure "a name guard that skips the tool workbook's Team sheet" "test_a_name_from_a_tool_team_sheet_stops_the_intake" kit_tests
 
 kit_fresh
+kit_edit tools/intake/intake.py '        if PurePosixPath(path).suffix.lower() in IMAGES:' '        if True:'
+expect_failure "an intake that copies audio from inside the slides" "test_the_presentation_recording_is_never_copied" kit_tests
+
+kit_fresh
+kit_edit tools/intake/intake.py '        if p.stem.lower() == recording_stem.lower() and p.suffix.lower() != PurePosixPath(names["pitch"]).suffix:' '        if False:'
+expect_failure "an intake that copies the recording file" "test_the_presentation_recording_is_never_copied" kit_tests
+
+kit_fresh
 kit_edit tools/intake/layout.json '"5. Inputs and outputs",' '"5. Inputs, outputs and errors",'
 expect_failure "a tool template missing a heading the layout names" "test_the_blank_templates_match_the_layout" kit_tests
 

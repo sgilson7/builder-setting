@@ -28,7 +28,9 @@ tool headings, slides and sheets.
 - INTAKE.md: what was found, what is missing, what the agent must look at
 
 Privacy (GL-5): the intake never copies the Team sheet, the files' author
-metadata (docProps) or comments. It reads Team-sheet names and author names
+metadata (docProps), comments, or the presentation recording: a file named
+like the pitch (GamePitch.mp4, ToolPitch.m4a ...) or audio and video inside
+the slides, which carry a student's voice and perhaps face. It reads Team-sheet names and author names
 only to look for them in what it is about to write; if one appears, it writes
 nothing and says where the name is. Only the Python standard library is used,
 so the instructor installs nothing.
@@ -54,6 +56,7 @@ NS = {
     "dc": "http://purl.org/dc/elements/1.1/",
 }
 MEDIA = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".wav", ".mp3", ".ogg"}
+IMAGES = {".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp", ".emf", ".wmf", ".tif", ".tiff", ".bmp"}
 SKIP_SHEETS = {"Start Here", "Words", "Assets", "Changes"}
 
 
@@ -363,13 +366,23 @@ def plan(files):
         game[key] = records(rows)
     out_text["data/game.json"] = json.dumps(game, indent=2, ensure_ascii=False) + "\n"
 
+    recording_stem = PurePosixPath(names["pitch"]).stem
+    recordings = []
     for path, blob in files.items():
-        if PurePosixPath(path).suffix.lower() in MEDIA:
-            out_bin["data/assets/" + PurePosixPath(path).name] = blob
+        p = PurePosixPath(path)
+        if p.stem.lower() == recording_stem.lower() and p.suffix.lower() != PurePosixPath(names["pitch"]).suffix:
+            recordings.append(p.name)
+        elif p.suffix.lower() in MEDIA:
+            out_bin["data/assets/" + p.name] = blob
+    if recordings:
+        notes.append(f"The presentation recording ({', '.join(sorted(recordings))}) was left in the folder: it holds a student's voice. Watch it there.")
+    elif find(files, names["pitch"]) is not None:
+        missing.append(f"the presentation recording ({recording_stem}.mp4 or another video or audio file named {recording_stem})")
     for path, blob in doc_media.items():
         out_bin["data/assets/doc-" + PurePosixPath(path).name] = blob
     for path, blob in slide_media.items():
-        out_bin["journal:img/reference/" + PurePosixPath(path).name] = blob
+        if PurePosixPath(path).suffix.lower() in IMAGES:
+            out_bin["journal:img/reference/" + PurePosixPath(path).name] = blob
 
     return sections, slides, sheets, out_text, out_bin, found, missing, notes
 
@@ -383,7 +396,8 @@ def report(found, missing, notes, slides):
     for i, texts in enumerate(slides, start=1):
         lines.append(f"{i}. " + " / ".join(texts))
     lines += ["", "## Not copied", "",
-              "- The Team sheet, author metadata and comments. They hold students' names, which stay out of the project (GL-5).", ""]
+              "- The Team sheet, author metadata and comments. They hold students' names, which stay out of the project (GL-5).",
+              "- The presentation recording, and any audio or video inside the slides. They hold a student's voice.", ""]
     return "\n".join(lines)
 
 
