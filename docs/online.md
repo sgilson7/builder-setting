@@ -21,7 +21,7 @@ The rule says where the feature may reach and when. It does not say the feature 
 | Transport | `web/net/rtc.js` (written per project) | connects browsers by room code over Trystero and Nostr relays, or by pasted codes with no relay; carries text; decides nothing |
 | Config | `web/net/config.js` | app id, protocol tag, relays, ICE servers, timings |
 | Door | `web/online.js` | the one page file that imports the transport; passes events to the core and the core's outbox to the transport |
-| Rules | `crates/core/src/online.rs` | messages, versions, garbage handling, lockstep, checksums; tested by simulating two browsers with a lagged wire |
+| Rules | `crates/core/src/online.rs` | messages, versions, garbage handling, rollback (lockstep with `MAX_AHEAD = 0`), checksums; tested by simulating two browsers with a lagged wire |
 | Fence | `crates/core/tests/online_fence.rs` | the file list of `web/net/`, the single importer, the single config, the CSP match, the protocol tag |
 | Online check | `tests/browser/online.py` | two browsers meet by pasted codes with `?ice=none` and play, without leaving the origin |
 

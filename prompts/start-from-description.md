@@ -59,11 +59,14 @@ The root `CLAUDE.md` sends the agent here when a person describes a tool. The ag
 
 4. Ask only what blocks the build: a fact from the person's field the
    agent cannot know, or content only they can supply. Number the
-   questions with the journal's prefix (XX-Q1 ...) and put them in the
-   opening entry. Every other decision gets a default, listed in a "for
-   you" journal entry and recorded in SECOND-ORDER.md, and the agent
-   continues. The person may answer by number; an answer that differs
-   from a default becomes a TRIAGE.md row citing the question. Rules the
+   questions with the journal's prefix (XX-Q1 ...), each with a default,
+   in the journal's decisions.json, and draw them as answer chips
+   (python3 tools/journal/decisions.py). Every other decision gets a
+   default, listed in a "for you" journal entry and recorded in
+   SECOND-ORDER.md, and the agent continues. The person answers in the
+   journal, or pastes the line its "Copy answers" button gives; record the
+   answers with decisions.py --answers. An answer that differs from a
+   default becomes a TRIAGE.md row citing the question. Rules the
    answers settle for every later session go under "Rules agreed for this
    project" in CLAUDE.md and AGENTS.md.
 

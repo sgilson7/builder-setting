@@ -323,6 +323,129 @@ open(p, "w").write(s2)
 EOF2
 expect_failure "a journal entry removed since the journal's last commit" "entry brief was in the journal's last commit and is gone" journal
 
+# Answer chips, and the entries D20 and ENTRIES.md rules 8 to 12 ask for.
+# ask DEFAULTS: put one question in the example journal's decisions.json, with
+# the given default flags for options A and B, and draw its chips.
+ask() {
+  "$PY" - "$WORK/p-journal" "$1" "$2" <<'EOF2'
+import json, sys; d, a, b = sys.argv[1], sys.argv[2] == "1", sys.argv[3] == "1"
+p = d + "/decisions.json"; data = json.load(open(p))
+data["questions"] = [{"id": "MC-Q1", "page": "reading", "question": "Should Reset return to 0?",
+  "context": "The brief does not say.", "blocks": "the reset rule",
+  "options": [{"key": "A", "text": "Yes", "default": a}, {"key": "B", "text": "No", "default": b}]}]
+json.dump(data, open(p, "w"))
+EOF2
+  (cd "$WORK/p" && "$PY" tools/journal/decisions.py "$WORK/p-journal" >/dev/null 2>&1 || true)
+}
+# add_entry KIND ATTRS DATE BODY: a new entry at the top of the reading page
+add_entry() {
+  "$PY" - "$WORK/p-journal/index.html" "$@" <<'EOF2'
+import sys; p, kind, attrs, date, body = sys.argv[1:]; s = open(p).read()
+old = '    <article class="entry" id="opening"'
+assert old in s
+new = (f'    <article class="entry" id="{kind}-{date}" data-kind="{kind}" {attrs}>'
+       f'<div class="stamp"><time datetime="{date}">{date}</time><span>{kind}</span></div>'
+       f'<div class="entry-body">{body}</div></article>\n')
+open(p, "w").write(s.replace(old, new + old, 1))
+EOF2
+}
+
+fresh; ask 0 0
+expect_failure "a question with no default" "MC-Q1 has 0 defaults" journal
+
+fresh; ask 1 1
+expect_failure "a question with two defaults" "MC-Q1 has 2 defaults" journal
+
+fresh; ask 1 0
+"$PY" - "$WORK/p-journal/decisions.json" <<'EOF2'
+import json, sys; p = sys.argv[1]; d = json.load(open(p))
+d["questions"][0]["question"] = "Should Reset return to the starting value?"
+json.dump(d, open(p, "w"))
+EOF2
+expect_failure "chips left out of date with decisions.json" "out of date with decisions.json" journal
+
+fresh; ask 1 0
+(cd "$WORK/p" && "$PY" tools/journal/decisions.py "$WORK/p-journal" --answers "MC-Q1: A" >/dev/null)
+expect_failure "an answer no agreed entry cites" "MC-Q1 was answered (A) and no agreed entry cites it" journal
+
+fresh; ask 1 0
+(cd "$WORK/p" && "$PY" tools/journal/decisions.py "$WORK/p-journal" --answers "MC-Q1: B" >/dev/null)
+add_entry agreed "" 2026-10-20 "<h3>Your answers</h3><p>MC-Q1: B.</p>"
+expect_failure "an answer that overrides the default with no triage row" "not the default A, and no TRIAGE.md row cites it" journal
+
+fresh
+add_entry mockups "" 2026-10-20 "<h3>The counter, drawn</h3>"
+add_entry live 'data-commit="abc1234"' 2026-10-21 "<h3>Published</h3>"
+"$PY" - "$WORK/p-journal/index.html" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = 'class="live-now" data-commit=""'
+assert old in s
+open(p, "w").write(s.replace(old, 'class="live-now" data-commit="abc1234"'))
+EOF2
+expect_failure "a deploy after mockups with no against-the-mockup entry" "with no 'against' entry" journal
+
+fresh
+add_entry live 'data-commit="abc1234"' 2026-10-21 "<h3>Published</h3>"
+expect_failure "a Live now page that names an older deploy" "Live now says nothing is deployed" journal
+
+fresh
+add_entry research "" 2026-10-20 "<h3>What other counters do</h3><p>Two counters, unnamed.</p>"
+expect_failure "a research entry with no source" "links no source" journal
+
+fresh
+add_entry intake "" 2026-10-20 "<h3>Your notes, read</h3><p>A summary of the notes.</p>"
+expect_failure "an intake entry that does not quote its input" "does not quote the input" journal
+
+fresh
+printf '\n## References\n\n- **Ribbit King** (`../ribbit-king`): the scorecard\n' >> "$WORK/p/BRIEF.md"
+expect_failure "a reference the opening entry does not name" "names Ribbit King under References" journal
+
+fresh
+mkdir -p "$WORK/p/extra" && echo "a new file" > "$WORK/p/extra/notes.txt"
+expect_failure "a file no test tag covers" "no rule in tests/tags.toml covers extra/notes.txt" "$PY" scripts/quick_check.py --guard
+
+fresh
+(cd "$WORK/p" && ./scripts/build.sh >/dev/null)
+"$PY" - "$WORK/p/dist" <<'EOF2'
+import pathlib, shutil, sys; d = pathlib.Path(sys.argv[1])
+wasm = next(d.rglob("*_bg.wasm")); glue = wasm.with_name(wasm.name.replace("_bg.wasm", ".js"))
+(d / "pixel").mkdir()
+shutil.copy(glue, d / "pixel" / glue.name)
+(d / "pixel" / wasm.name).write_bytes(wasm.read_bytes() + b"\0")
+EOF2
+expect_failure "two views that load different engines" "the views load different WebAssembly modules" "$PY" scripts/wasm_imports.py dist
+
+# Kits: each kit's tests, run inside a project by scripts/check-kits.sh.
+kit_copy() { rm -rf "$WORK/kits"; cp -R "$ROOT/kits" "$WORK/kits"; }
+kits() { BUILDER_KITS="$WORK/kits" "$ROOT/scripts/check-kits.sh" "$@"; }
+
+fresh; kit_copy
+"$PY" - "$WORK/kits/online/crates/core/src/online.rs" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = "*world = self.snapshots[&from].clone();"
+assert old in s
+open(p, "w").write(s.replace(old, "let _ = &from;"))
+EOF2
+expect_failure "rollback that never restores the world" "a_late_input_that_differs_rolls_back_to_the_world_of_a_copy_fed_on_time" kits online
+
+fresh; kit_copy
+"$PY" - "$WORK/kits/saves/crates/core/src/save.rs" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = "pub const VERSION: u32 = 2;"
+assert old in s
+open(p, "w").write(s.replace(old, "pub const VERSION: u32 = 3;"))
+EOF2
+expect_failure "a save version bumped with no migration step" "a save from a deployed build no longer loads" kits saves
+
+fresh; kit_copy
+"$PY" - "$WORK/kits/saves/crates/core/src/save.rs" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+old = '            let level = v.remove("level").unwrap_or(json!(1));'
+assert old in s
+open(p, "w").write(s.replace(old, old + '\n            v.remove("wood");'))
+EOF2
+expect_failure "a migration that loses a field" "the field \"wood\" is gone or changed after loading" kits saves
+
 # The style pack and the art pipeline live in template/, not the example.
 mkdir -p "$WORK/leak/template/styles/default" "$WORK/leak/template/web"
 cp "$ROOT/template/styles/default/palette.json" "$WORK/leak/template/styles/default/"

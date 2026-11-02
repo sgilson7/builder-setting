@@ -2,7 +2,8 @@
 """Start this project's design journal where BRIEF.md says it lives.
 
 Copies tools/journal/index.html to the journal folder (by default
-../<this folder>-journal/), puts the project's name in its title, makes img/,
+../<this folder>-journal/), puts the project's name in its title, makes img/
+and an empty decisions.json (the questions, drawn by decisions.py),
 and makes the folder its own git repository with a first commit, unless it
 already sits inside one. The journal is never pushed: it holds draft pictures and the person's reference material,
 which stay out of a public repository. It refuses to touch a folder that
@@ -34,6 +35,8 @@ def main(title=None):
     (where / "img").mkdir(parents=True, exist_ok=True)
     shell = (Path(__file__).parent / "index.html").read_text()
     index.write_text(shell.replace("{{TITLE}}", title))
+    # questions for the person live here as data; tools/journal/decisions.py draws them as answer chips
+    (where / "decisions.json").write_text('{\n  "prefix": "XX",\n  "questions": []\n}\n')
     (where / "README.md").write_text(
         f"# {title} journal\n\nThe design journal for `{ROOT.name}`: open `index.html`. "
         "Kept as its own repository and never pushed. Entries are added and corrected, never removed; "

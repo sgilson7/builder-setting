@@ -26,8 +26,14 @@
 ## The design journal
 
 13. Keep the design journal unless `BRIEF.md`'s Journal section says `none`. Start it with `python3 tools/journal/new_journal.py`; it lives beside the project (by default `../<this folder>-journal/`) as its own repository and is never pushed. `tools/journal/ENTRIES.md` says what each kind of entry holds.
-14. Before writing `PLAN.md`, write the journal's opening entry: read Builder and the brief back to the person, with numbered rules and what holds each, the question prefix, where you stop, and your questions. When the person answers, each rule that applies to every later session goes under "Rules agreed for this project" below, and each rule the core can enforce becomes a test.
-15. Every decision put to the person, visible change, divergence from the plan and deploy gets a journal entry when it happens, citing its rows (T4, R2.3, XX-Q5). Never remove an entry. `scripts/journal_check.py` checks the form; commit in the journal's repository after each change.
+14. Before writing `PLAN.md`, open every project `BRIEF.md` names under References, then write the journal's opening entry: read Builder, the brief and those references back to the person, with numbered rules and what holds each, the question prefix, where you stop, and your questions. When the person answers, each rule that applies to every later session goes under "Rules agreed for this project" below, and each rule the core can enforce becomes a test.
+15. Every decision put to the person, visible change, divergence from the plan and deploy gets a journal entry when it happens, citing its rows (T4, R2.3, XX-Q5). Never remove an entry. `scripts/journal_check.py` checks the form; commit in the journal's repository after each change, and republish it if it has an address.
+16. Put questions to the person as answer chips in the journal (`decisions.json`, drawn by `tools/journal/decisions.py`), each with a default, never as a list to answer in chat. When the person says the answers are in the journal, read them there and record them with `decisions.py --answers`.
+
+## Cost
+
+17. Work as one agent unless `BRIEF.md`'s Autonomy paragraph names subagents. A question that offers them gives a token estimate. A subagent's brief says it runs no browser check; the coordinator merges several parts and runs one.
+18. While iterating, run `./scripts/quick-check.sh`, which runs only the tests the changed files touch. `./scripts/check.sh` stays the check before a handoff, a deploy or a publish.
 
 ## Rules agreed for this project
 

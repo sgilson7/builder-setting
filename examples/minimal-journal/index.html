@@ -65,6 +65,27 @@ ol.qs { list-style: none; padding: 0; display: grid; gap: 10px; }
 ol.qs li { border: 1px solid var(--line); background: var(--panel); padding: 10px 14px; border-radius: 4px; }
 ol.qs strong { display: block; }
 ol.qs em { display: block; font-style: normal; font-family: var(--mono); font-size: 12.5px; color: var(--accent); margin-top: 4px; }
+/* Answer chips: drawn by tools/journal/decisions.py from decisions.json. */
+.decide-bar { display: flex; flex-wrap: wrap; gap: 8px 10px; align-items: center; }
+.act { font: 600 14px var(--body); color: var(--fg); background: var(--panel); border: 1px solid var(--fg); border-radius: 4px; padding: 6px 12px; cursor: pointer; }
+.where { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.copyout { width: 100%; font-family: var(--mono); font-size: 13px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); padding: 8px; }
+.decide { border: 1px solid var(--line); background: var(--panel); border-radius: 4px; padding: 12px 14px; display: grid; gap: 8px; margin-bottom: 10px; }
+.decide.done { border-color: var(--accent); }
+.dq { font-weight: 700; }
+.qid { font-family: var(--mono); font-weight: 500; font-size: 12.5px; color: var(--mark); margin-right: 6px; }
+.dx { color: var(--muted); font-size: 15px; }
+.blocks { display: block; font-family: var(--mono); font-size: 12px; color: var(--accent); margin-top: 4px; }
+.opt { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 10px; align-items: start; text-align: left; width: 100%; font: inherit; font-size: 15px; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; cursor: pointer; }
+.opt b { font-family: var(--mono); font-weight: 500; display: grid; place-items: center; width: 26px; height: 26px; border: 1px solid var(--fg); border-radius: 3px; }
+.opt[aria-pressed="true"] { border-color: var(--fg); background: color-mix(in srgb, var(--you) 40%, var(--panel)); }
+.opt[aria-pressed="true"] b { background: var(--fg); color: var(--bg); }
+.dflt { font-style: normal; font-family: var(--mono); font-size: 11.5px; color: var(--mark); text-transform: uppercase; margin-left: 6px; white-space: nowrap; }
+details.note summary { cursor: pointer; color: var(--muted); font-family: var(--mono); font-size: 12.5px; }
+details.note textarea { width: 100%; margin-top: 6px; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); padding: 6px 8px; }
+.saved { font-family: var(--mono); font-size: 12px; color: var(--accent); min-height: 1em; margin: 0; }
+/* Live now: rewritten on every deploy; journal_check.py matches data-commit to the newest live entry. */
+.live-now { border: 2px solid var(--fg); background: var(--panel); padding: 14px 16px; display: grid; gap: 8px; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 480px), 1fr)); gap: 14px; }
 figure { margin: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; overflow: hidden; }
 figure button { all: unset; cursor: zoom-in; display: block; width: 100%; }
@@ -98,6 +119,7 @@ figcaption b { color: var(--fg); }
     <nav aria-label="Pages">
       <a href="#home">All entries</a>
       <a href="#reading">How I read this</a>
+      <a href="#now">Live now</a>
       <!-- One link per page added later: one page per major update, level or feature. -->
     </nav>
   </header>
@@ -146,7 +168,9 @@ figcaption b { color: var(--fg); }
         <h4>Where I stop</h4>
         <p>Nowhere before the handoff, since the plan is approved in advance. Nothing is pushed or deployed.</p>
         <h4>Questions for you</h4>
-        <p>None: the brief fixes everything this example needs. Each of MC-1 to MC-3 is already held by a test or a Builder rule, so none was added to <code>CLAUDE.md</code>.</p>
+        <p>None: the brief fixes everything this example needs, so <code>decisions.json</code> holds no questions and no chips are drawn here. Each of MC-1 to MC-3 is already held by a test or a Builder rule, so none was added to <code>CLAUDE.md</code>.</p>
+        <div class="decisions"><!--DECIDE page=reading-->
+<!--/DECIDE--></div>
       </div>
     </article>
 
@@ -165,6 +189,16 @@ figcaption b { color: var(--fg); }
         </table></div>
       </div>
     </article>
+  </section>
+  <section class="page" id="now" data-page hidden>
+    <div class="page-head">
+      <h2>Live now</h2>
+      <p>What is deployed, from which commit, and what changed since the deploy before. Rewritten on every deploy; the live entries below it keep the history.</p>
+    </div>
+    <div class="live-now" data-commit="">
+      <p><b>Nothing is deployed yet.</b></p>
+      <p class="blank">On each deploy: the address, the commit (also in data-commit above), the date, the checks run against the live address, what changed since the last deploy with its T rows, and a screenshot of each change.</p>
+    </div>
   </section>
   </main>
 </div>
@@ -208,6 +242,60 @@ addEventListener("keydown", e => {
   if (e.key === "ArrowLeft") open(at - 1);
   if (e.key === "ArrowRight") open(at + 1);
 });
+// Answer chips: saved in this browser; also in the page's store when the host
+// gives it one (a claude.ai artifact's db); "Copy answers" gives a line for any agent.
+(function () {
+  const qs = [...new Set([...document.querySelectorAll(".opt[data-q]")].map(b => b.dataset.q))];
+  if (!qs.length) return;
+  const KEY = "journal-answers:" + document.title;
+  let ans = {}, db = null;
+  try { ans = JSON.parse(localStorage.getItem(KEY) || "{}") || {}; } catch (e) { ans = {}; }
+  const where = [...document.querySelectorAll("[data-where]")];
+  const dflt = q => document.querySelector('.opt[data-q="' + q + '"][data-default]')?.dataset.a || "";
+  function render() {
+    for (const q of qs) {
+      const a = ans[q] || {};
+      document.querySelectorAll('.opt[data-q="' + q + '"]').forEach(b => b.setAttribute("aria-pressed", String(a.choice === b.dataset.a)));
+      const n = document.querySelector('[data-note="' + q + '"]');
+      if (n && document.activeElement !== n) n.value = a.note || "";
+      const s = document.querySelector('[data-saved="' + q + '"]');
+      if (s) s.textContent = a.choice ? "Answered " + a.choice + (a.byDefault ? " (the default)" : "") : (a.note ? "Note saved" : "");
+      document.getElementById("dec-" + q)?.classList.toggle("done", !!a.choice);
+    }
+    const n = qs.filter(q => ans[q]?.choice).length;
+    where.forEach(w => { w.textContent = n + " of " + qs.length + " answered, " + (db ? "saved to this page" : "saved in this browser; use Copy answers to send them"); });
+  }
+  function store(q) {
+    try { localStorage.setItem(KEY, JSON.stringify(ans)); } catch (e) {}
+    if (db) db.collection("answers").doc(q).set({ choice: ans[q]?.choice || "", note: ans[q]?.note || "", byDefault: !!ans[q]?.byDefault, at: new Date().toISOString() }).catch(() => {});
+  }
+  document.querySelectorAll(".opt[data-q]").forEach(b => b.addEventListener("click", () => {
+    const q = b.dataset.q, a = ans[q] || {};
+    ans[q] = { ...a, choice: a.choice === b.dataset.a ? "" : b.dataset.a, byDefault: false }; store(q); render();
+  }));
+  const timers = {};
+  document.querySelectorAll("[data-note]").forEach(n => n.addEventListener("input", () => {
+    const q = n.dataset.note; ans[q] = { ...(ans[q] || {}), note: n.value };
+    clearTimeout(timers[q]); timers[q] = setTimeout(() => { store(q); render(); }, 600);
+  }));
+  document.querySelectorAll("[data-defaults]").forEach(b => b.addEventListener("click", () => {
+    for (const q of qs) if (!ans[q]?.choice) { ans[q] = { ...(ans[q] || {}), choice: dflt(q), byDefault: true }; store(q); }
+    render();
+  }));
+  document.querySelectorAll("[data-copy]").forEach(b => b.addEventListener("click", () => {
+    const line = qs.map(q => q + ": " + (ans[q]?.choice || "-") + (ans[q]?.note ? " (" + ans[q].note.replace(/\s+/g, " ").trim() + ")" : "")).join("; ");
+    const out = b.closest(".entry-body")?.querySelector("[data-copyout]");
+    if (out) { out.value = line; out.hidden = false; }
+    const pick = () => { out?.focus(); out?.select(); };
+    try { navigator.clipboard.writeText(line).then(() => where.forEach(w => { w.textContent = "Copied. Paste it to the agent."; }), pick); } catch (e) { pick(); }
+  }));
+  render();
+  if (window.claude?.use) window.claude.use("db").then(async d => {
+    if (!d) return; db = d;
+    try { for (const doc of (await db.collection("answers").get()).docs) ans[doc.id] = { ...(ans[doc.id] || {}), ...(doc.data() || {}) }; } catch (e) {}
+    render();
+  }, () => {});
+})();
 </script>
 </body>
 </html>

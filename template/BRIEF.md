@@ -32,6 +32,12 @@ How the tool carries information besides colour (shape, pattern, brightness, tex
 
 `default`, or a path to a style pack, or a description of the look. With `default` or nothing, the art pipeline uses `styles/default/`.
 
+## References
+
+`none`, or earlier projects this one borrows from, one per line, with where their files are and what each lends, in the form `- **Ape Race** (../ape-race): the main menu and the online lobby`.
+
+The agent opens each one before planning and says in the opening entry what it took from it; `scripts/journal_check.py` fails while a name here is missing from that entry. A project named here is read, not copied wholesale: code comes in only under its licence, and art only with its owner's say.
+
 ## Words
 
 Terms the person already uses in their field, with what they mean. They go into `GLOSSARY.md` before any string uses them.
@@ -39,6 +45,11 @@ Terms the person already uses in their field, with what they mean. They go into 
 ## Autonomy
 
 One paragraph: what the agent may do alone, what it must ask about, and what it may never do. State whether the plan is approved in advance and whether the agent may publish.
+
+Two lines the agent reads literally:
+
+- Deploys: `on my word` (the agent deploys when the person says so in the session; the default), `when the checks pass` (the agent publishes with `./scripts/publish.sh` after every passing check), or `never`.
+- Subagents: `none` (the default: one agent does the work, because each subagent rereads the project and runs its own checks, which has cost 180,000 to 670,000 tokens apiece), or what they may do and how many at once.
 
 A paragraph that has worked for one-day builds: *The plan is approved in advance. Where this brief is silent, the agent decides, records the decision in `SECOND-ORDER.md`, and continues. The agent may not loosen a Builder requirement or a boundary test, and may not add a server, an account, analytics or any off-origin request. The agent may create a public repository named ____ and publish it with `./scripts/publish.sh` once `./scripts/check.sh` passes.*
 

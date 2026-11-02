@@ -8,13 +8,19 @@
 //! whole match between two simulated browsers, with lag, in a few
 //! milliseconds.
 //!
-//! The example protocol is two-seat lockstep over a toy world. Each browser
-//! runs the same world from the same start. A local input is used `DELAY`
-//! ticks after it is made, which gives it time to reach the other browser,
-//! and no browser runs a tick until it holds both seats' inputs for it. Every
-//! `SUM_EVERY` ticks each browser sends a checksum of its world, and a
-//! mismatch is reported. Replace `World` and the input bits with the
-//! project's own; keep the message handling and the tests.
+//! The example protocol is two-seat rollback over a toy world, the reference
+//! default for online play. Each browser runs the same world from the same
+//! start. A local input is used `DELAY` ticks after it is made and sent at
+//! once. A browser does not wait for the other seat: it guesses that seat
+//! holds its last known input, keeps the world from before each tick it ran
+//! on a guess, and when the real input arrives and differs, restores that
+//! world and runs the ticks again. It never runs more than `MAX_AHEAD` ticks
+//! past the last tick for which it holds both seats' real inputs. Every
+//! `SUM_EVERY` confirmed ticks each browser sends a checksum of its world,
+//! and a mismatch is reported. Replace `World` and the input bits with the
+//! project's own; keep the message handling and the tests. A project that
+//! wants lockstep instead (a turn-based game, where waiting costs nothing)
+//! sets `MAX_AHEAD` to 0: no tick then runs on a guess.
 //!
 //! Every status is a key for a string in `data/` (`online.reload`,
 //! `online.garbled`, ...), so the wording sits with the other copy and the
@@ -27,16 +33,15 @@
 //!   ends say why;
 //! - garbage on the wire changes the status and nothing else, and a message
 //!   from a peer that never said hello is ignored;
-//! - a browser waits for the other seat's input; it does not guess;
+//! - a browser runs on a guess, never more than `MAX_AHEAD` ticks past its
+//!   confirmed ticks;
+//! - a late input that differs from the guess rolls the world back and
+//!   replays it to the world of a copy fed every input on time;
 //! - two copies joined by a lagged wire end on the same world as a copy fed
 //!   every input on time;
 //! - a peer that leaves is reported, and a third browser is told the room is
 //!   full;
 //! - two worlds that disagree are reported as a desync.
-//!
-//! A project that moves to rollback adds: a corrected input restores the
-//! snapshot before its tick and replays to the same world as lockstep would
-//! reach; a copy never runs more than its limit past its confirmed ticks.
 
 use serde::{Deserialize, Serialize};
 use std::collections::{BTreeMap, VecDeque};
@@ -50,6 +55,10 @@ pub const PROTOCOL: u32 = 1;
 
 /// Ticks between a local input and the tick that uses it.
 pub const DELAY: u32 = 2;
+
+/// Ticks a browser may run on guessed input past its last confirmed tick.
+/// 0 is lockstep.
+pub const MAX_AHEAD: u32 = 8;
 
 /// Ticks between checksums.
 pub const SUM_EVERY: u32 = 30;
@@ -149,12 +158,24 @@ pub struct Session {
     pub peer: Option<Peer>,
     /// A browser that has connected and not yet said hello.
     greeting: Option<Peer>,
-    /// Each seat's inputs by tick.
+    /// Each seat's real inputs by tick, from the newest confirmed one on.
     inputs: [BTreeMap<u32, u32>; SEATS],
     /// The next tick this browser will run.
     pub tick: u32,
-    /// Checksums of ticks this browser ran, kept until the other's arrives.
+    /// Every tick below this ran on both seats' real inputs.
+    pub confirmed: u32,
+    /// The inputs each unconfirmed tick ran on, guesses included.
+    used: BTreeMap<u32, [u32; SEATS]>,
+    /// The world before each unconfirmed tick.
+    snapshots: BTreeMap<u32, World>,
+    /// The earliest tick whose guess turned out wrong, until it is replayed.
+    replay_from: Option<u32>,
+    /// How many times this browser has rolled back.
+    pub rollbacks: u32,
+    /// This browser's checksums, kept until the other's arrive, and theirs
+    /// until this browser confirms the same tick.
     sums: BTreeMap<u32, u64>,
+    theirs: BTreeMap<u32, u64>,
     outbox: VecDeque<(Peer, String)>,
 }
 
@@ -174,7 +195,13 @@ impl Session {
             greeting: None,
             inputs,
             tick: 0,
+            confirmed: 0,
+            used: BTreeMap::new(),
+            snapshots: BTreeMap::new(),
+            replay_from: None,
+            rollbacks: 0,
             sums: BTreeMap::new(),
+            theirs: BTreeMap::new(),
             outbox: VecDeque::new(),
         }
     }
@@ -259,18 +286,27 @@ impl Session {
             }
             Msg::Input { tick, keys } => {
                 let other = 1 - self.seat;
-                let window = self.tick..=self.tick + DELAY + DELAY;
+                // the other copy can be at most MAX_AHEAD past what it has
+                // confirmed, which is at most one tick past this copy's
+                // own inputs, which run DELAY ahead of this copy
+                let window = self.confirmed..=self.tick + 2 * DELAY + MAX_AHEAD + 1;
                 if !window.contains(&tick) || self.inputs[other].contains_key(&tick) {
                     self.status = GARBLED;
                     return;
                 }
                 self.inputs[other].insert(tick, keys);
+                let guessed = self.used.get(&tick).map(|u| u[other]);
+                if guessed.is_some_and(|g| g != keys) {
+                    self.replay_from = Some(self.replay_from.map_or(tick, |r| r.min(tick)));
+                }
             }
             Msg::Sum { tick, sum } => {
                 if let Some(mine) = self.sums.remove(&tick) {
                     if mine != sum {
                         self.status = DESYNC;
                     }
+                } else if tick > self.confirmed {
+                    self.theirs.insert(tick, sum);
                 }
             }
         }
@@ -289,25 +325,87 @@ impl Session {
         self.send(peer, &Msg::Input { tick, keys });
     }
 
-    /// Runs the next tick if both seats' inputs for it are here. Returns
-    /// whether it ran. A browser without the other's input waits.
-    pub fn step(&mut self, world: &mut World) -> bool {
-        let t = self.tick;
-        let (Some(&a), Some(&b)) = (self.inputs[0].get(&t), self.inputs[1].get(&t)) else {
-            return false;
-        };
-        world.step([a, b]);
-        for seat_inputs in self.inputs.iter_mut() {
-            seat_inputs.remove(&t);
+    /// A seat's input for a tick: the real one if it is here, otherwise the
+    /// guess that the seat still holds its last known input.
+    fn input_or_guess(&self, seat: usize, tick: u32) -> u32 {
+        self.inputs[seat]
+            .range(..=tick)
+            .next_back()
+            .map(|(_, k)| *k)
+            .unwrap_or(0)
+    }
+
+    fn run(&mut self, world: &mut World, tick: u32) {
+        let keys = [self.input_or_guess(0, tick), self.input_or_guess(1, tick)];
+        self.snapshots.insert(tick, world.clone());
+        self.used.insert(tick, keys);
+        world.step(keys);
+    }
+
+    /// Replays from the earliest wrong guess, if a real input showed one.
+    /// `step` calls it first; call it on its own to correct the world
+    /// without running a new tick.
+    pub fn settle(&mut self, world: &mut World) {
+        if let Some(from) = self.replay_from.take() {
+            *world = self.snapshots[&from].clone();
+            for t in from..self.tick {
+                self.run(world, t);
+            }
+            self.rollbacks += 1;
         }
-        self.tick += 1;
-        if self.tick.is_multiple_of(SUM_EVERY) {
-            let sum = world.sum();
-            if let Some(peer) = self.peer {
-                self.sums.insert(self.tick, sum);
-                self.send(peer, &Msg::Sum { tick: self.tick, sum });
+        self.confirm(world);
+    }
+
+    /// Moves `confirmed` past every tick that ran on real inputs, sends a
+    /// checksum at each `SUM_EVERY`, and drops what is no longer needed.
+    fn confirm(&mut self, world: &World) {
+        while self.confirmed < self.tick
+            && self.inputs[0].contains_key(&self.confirmed)
+            && self.inputs[1].contains_key(&self.confirmed)
+        {
+            let c = self.confirmed;
+            self.confirmed += 1;
+            let k = self.confirmed;
+            if k.is_multiple_of(SUM_EVERY) {
+                let sum = if k == self.tick {
+                    world.sum()
+                } else {
+                    self.snapshots[&k].sum()
+                };
+                if let Some(peer) = self.peer {
+                    match self.theirs.remove(&k) {
+                        Some(theirs) if theirs != sum => self.status = DESYNC,
+                        Some(_) => {}
+                        None => {
+                            self.sums.insert(k, sum);
+                        }
+                    }
+                    self.send(peer, &Msg::Sum { tick: k, sum });
+                }
+            }
+            self.snapshots.remove(&c);
+            self.used.remove(&c);
+            // keep the confirmed tick's input: it is the guess for the next
+            for seat_inputs in self.inputs.iter_mut() {
+                seat_inputs.retain(|t, _| *t >= c);
             }
         }
+    }
+
+    /// Runs the next tick, on a guess for any input not yet here. Returns
+    /// whether it ran: a browser `MAX_AHEAD` ticks past its confirmed ticks
+    /// waits for the other seat.
+    pub fn step(&mut self, world: &mut World) -> bool {
+        self.settle(world);
+        if self.tick >= self.confirmed + MAX_AHEAD
+            && !(self.inputs[0].contains_key(&self.tick) && self.inputs[1].contains_key(&self.tick))
+        {
+            return false;
+        }
+        let t = self.tick;
+        self.run(world, t);
+        self.tick += 1;
+        self.confirm(world);
         true
     }
 }
@@ -449,18 +547,51 @@ mod tests {
     }
 
     #[test]
-    fn a_copy_waits_for_the_other_seat_and_does_not_guess() {
+    fn a_copy_runs_on_a_guess_and_never_more_than_its_limit_ahead() {
         let (mut host, _join) = pair("b", "b");
         let mut world = World::default();
-        for _ in 0..DELAY {
-            host.local(0);
+        let mut ran = 0;
+        for _ in 0..(DELAY + MAX_AHEAD + 5) {
+            host.local(RIGHT);
+            if host.step(&mut world) {
+                ran += 1;
+            }
+        }
+        // the prefilled ticks confirm on their own; past them the host may
+        // run MAX_AHEAD ticks on guesses for the joiner, and no more
+        assert_eq!(host.confirmed, DELAY);
+        assert_eq!(ran, DELAY + MAX_AHEAD);
+        assert_eq!(host.tick, DELAY + MAX_AHEAD);
+        host.message(JOINER, &encode(&Msg::Input { tick: DELAY, keys: 0 }));
+        assert!(host.step(&mut world), "one real input frees one tick");
+    }
+
+    #[test]
+    fn a_late_input_that_differs_rolls_back_to_the_world_of_a_copy_fed_on_time() {
+        let (mut host, _join) = pair("b", "b");
+        let mut world = World::default();
+        let ticks = DELAY + 6;
+        while host.tick < ticks {
+            host.local(script(0, host.tick + DELAY));
             assert!(host.step(&mut world));
         }
-        host.local(RIGHT);
-        assert!(!host.step(&mut world), "ran a tick without the joiner's input");
-        assert_eq!(host.tick, DELAY);
-        host.message(JOINER, &encode(&Msg::Input { tick: DELAY, keys: 0 }));
-        assert!(host.step(&mut world));
+        assert_eq!(host.rollbacks, 0, "nothing has contradicted a guess yet");
+        // the joiner's inputs arrive late, and the guess (still 0) was wrong
+        for t in DELAY..ticks {
+            host.message(
+                JOINER,
+                &encode(&Msg::Input {
+                    tick: t,
+                    keys: script(1, t),
+                }),
+            );
+        }
+        host.settle(&mut world);
+        assert_eq!(host.rollbacks, 1, "one replay covers every late input");
+        // the host's own inputs for ticks under DELAY are the prefilled zeros,
+        // which script() also gives, so the true run is truth(ticks)
+        assert_eq!(world, truth(ticks));
+        assert_eq!(host.confirmed, ticks);
     }
 
     #[test]
@@ -500,6 +631,15 @@ mod tests {
                 }
                 frame += 1;
             }
+            for (_, to, text) in wire.drain(..) {
+                if to == 0 {
+                    host.message(JOINER, &text);
+                } else {
+                    join.message(HOST, &text);
+                }
+            }
+            host.settle(&mut worlds[0]);
+            join.settle(&mut worlds[1]);
             assert_eq!(host.tick, ticks, "lag {lag}: the host stalled");
             assert_eq!(join.tick, ticks, "lag {lag}: the joiner stalled");
             assert_eq!(worlds[0], truth(ticks), "lag {lag}: host");
