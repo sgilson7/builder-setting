@@ -6,8 +6,9 @@
 # 3. the default style pack stays inside template/styles/
 # 4. the blank template passes its own check, and each of its breaks is caught
 # 5. the minimal example passes its own check, and each of its breaks is caught
-# 6. each kit's core code passes the project's checks inside a copy of the example
-# 7. each planted defect is caught by the check meant to catch it
+# 6. the office-intake kit's tests pass
+# 7. each kit's core code passes the project's checks inside a copy of the example
+# 8. each planted defect is caught by the check meant to catch it
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
@@ -39,6 +40,9 @@ step "examples/minimal: ./scripts/check.sh"
 
 step "examples/minimal: scripts/break_tests.py"
 (cd examples/minimal && "$PY" scripts/break_tests.py)
+
+step "kits/office-intake: its tests"
+"$PY" -m unittest discover -s kits/office-intake/tests
 
 step "kits: scripts/check-kits.sh"
 ./scripts/check-kits.sh

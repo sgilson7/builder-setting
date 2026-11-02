@@ -1,0 +1,57 @@
+{
+  "_note": "The fixed shape of a student submission. make_templates.py writes the templates from it and intake.py checks submissions against it.",
+  "files": {"design": "GameDesign.docx", "pitch": "GamePitch.pptx", "data": "GameData.xlsx"},
+  "headings": [
+    "1. Pitch",
+    "2. Player and goal",
+    "3. Controls",
+    "4. Mechanics: the rules",
+    "5. Winning and losing",
+    "6. Dynamics: how a round plays",
+    "7. Screens and interface",
+    "8. Aesthetics: look, sound and mood",
+    "9. Scope",
+    "10. AI use statement"
+  ],
+  "slides": ["Title", "The central idea", "The gameplay loop", "Key rules", "Screen mock-up", "What we cut and why"],
+  "sheets": [
+    {"name": "Start Here", "columns": []},
+    {"name": "Rules", "columns": ["Rule", "Example", "Expected result"]},
+    {"name": "Levels", "columns": ["Level", "Goal", "Time limit (seconds)", "Notes"]},
+    {"name": "Things", "columns": ["Name", "Kind", "Speed", "Health", "Points", "Notes"]},
+    {"name": "Controls", "columns": ["Action", "Key or click"]},
+    {"name": "Words", "columns": ["Term", "Meaning", "Not this word"]},
+    {"name": "Assets", "columns": ["File name", "Made by", "Licence", "Link"]},
+    {"name": "Changes", "columns": ["#", "Request in your words", "Where in the files", "Why"]},
+    {"name": "Team", "columns": ["Name", "Role", "What I contributed"]}
+  ],
+  "private_sheets": ["Team"],
+  "tool": {
+    "_note": "The tool version, for a team that designs a tool instead of a game. The intake uses it when the folder holds the tool design document. Sheets and slides that keep a game name keep its columns.",
+    "files": {"design": "ToolDesign.docx", "pitch": "ToolPitch.pptx", "data": "ToolData.xlsx"},
+    "headings": [
+      "1. Pitch",
+      "2. User and goal",
+      "3. Controls",
+      "4. Rules: what the tool does",
+      "5. Inputs and outputs",
+      "6. Walkthrough: one use from start to finish",
+      "7. Screens and interface",
+      "8. Look, wording and privacy",
+      "9. Scope",
+      "10. AI use statement"
+    ],
+    "slides": ["Title", "The central idea", "How someone uses it", "Key rules", "Screen mock-up", "What we cut and why"],
+    "sheets": [
+      {"name": "Start Here", "columns": []},
+      {"name": "Rules", "columns": ["Rule", "Example", "Expected result"]},
+      {"name": "Inputs", "columns": ["Input", "Kind", "Allowed values", "If it is wrong or missing"]},
+      {"name": "Things", "columns": ["Name", "Kind", "Value", "Notes"]},
+      {"name": "Controls", "columns": ["Action", "Key or click"]},
+      {"name": "Words", "columns": ["Term", "Meaning", "Not this word"]},
+      {"name": "Assets", "columns": ["File name", "Made by", "Licence", "Link"]},
+      {"name": "Changes", "columns": ["#", "Request in your words", "Where in the files", "Why"]},
+      {"name": "Team", "columns": ["Name", "Role", "What I contributed"]}
+    ]
+  }
+}
