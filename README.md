@@ -36,6 +36,8 @@ claude          # or another coding agent that reads CLAUDE.md or AGENTS.md
 
 Then describe the tool in your own words: what it is for, who uses it, what a good result looks like, and what from your own field it has to get right. If you want it published, name the repository and say the agent may publish. The agent does the step the author did by hand for the projects above: it copies the template into a new directory, writes the brief from your words, starts a design journal beside the project and reads Builder and your description back to you there, builds the tool with its tests, and publishes it if you allowed that. Later changes are more plain prose ("the hint should name the element, not the side"). [`prompts/start-from-description.md`](prompts/start-from-description.md) is the procedure the agent follows. The project is a new folder next to the clone; start later sessions inside it, so the agent reads the project's own rules from the beginning.
 
+If you keep each project in a folder of your own, start the agent in a new empty folder and paste the opening in [`prompts/start-in-a-folder.md`](prompts/start-in-a-folder.md) instead. It names the agent's role, the earlier projects to borrow from ([`docs/house-styles.md`](docs/house-styles.md)), a journal to model, and what the agent may do without asking, and the agent clones Builder beside the project.
+
 What you still own: the content and whether it is right in your field, whether the tool does what you meant, and the decision to make it public. Use the tool on one case you have worked out by hand before you share it.
 
 ## Start from the template
@@ -116,7 +118,7 @@ When a requirement seems to block necessary work, the agent stops and writes a r
 
 ## A check is trusted after it has been seen to fail
 
-`scripts/prove-checks.sh` copies the minimal example, plants one defect at a time, and requires the check meant to catch it to fail with a message that names the defect. It plants 38, among them a float, a `println!` and a hash map in the core, a branch in the shim, a copy of a rule in a nested page file, a tuning number in a shader, a page that navigates or checks for automation, browser storage, a word the glossary rules out, a stock phrase, a vendored file that does not match its checksum, an empty list of breaks, and a default-style colour in the template's CSS. A run with nothing planted fails too.
+`scripts/prove-checks.sh` copies the minimal example, plants one defect at a time, and requires the check meant to catch it to fail with a message that names the defect. It plants 53, among them a float, a `println!` and a hash map in the core, a branch in the shim, a copy of a rule in a nested page file, a tuning number in a shader, a page that navigates or checks for automation, browser storage, a word the glossary rules out, a stock phrase, a vendored file that does not match its checksum, an empty list of breaks, a default-style colour in the template's CSS, a question with no default, a stale Live now page, two views loading different engines, rollback that never restores the world, and a save migration that loses a field. A run with nothing planted fails too.
 
 Writing that script found a gap. With the CSP in place, the browser blocks a forbidden fetch before it becomes a request, so a check that listened only for requests saw nothing. The browser check now records CSP violations as their own failure.
 
@@ -157,7 +159,7 @@ The person describes the tool, uses it and decides whether it is published. The 
 
 ## The design journal
 
-Every project keeps a design journal unless its brief says `none`: an HTML page of dated entries beside the project, never pushed, where the person reads the build and answers by number. It opens, before the plan, with the agent reading Builder and the brief back to the person as numbered rules, each with what holds it, plus the question prefix, the stop points and its questions. The person corrects that reading before anything is built on it, and the answers move the lasting rules into `CLAUDE.md` and tests. After that, each decision put to the person (with the default the agent builds on), each visible change (with pictures of the running build), each divergence from the plan and each deploy gets an entry that cites the notebook and triage rows it reports. `scripts/journal_check.py` checks the journal's form and its links to those rows. The form comes from Peter's Ape Race and the games built after it; [`docs/journal.md`](docs/journal.md) describes it.
+Every project keeps a design journal unless its brief says `none`: an HTML page of dated entries beside the project, never pushed, where the person reads the build and answers its questions with one tap each. It opens, before the plan, with the agent reading Builder and the brief back to the person as numbered rules, each with what holds it, plus the question prefix, the stop points and its questions. The person corrects that reading before anything is built on it, and the answers move the lasting rules into `CLAUDE.md` and tests. Questions are answer chips drawn from the journal's `decisions.json`, each with the default the agent builds on; on claude.ai the answers save to the page and the agent reads them there. After that, each decision put to the person, each visible change (with pictures of the running build), each divergence from the plan, each comparison of a mockup with the build and each deploy gets an entry that cites the notebook and triage rows it reports, and a Live now page always says what is deployed. `scripts/journal_check.py` checks the journal's form and its links to those rows. The form comes from Peter's Ape Race and the games built after it; [`docs/journal.md`](docs/journal.md) describes it.
 
 ## What a pass does not show
 
@@ -193,7 +195,7 @@ In a project, that runs format and lint, the core, boundary, copy and storage te
 
 ## Credits
 
-Builder is designed by Sam Gilson with Peter (ptonkle), who tested it by building from a clean copy and contributed the view model, the one-door action function, the draw-list renderer, the glossary, the online transport's design and the design journal from his games.
+Builder is designed by Sam Gilson with Peter (ptonkle), who tested it by building from a clean copy and contributed the view model, the one-door action function, the draw-list renderer, the glossary, the online transport's design, the design journal and the quick check from his games.
 
 ## Citation
 

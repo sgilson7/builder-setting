@@ -18,7 +18,17 @@ about whether an entry is right:
 - every notebook row (R2.3) and triage row (T4) the journal cites exists, so
   the journal cannot report a record that is not there;
 - no entry present in the last commit of the journal's repository is gone.
-  Entries are history: they are added and corrected, never removed.
+  Entries are history: they are added and corrected, never removed;
+- decisions.json is well formed (one default per question, a blocks line)
+  and the answer chips in the page match it (tools/journal/decisions.py);
+- every answer in answers.json is cited by an *agreed* entry, and an answer
+  that differs from the default is also cited by a TRIAGE.md row;
+- once a *live* entry is dated on or after a *mockups* entry, an *against*
+  entry (data-against="<mockups id>") sets that mockup beside the build;
+- the Live now page's data-commit is the newest *live* entry's data-commit;
+- a *research* entry links at least one source, and an *intake* entry quotes
+  the input it reads (a blockquote);
+- every project named under BRIEF.md's References is named in the opening entry.
 
 On CI the journal is usually absent, since it is never pushed; a missing
 journal is then reported and not failed. Everywhere else it fails.
@@ -27,6 +37,7 @@ journal is then reported and not failed. Everywhere else it fails.
 """
 
 import html
+import json
 import os
 import re
 import subprocess
@@ -37,6 +48,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from notebook_check import cells, rows  # noqa: E402
 
 ENTRY = re.compile(r"<article\b[^>]*>", re.I)
+BLOCK = re.compile(r"(<article\b[^>]*>)(.*?)</article>", re.I | re.S)
+DATE = re.compile(r'<time[^>]*datetime="(\d{4}-\d{2}-\d{2})"')
 ATTR = re.compile(r'([\w-]+)(?:\s*=\s*"([^"]*)")?')
 NOTE_ID = re.compile(r"(?<![\w.-])R([1-9]\d*\.[1-9]\d*)(?![\w]|\.\d)")
 TRIAGE_ID = re.compile(r"(?<![\w.-])T([1-9]\d*)(?![\w])")
@@ -91,6 +104,69 @@ def entries(page):
 def text_of(page):
     page = re.sub(r"<(script|style)\b.*?</\1>", " ", page, flags=re.S | re.I)
     return html.unescape(re.sub(r"<[^>]+>", " ", page))
+
+
+def blocks(page):
+    """(attrs, inner html, date) for each entry, in page order."""
+    out = []
+    for m in BLOCK.finditer(page):
+        attrs = {k.lower(): (v if v is not None else "") for k, v in ATTR.findall(m.group(1)[8:-1])}
+        if "entry" in attrs.get("class", "").split():
+            d = DATE.search(m.group(2))
+            out.append((attrs, m.group(2), d.group(1) if d else ""))
+    return out
+
+
+def chips_problems(where, page):
+    """decisions.json against the page, and answers.json against the entries and TRIAGE.md."""
+    dpath = where / "decisions.json"
+    if not dpath.exists():
+        return [], {}, {}
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools" / "journal"))
+    import decisions  # noqa: E402
+    data = json.loads(dpath.read_text())
+    out = [f"decisions.json: {b}" for b in decisions.problems_in(data)]
+    if out:
+        return out, {}, {}
+    missing = decisions.unplaced(page, data)
+    if missing:
+        out.append(f"decisions.json puts questions on page(s) {', '.join(missing)}, which have no <!--DECIDE page=...--> marker")
+    elif decisions.render(page, data) != page:
+        out.append("the answer chips are out of date with decisions.json: run python3 tools/journal/decisions.py")
+    apath = where / "answers.json"
+    answers = json.loads(apath.read_text()) if apath.exists() else {}
+    qs = {q["id"]: q for q in data.get("questions", [])}
+    return out, qs, answers
+
+
+def mockup_and_live_problems(found_blocks, page):
+    out = []
+    mocks = [(a, d) for a, _, d in found_blocks if a.get("data-kind") == "mockups"]
+    lives = [(a, d) for a, _, d in found_blocks if a.get("data-kind") == "live"]
+    against = set()
+    for a, _, _ in found_blocks:
+        if a.get("data-kind") == "against":
+            against.update(a.get("data-against", "").split())
+    for m, d in mocks:
+        if any(ld >= d for _, ld in lives) and m.get("id") not in against:
+            out.append(f"mockups entry {m.get('id')} was followed by a deploy with no 'against' entry setting it beside "
+                       f'the build: add <article class="entry" data-kind="against" data-against="{m.get("id")}">')
+    if lives:
+        newest = max(lives, key=lambda x: x[1])[0]
+        now = re.search(r'class="live-now"[^>]*data-commit="([^"]*)"', page) or re.search(r'data-commit="([^"]*)"[^>]*class="live-now"', page)
+        if not newest.get("data-commit"):
+            out.append(f"live entry {newest.get('id')} has no data-commit naming the deployed commit")
+        elif not now:
+            out.append("the journal has live entries and no Live now page (a .live-now block with data-commit)")
+        elif now.group(1) != newest["data-commit"]:
+            out.append(f"Live now says {now.group(1) or 'nothing'} is deployed, and the newest live entry "
+                       f"({newest.get('id')}) says {newest['data-commit']}: rewrite Live now on every deploy")
+    return out
+
+
+def references(brief):
+    """Names in bold under BRIEF.md's References section."""
+    return [n.strip() for n in re.findall(r"^\s*[-*]\s+\*\*(.+?)\*\*", "\n".join(section(brief, "references") or []), re.M)]
 
 
 def triage_numbers(root):
@@ -177,6 +253,31 @@ def main(root):
     for n in sorted(set(TRIAGE_ID.findall(text)), key=int):
         if n not in triage:
             problems.append(f"the journal cites T{n}, and TRIAGE.md has no such row")
+
+    found_blocks = blocks(page)
+    chip_problems, qs, answers = chips_problems(where, page)
+    problems += chip_problems
+    agreed = " ".join(text_of(b) for a, b, _ in found_blocks if a.get("data-kind") == "agreed")
+    triage_text = (root / "TRIAGE.md").read_text() if (root / "TRIAGE.md").exists() else ""
+    for qid, a in sorted(answers.items()):
+        choice = a.get("choice", "")
+        if not choice or qid not in qs:
+            continue
+        if not re.search(rf"(?<![\w-]){re.escape(qid)}(?![\w.])", agreed):
+            problems.append(f"{qid} was answered ({choice}) and no agreed entry cites it")
+        default = next(o["key"] for o in qs[qid]["options"] if o.get("default"))
+        if choice != default and not re.search(rf"(?<![\w-]){re.escape(qid)}(?![\w.])", triage_text):
+            problems.append(f"{qid} was answered {choice}, not the default {default}, and no TRIAGE.md row cites it")
+    problems += mockup_and_live_problems(found_blocks, page)
+    for a, body, _ in found_blocks:
+        if a.get("data-kind") == "research" and not re.search(r'href="https?://', body):
+            problems.append(f"research entry {a.get('id')} links no source")
+        if a.get("data-kind") == "intake" and "<blockquote" not in body:
+            problems.append(f"intake entry {a.get('id')} does not quote the input it reads (a blockquote, word for word)")
+    opening = " ".join(text_of(b) for a, b, _ in found_blocks if a.get("data-kind") == "reading").lower()
+    for name in references(brief):
+        if name.lower() not in opening:
+            problems.append(f"BRIEF.md names {name} under References, and the opening entry does not say what it took from it")
 
     before = committed_ids(index)
     if before:

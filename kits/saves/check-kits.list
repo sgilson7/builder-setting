@@ -1,0 +1,8 @@
+# What scripts/check-kits.sh copies into a project beside the kit's core
+# modules: SOURCE (in this kit) DESTINATION (in the project). A line
+# "- PATH" removes a project file the kit replaces.
+crates/core/tests/old_saves.rs crates/core/tests/old_saves.rs
+crates/core/tests/storage_fence.rs crates/core/tests/storage_fence.rs
+- crates/core/tests/no_storage.rs
+web/save/store.js web/save/store.js
+tests/saves tests/saves
