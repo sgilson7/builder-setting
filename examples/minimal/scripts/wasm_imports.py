@@ -13,6 +13,9 @@ It reads the module's import section itself (about forty lines below, in
 also asks `wasm-tools print` for the import list and fails if the two
 disagree, so the hand-written reader is checked against a standard tool.
 
+When dist/ holds several modules (several views of one core), it also fails
+unless they are byte-identical (D22).
+
 What a pass establishes: the module's imports, as built, lead only to the
 glue bodies printed below, and none of those bodies or snippets names a
 network API. The one `fetch` the glue is allowed is the call that loads the
@@ -23,6 +26,7 @@ behaviour a user has to start.
 Exit status: 0 if nothing was flagged, 1 if something was, 2 on a usage error.
 """
 
+import hashlib
 import pathlib
 import re
 import shutil
@@ -177,6 +181,16 @@ def main():
         print(f"no *_bg.wasm under {dist}: run scripts/build.sh first")
         return 2
     flagged = 0
+    # Several views of one core (2D and 3D, a pixel view, an app shell) each
+    # load a module; they must be the same module, byte for byte (D22).
+    digests = {wasm: hashlib.sha256(wasm.read_bytes()).hexdigest() for wasm in modules}
+    if len(set(digests.values())) > 1:
+        flagged += 1
+        print("FLAG   the views load different WebAssembly modules; build every view from the one core:")
+        for wasm, d in digests.items():
+            print(f"         {d[:16]}  {wasm.relative_to(dist)}")
+    elif len(modules) > 1:
+        print(f"{len(modules)} views load the same module ({next(iter(digests.values()))[:16]})")
     for wasm in modules:
         glue_path = wasm.with_name(wasm.name.replace("_bg.wasm", ".js"))
         glue = glue_path.read_text(encoding="utf-8")

@@ -14,7 +14,8 @@ A kit never changes a Builder requirement. When a project copies a kit that chan
 
 | Kit | For | Changes |
 | --- | --- | --- |
-| [`online/`](online/) | peer-to-peer play between browsers, introduced by a room code or by pasted codes | D3 and D4 for `web/net/` only, through a fence test; uses R7's allowance for a declared off-origin feature |
+| [`online/`](online/) | peer-to-peer play between browsers, introduced by a room code or by pasted codes, with a rollback session (D23) | D3 and D4 for `web/net/` only, through a fence test; uses R7's allowance for a declared off-origin feature |
+| [`saves/`](saves/) | progress that survives a reload and a deploy: a versioned save, old saves loaded on every check, a file the player keeps, a playtest file to send back | D17 for `web/save/store.js` only, through a fence test |
 | [`canvas/`](canvas/) | a page that draws on a 2D canvas from a draw list the core builds; screenshots of still scenes | none |
 | [`realtime/`](realtime/) | games with a fixed tick: pointer lock with a fallback, taps between ticks, Q16.16 maths, seeded chance, probes, frame counting | none |
 | [`mobile/`](mobile/) | touch screens: pointer events, a CSS touch baseline, a manifest, a tablet pass in the browser check | D4 (adds `manifest-src 'self'`), D7 (adds a tablet engine) |
@@ -30,6 +31,8 @@ A kit never changes a Builder requirement. When a project copies a kit that chan
 6. Add a row to `tests/breaks.json` for each kit test the project keeps, and run `scripts/break_tests.py`. Each kit test was seen failing with its behaviour broken when the kit was written; the project's copy needs the same proof.
 7. Run `./scripts/check.sh`.
 
+The reference repository runs each kit's core tests inside a copy of the minimal example (`scripts/check-kits.sh`), so a kit's code passes the project's format, lint and boundary checks as shipped.
+
 ## Where the kits come from
 
-The kits collect patterns from games and tools built on Builder or alongside it. Peter (GitHub [ptonkle](https://github.com/ptonkle)), who co-designed Builder, wrote the online transport design, the draw-list renderer and the screenshot path in Mandible and Ape Race. The other sources are the author's own projects: Floodline and Vagrancy (the first transport lessons), Ribbit King, Level Twenty and Raiders of the Lost Mart (online play), Pursuer and Long Time Comin' (realtime input), Slushline (touch screens) and Status Trends (privacy). Each kit names what it took from which. The code in the kits was written fresh for them.
+The kits collect patterns from games and tools built on Builder or alongside it. Peter (GitHub [ptonkle](https://github.com/ptonkle)), who co-designed Builder, wrote the online transport design, the draw-list renderer and the screenshot path in Mandible and Ape Race. The other sources are the author's own projects: Floodline and Vagrancy (the first transport lessons), Ribbit King, Level Twenty and Raiders of the Lost Mart (online play), Pursuer and Long Time Comin' (realtime input), Slushline (touch screens), Status Trends (privacy), and Idle Game and CHUMWORLD (saves). Each kit names what it took from which. The code in the kits was written fresh for them.

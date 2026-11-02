@@ -29,7 +29,7 @@ Builder requirement R7 already allows a declared off-origin feature, so no requi
 | --- | --- | --- |
 | `web/net/config.js` | `web/net/config.js` | app id, protocol tag, relays, ICE servers, timings. The only file with a `wss://` address |
 | `web/net/vendor/README.md` | `web/net/vendor/README.md` | how to vendor Trystero and pin it |
-| `crates/core/src/online.rs` | `crates/core/src/online.rs` | the core side: messages, a lockstep session, the required tests |
+| `crates/core/src/online.rs` | `crates/core/src/online.rs` | the core side: messages, a rollback session, the required tests |
 | `crates/core/tests/online_fence.rs` | `crates/core/tests/online_fence.rs` | the fence around `web/net/` |
 | `tests/browser/online.py` | `tests/browser/online.py` | two browsers meet by pasted codes and play, on the origin |
 
@@ -115,13 +115,17 @@ This design is Peter's, from the header of Mandible's `online.js`, which in turn
 
 ## The core side
 
-`crates/core/src/online.rs` is a working skeleton: a message enum, a session for each browser, and a toy two-seat world played in lockstep. Replace the world with the project's own and keep the message handling. The page calls `connected`, `left` and `message` when the transport reports them, calls `local` and `step` once a display frame, and sends what `take_outbox` returns.
+`crates/core/src/online.rs` is a working skeleton: a message enum, a session for each browser, and a toy two-seat world played with rollback. Replace the world with the project's own and keep the message handling. The page calls `connected`, `left` and `message` when the transport reports them, calls `local` and `step` once a display frame, and sends what `take_outbox` returns.
+
+**Rollback is the reference default for online play.** Lockstep makes every player wait for the slowest connection on every tick, so a real-time game feels the worst ping all the time. Raiders of the Lost Mart (four players) and POTS (5v5) moved to rollback for that reason, and the kit now starts there. The session guesses that the other seat still holds its last known input, keeps the world from before each tick it ran on a guess, and when the real input arrives and differs, restores that world and runs the ticks again (`settle`). It never runs more than `MAX_AHEAD` ticks past its last confirmed tick, and checksums cover confirmed ticks only. A turn-based game, where waiting costs nothing, sets `MAX_AHEAD` to 0, which is lockstep.
+
+Rollback asks two things of the world. `World` must be cheap to clone, since the session keeps one copy per unconfirmed tick (at most `MAX_AHEAD`). And `step` must be deterministic, which D2 already requires: no floats, no clocks, no randomness the seed does not fix (`kits/realtime` has `fx.rs` and `rng.rs`). The page draws the world as it stands after each `step`, guesses included; a replay that moves something a few pixels is the price of never waiting.
 
 Rules it keeps, each from a game that needed it:
 
 - **Versions meet, then part with a reason.** The room name is the app id, the protocol tag and the typed code (`room_name`), never the build hash. Ribbit King first put the build hash in the room name, and after every deploy a stale page waited forever in a room nobody else could find (its PLAN row P35). With the protocol tag, ordinary deploys share rooms, and the hello turns a different build away with `online.reload`. A protocol change still separates rooms; the relay timeout then says `online.no_relay` instead of waiting silently. Pasted codes have no room name at all, so the hello's check is what protects that path. Keep the hello's shape fixed so an old copy can always read it.
 - **Garbage changes the status and nothing else.** Text that does not parse, a message of an unknown kind, an input for a tick outside the window, a second input for the same tick, and data from a peer that has not said hello all set `online.garbled` and leave the world, the tick and the queues as they were. A message from a browser that never connected is ignored outright (Level Twenty).
-- **No guessing.** In lockstep a browser waits for the other seat's input. A project that cannot afford the wait moves to rollback, as Raiders of the Lost Mart did for a four-player shooter.
+- **Guess, then correct.** A browser runs on a guess for an input that has not arrived, up to `MAX_AHEAD` ticks, and replays from the first wrong guess when the real input lands. Two copies end on the same world as a copy fed every input on time, at any lag the limit covers.
 - **Checksums.** Every `SUM_EVERY` ticks each browser sends a checksum of its world, and a mismatch is reported as `online.desync`. A desync is a bug in a rule that is not deterministic; the core tests should find it first.
 
 ### Required tests
@@ -134,12 +138,13 @@ Each is implemented in `online.rs` against the example protocol. Each was seen f
 | `the_room_name_carries_the_protocol_and_not_the_build` | deploys do not split rooms |
 | `another_build_or_protocol_is_turned_away_with_a_reason` | both ends show `online.reload`; neither plays |
 | `garbage_on_the_wire_changes_only_the_status` | seven kinds of junk, a stranger, and an unknown reason on a bye |
-| `a_copy_waits_for_the_other_seat_and_does_not_guess` | no tick runs without both inputs |
+| `a_copy_runs_on_a_guess_and_never_more_than_its_limit_ahead` | a copy runs `MAX_AHEAD` ticks on guesses, then waits; one real input frees one tick |
+| `a_late_input_that_differs_rolls_back_to_the_world_of_a_copy_fed_on_time` | late inputs that contradict the guesses cause one replay, and the world equals the true run |
 | `two_lagged_copies_reach_the_world_of_a_copy_fed_on_time` | lags of 0, 1, 3 and 7 frames over 300 ticks |
 | `a_peer_that_leaves_is_reported_and_a_third_is_told_the_room_is_full` | departures and a full room |
 | `worlds_that_disagree_are_reported_as_a_desync` | the checksum comparison |
 
-A project that moves to rollback adds two more: a corrected input restores the snapshot before its tick and replays to the world lockstep would reach (Raiders' `two_copies_with_lag_roll_back_into_agreement_with_the_true_run` is the model), and a copy never runs more than its limit past its confirmed ticks.
+The reference repository's `scripts/check-kits.sh` runs these tests inside a copy of the minimal example on every check, and each was seen failing with its behaviour broken: skipping the restore or the replay trigger fails the two replay tests, and removing the limit fails the limit test.
 
 Rows for `tests/breaks.json`, as a start:
 
@@ -152,11 +157,18 @@ Rows for `tests/breaks.json`, as a start:
   "test": "another_build_or_protocol_is_turned_away_with_a_reason"
 },
 {
-  "name": "a tick runs on a guess",
+  "name": "a wrong guess is never replayed",
   "file": "crates/core/src/online.rs",
-  "find": "world.step([a, b]);",
-  "replace": "world.step([a, a]);",
-  "test": "two_lagged_copies_reach_the_world_of_a_copy_fed_on_time"
+  "find": "*world = self.snapshots[&from].clone();",
+  "replace": "let _ = &from;",
+  "test": "a_late_input_that_differs_rolls_back_to_the_world_of_a_copy_fed_on_time"
+},
+{
+  "name": "no limit on running ahead",
+  "file": "crates/core/src/online.rs",
+  "find": "if self.tick >= self.confirmed + MAX_AHEAD",
+  "replace": "if false && self.tick >= self.confirmed + MAX_AHEAD",
+  "test": "a_copy_runs_on_a_guess_and_never_more_than_its_limit_ahead"
 }
 ```
 

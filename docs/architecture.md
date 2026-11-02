@@ -40,6 +40,10 @@ Reader-visible text and content live in `data/` (reference default). Content cha
 
 2D art is generated from source: `tools/art/art.py` writes TikZ and renders PNGs, with colours from a style pack. [`art.md`](art.md) describes the pipeline and the default pack.
 
+## Several views of one core
+
+A game can have more than one page over the same rules: a 2D and a 3D view, a pixel view, an app shell around the web page. Each view is a page and nothing more. They load the same WebAssembly module, byte for byte, and differ only in how they draw what `ui()` returns (D22). A fix to a rule then reaches every view at once, and a view cannot drift into a second rulebook. `scripts/wasm_imports.py` fails when the modules under `dist/` differ. Spins asked for this ("byte identical engines, but just different views"), and so did Idle Game for its web page and its app.
+
 ## What sits outside the default build
 
 A feature that needs a server, a live model, accounts, or shared state between people's devices does not fit the default build, whose finished form is static files with no off-origin request on load. Such a feature needs its own design, checks and approvals. Peer-to-peer play is the one departure Builder has a pattern for: a declared off-origin feature, named in the brief, loaded only when a player hosts or joins, with its relays listed in one config file that a test matches against the CSP ([`online.md`](online.md), `kits/online/`). [`adoption.md`](adoption.md) says more.
