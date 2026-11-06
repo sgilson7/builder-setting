@@ -22,7 +22,8 @@ Each slip carries the call number, the evidence, and the tokens it carried
 
     python3 harness/analyze.py ~/Documents/BuilderTrials/NAME [--full] [--no-checks]
     python3 harness/analyze.py --session FILE.jsonl     a single old session, no checks
-    python3 harness/analyze.py --baseline FILE.jsonl... write harness/baseline.json
+    python3 harness/analyze.py --baseline FILE.jsonl... write harness/baseline.json and baseline-series.json
+    python3 harness/analyze.py --compare TRIAL_A TRIAL_B   an A/B pair, call for call (after analysing each)
 
 Writes NAME/harness/report.md and NAME/harness/metrics.json, and adds a row
 to the trials index (~/Documents/BuilderTrials/index.md).
@@ -45,6 +46,53 @@ STATE_WINDOW = 60   # calls before a compaction in which a STATE.md rewrite coun
 CHECK_CMD = re.compile(r"(scripts/check\.sh|scripts/quick-check\.sh|cargo test|cargo clippy|break_tests\.py|tests/browser/check\.py|scripts/build\.sh)")
 DEPLOY_CMD = re.compile(r"(?:^|&&|;|\|\||\n)\s*(gh repo create|git push|\./scripts/publish\.sh|gh api [^\n]*pages)")
 READ_CMD = re.compile(r"(?:^|[;&|(]\s*)(cat|head|tail|sed -n|less|bat)\b[^;&|]*")
+CODE_EXT = (".rs", ".js", ".ts", ".tsx", ".mjs", ".py", ".sh", ".css", ".glsl", ".wgsl")
+REWRITE_LINES = 200  # a Write of an existing file longer than this is a whole rewrite (rule 25)
+# files a Bash command writes: redirects, tee, and Python's write_text/open(..., "w")
+BASH_WRITE = [re.compile(r"(?:^|[^>&0-9])>>?\s*['\"]?([~\w./-]+\.\w+)"),
+              re.compile(r"\btee\s+(?:-a\s+)?['\"]?([~\w./-]+\.\w+)"),
+              re.compile(r"Path\(\s*[^)]*?['\"]([~\w./-]+\.\w+)['\"]\s*\)\.write_text"),
+              re.compile(r"open\(\s*['\"]([~\w./-]+\.\w+)['\"]\s*,\s*['\"][wa]")]
+
+
+def bash_writes(cmd):
+    """Paths a shell command writes, as far as its text shows. Redirects and tee
+    are read from each line outside a heredoc's body (a body can hold HTML, whose
+    '>' is not a redirect); Python writes are read everywhere."""
+    out, shell, body_end = [], [], None
+    for line in cmd.splitlines():
+        if body_end is not None:
+            if line.strip() == body_end:
+                body_end = None
+            continue
+        shell.append(line)
+        m = re.search(r"<<-?\s*['\"]?(\w+)['\"]?", line)
+        if m:
+            body_end = m.group(1)
+    head = "\n".join(shell)
+    for rx in BASH_WRITE[:2]:
+        out += [m.group(1) for m in rx.finditer(head)]
+    for rx in BASH_WRITE[2:]:
+        out += [m.group(1) for m in rx.finditer(cmd)]
+    return [p for p in out if not p.startswith("/dev/") and not p.endswith((".log", ".tmp"))]
+
+
+def classify(fp):
+    """What a written file is: state, journal, plan, brief, code, or None."""
+    name = fp.rsplit("/", 1)[-1]
+    if name == "STATE.md":
+        return "state"
+    if "-journal/" in fp or name == "decisions.json" and "journal" in fp:
+        return "journal"
+    if name == "PLAN.md":
+        return "plan"
+    if name == "BRIEF.md":
+        return "brief"
+    # code is what the build ships; check scripts and tests may come before the plan (stage 0 measures)
+    if (fp.endswith(CODE_EXT) and not re.search(r"(^|/)(notes|scripts|tests)/", fp)
+            and "/builder/" not in "/" + fp and "scratchpad" not in fp and "/tmp/" not in fp):
+        return "code"
+    return None
 
 
 def tok(chars):
@@ -64,7 +112,9 @@ def transcripts_for(trial):
 def events(path):
     """Per model call: usage, tool uses, and the tool results that answered them."""
     calls, index, results, notes = [], {}, {}, []
-    for line in open(path, errors="replace"):
+    with open(path, errors="replace") as fh:
+        lines = fh.readlines()
+    for line in lines:
         try:
             d = json.loads(line)
         except ValueError:
@@ -118,8 +168,9 @@ def rel_builder(path, builder_roots):
     for r in builder_roots:
         if path.startswith(r + "/"):
             return path[len(r) + 1:]
-    if "/builder/" in path:          # Builder cloned into another project's folder
-        return path.split("/builder/", 1)[1]
+    p = path if path.startswith("/") else "/" + path      # a relative path read from the trial folder
+    if "/builder/" in p:             # Builder cloned into another project's folder
+        return p.split("/builder/", 1)[1]
     return None
 
 
@@ -147,6 +198,7 @@ def analyse(paths, trial=None, project=None):
     builder_reads, transcript_reads, images, long_outputs = [], [], [], []
     state_writes, journal_writes, plan_writes, code_writes, brief_writes = [], [], [], [], []
     checks_raw, checks_quiet, subagents, deploys, chips, digests, tokens_runs = [], [], [], [], [], [], []
+    mine_asks, rewrites, file_reads, known = [], [], [], {}
     for i, c in enumerate(calls):
         for u in c["uses"]:
             name, inp = u.get("name"), u.get("input") or {}
@@ -156,7 +208,9 @@ def analyse(paths, trial=None, project=None):
             fp = str(inp.get("file_path", ""))
             if imgs:
                 images.append((i, fp or cmd[:60], imgs))
-            if "tools/ask.py" in cmd:
+            if "tools/ask.py" in cmd and re.search(r"--(mine|target|all)\b", cmd):
+                mine_asks.append((i, cmd[:120], size))
+            elif "tools/ask.py" in cmd:
                 mode = "start" if "--start" in cmd else "card" if "--card" in cmd else "query"
                 asks.append((i, mode, cmd[:120], size))
                 for m in re.finditer(r"\(([\w./-]+\.(?:md|py|rs|sh|js|json|toml))(?::\d+)?,", text):
@@ -188,6 +242,8 @@ def analyse(paths, trial=None, project=None):
                 targets.append((str(inp.get("path")), True))
             for path, partial in targets:
                 full = str(Path(path).expanduser())
+                if not partial and size > 200 and not full.endswith(".jsonl"):
+                    file_reads.append((i, full.rsplit("/", 1)[-1] if "/" in full else full, full, size))
                 if ".claude/projects" in full and full.endswith(".jsonl"):
                     transcript_reads.append((i, full, size))
                 rb = rel_builder(full, builder_roots)
@@ -198,18 +254,20 @@ def analyse(paths, trial=None, project=None):
                                           "partial": partial, "pointed": was_pointed, "carried": carried(i, size)})
             if size >= BIG and not imgs:
                 long_outputs.append((i, name, (cmd or fp)[:90], size, carried(i, size)))
-            # writes
-            if name in ("Write", "Edit", "MultiEdit") and fp:
-                if fp.endswith("/STATE.md"):
-                    state_writes.append(i)
-                elif "-journal/" in fp:
-                    journal_writes.append(i)
-                elif fp.endswith("/PLAN.md"):
-                    plan_writes.append(i)
-                elif fp.endswith("/BRIEF.md"):
-                    brief_writes.append(i)
-                elif re.search(r"/(crates|web)/", fp):
-                    code_writes.append(i)
+            # writes: the file tools, and files a shell command writes
+            written = [fp] if name in ("Write", "Edit", "MultiEdit") and fp else (bash_writes(cmd) if cmd else [])
+            for w in written:
+                kind = classify(w)
+                {"state": state_writes, "journal": journal_writes, "plan": plan_writes,
+                 "brief": brief_writes, "code": code_writes}.get(kind, []).append(i)
+            if name == "Write" and fp:
+                n = str(inp.get("content", "")).count("\n") + 1
+                if fp in known and n > REWRITE_LINES:
+                    rewrites.append((i, fp, n, tok(len(str(inp.get("content", "")))),
+                                     carried(i, tok(len(str(inp.get("content", "")))))))
+                known[fp] = n
+            elif name == "Read" and fp:
+                known.setdefault(fp, 0)
 
     first_plan = min([x for x in (journal_writes[:1] + plan_writes[:1]) if x is not None], default=None)
     reread = [c["usage"].get("cache_read_input_tokens") or 0 for c in calls]
@@ -253,6 +311,14 @@ def analyse(paths, trial=None, project=None):
             slips.append(("medium", f"re-read builder/{r['path']} within {REREAD_WINDOW} calls after a compaction (rule 21)", r["call"] + 1, r["carried"]))
     if ctx and max(ctx) > 200_000 and not state_writes:
         slips.append(("high", "context passed 200k and STATE.md was never rewritten (rule 21)", None, 0))
+    for i, fp, n, size, car in rewrites:
+        slips.append(("medium", f"rewrote {fp.rsplit('/', 1)[-1]} whole ({n} lines, ~{size} tokens) instead of editing it (rule 25)", i + 1, car))
+    # files read again after a compaction that had been read before it: what a work index should replace
+    rereads_after = []
+    for d in drops:
+        before = {r[2] for r in file_reads if r[0] < d}
+        nxt = next((x for x in drops if x > d), len(ctx))
+        rereads_after += [(r[0], r[2], r[3], carried(r[0], r[3])) for r in file_reads if d <= r[0] < nxt and r[2] in before]
     for i, nm, what, size, car in long_outputs:
         if nm == "Bash" and "quiet.sh" not in what:
             slips.append(("medium" if size < 20_000 else "high", f"long output (~{size} tokens) from `{what}` not run through quiet.sh (rule 22)", i + 1, car))
@@ -287,7 +353,15 @@ def analyse(paths, trial=None, project=None):
         "transcript_reads": len(transcript_reads), "digests_made": len(digests),
         "reads": builder_reads,
     }
-    f["memory"] = {"state_writes": [w + 1 for w in state_writes], "hook_fired": [n for k, n in notes if k == "hook"]}
+    recalls_after = [a for a in mine_asks if any(d <= a[0] for d in drops)]
+    f["memory"] = {"state_writes": [w + 1 for w in state_writes], "hook_fired": [n for k, n in notes if k == "hook"],
+                   "mine_asks": len(mine_asks), "mine_ask_tokens": sum(a[2] for a in mine_asks),
+                   "mine_asks_after_compaction": len(recalls_after),
+                   "rereads_after_compaction": len(rereads_after),
+                   "reread_tokens_after_compaction": sum(r[2] for r in rereads_after),
+                   "reread_carried_after_compaction": sum(r[3] for r in rereads_after),
+                   "rereads": [{"call": r[0] + 1, "file": r[1], "tokens": r[2]} for r in rereads_after[:40]],
+                   "rewrites": len(rewrites), "rewrite_tokens": sum(r[3] for r in rewrites)}
     f["output"] = {"long_outputs": len(long_outputs), "long_output_tokens": sum(x[3] for x in long_outputs),
                    "checks_raw": len(checks_raw), "checks_quiet": len(checks_quiet), "images": sum(x[2] for x in images)}
     f["process"] = {
@@ -361,6 +435,11 @@ def report(name, meta, f, checks, baseline):
     for label, v, bv in rows:
         fmt = (lambda x: str(x) if isinstance(x, int) and x < 1000 else k(x))
         L.append(f"| {label} | {fmt(v)} | {fmt(bv)} |")
+    sl = f.get("same_length")
+    if sl and sl.get("baseline_median"):
+        L += ["", f"Over the same {sl['calls']} calls, the {sl['baseline_sessions']} baseline sessions long enough re-read a median of "
+              f"{k(sl['baseline_median'])}; this trial re-read {k(sl['trial'])} "
+              f"({(sl['trial'] / sl['baseline_median'] - 1):+.0%}). This is the fair comparison; the whole-session rows above are not."]
     L += ["", f"Context per call (each bar up to 1M): `{spark(f['ctx'])}`",
           f"First plan or journal write at call {t['plan_at_call']}; compactions at calls {t['compaction_calls'] or 'none'}.", ""]
     r = f["reading"]
@@ -377,6 +456,11 @@ def report(name, meta, f, checks, baseline):
     mm, o, p = f["memory"], f["output"], f["process"]
     L += ["## Memory and output", "",
           f"- STATE.md rewritten at calls: {mm['state_writes'] or 'never'}. After-compaction hook seen at calls: {mm['hook_fired'] or 'never'}.",
+          f"- Work index (BUILDER_MEMORY {meta.get('memory', 'on')}): ask.py --mine/--target/--all {mm.get('mine_asks', 0)} calls, "
+          f"{mm.get('mine_asks_after_compaction', 0)} after a compaction. Files re-read after a compaction: {mm.get('rereads_after_compaction', 0)}, "
+          f"~{mm.get('reread_tokens_after_compaction', 0)} tokens, carrying ~{k(mm.get('reread_carried_after_compaction', 0))}. "
+          f"Whole-file rewrites: {mm.get('rewrites', 0)} (~{mm.get('rewrite_tokens', 0)} tokens).",
+          f"- Hooks: read advice shown {(f.get('hooks') or {}).get('read_advice', 0)} times; context warnings {(f.get('hooks') or {}).get('context_warning', 0)}.",
           f"- Long tool outputs (≥{BIG} tokens): {o['long_outputs']}, ~{o['long_output_tokens']} tokens. Check runs: {o['checks_quiet']} through quiet.sh, {o['checks_raw']} not. Images read: {o['images']}.", "",
           "## Process", "",
           f"- First writes, by call: BRIEF.md {p['brief_first_write']}, journal {p['journal_first_write']}, PLAN.md {p['plan_first_write']}, code {p['code_first_write']}.",
@@ -400,6 +484,72 @@ def report(name, meta, f, checks, baseline):
     return "\n".join(L) + "\n"
 
 
+def same_length(ctx, series):
+    """Re-read over this trial's calls, beside each baseline session's first as many calls."""
+    n = len(ctx)
+    base = {name: sum(s[:n]) for name, s in series.items() if len(s) >= n}
+    return {"calls": n, "trial": sum(ctx), "baseline_median": median(list(base.values())),
+            "baseline_sessions": len(base)}
+
+
+def hook_events(trial):
+    out = {"read_advice": 0, "context_warning": 0}
+    log = trial / "harness" / "hooks.jsonl"
+    if log.exists():
+        for line in log.read_text().splitlines():
+            try:
+                e = json.loads(line)
+            except ValueError:
+                continue
+            out[e.get("event", "?")] = out.get(e.get("event", "?"), 0) + 1
+    return out
+
+
+def compare(a, b):
+    """Two trials of one prompt, side by side; the shorter sets the length both are judged over."""
+    ma = json.loads((a / "harness" / "metrics.json").read_text())
+    mb = json.loads((b / "harness" / "metrics.json").read_text())
+    n = min(len(ma["ctx"]), len(mb["ctx"]))
+    arm = lambda m: (m.get("meta") or {}).get("memory", "?")
+    L = [f"# A/B: {a.name} against {b.name}", "",
+         f"Same prompt, Builder `{(ma.get('meta') or {}).get('builder_commit')}`; work index **{arm(ma)}** against **{arm(mb)}**; "
+         f"compact window {(ma.get('meta') or {}).get('compact_window')} and {(mb.get('meta') or {}).get('compact_window')}.", "",
+         "| | " + a.name + " | " + b.name + " |", "| --- | --- | --- |"]
+    rows = [
+        ("Model calls", len(ma["ctx"]), len(mb["ctx"])),
+        (f"Re-read over the first {n} calls (both)", sum(ma["ctx"][:n]), sum(mb["ctx"][:n])),
+        ("Re-read, whole session", ma["tokens"]["reread"], mb["tokens"]["reread"]),
+        ("Mean context", ma["tokens"]["mean"], mb["tokens"]["mean"]),
+        ("Peak context", ma["tokens"]["peak"], mb["tokens"]["peak"]),
+        ("Compactions", ma["tokens"]["compactions"], mb["tokens"]["compactions"]),
+        ("Share above 200k", ma["tokens"]["above_200k_share"], mb["tokens"]["above_200k_share"]),
+        ("Context at the opening entry", ma["tokens"]["at_plan"], mb["tokens"]["at_plan"]),
+        ("ask.py --mine / --target calls", ma["memory"].get("mine_asks"), mb["memory"].get("mine_asks")),
+        ("…of them after a compaction", ma["memory"].get("mine_asks_after_compaction"), mb["memory"].get("mine_asks_after_compaction")),
+        ("Files re-read after a compaction", ma["memory"].get("rereads_after_compaction"), mb["memory"].get("rereads_after_compaction")),
+        ("Tokens of those re-reads", ma["memory"].get("reread_tokens_after_compaction"), mb["memory"].get("reread_tokens_after_compaction")),
+        ("Whole-file rewrites", ma["memory"].get("rewrites"), mb["memory"].get("rewrites")),
+        ("Read advice shown (hook)", (ma.get("hooks") or {}).get("read_advice"), (mb.get("hooks") or {}).get("read_advice")),
+        ("Context warnings (hook)", (ma.get("hooks") or {}).get("context_warning"), (mb.get("hooks") or {}).get("context_warning")),
+        ("STATE.md rewrites", len(ma["memory"]["state_writes"]), len(mb["memory"]["state_writes"])),
+        ("High slips", sum(1 for s in ma["slips"] if s["severity"] == "high"), sum(1 for s in mb["slips"] if s["severity"] == "high")),
+    ]
+    for label, x, y in rows:
+        fmt = (lambda v: "–" if v is None else (str(v) if isinstance(v, int) and v < 1000 else k(v)))
+        L.append(f"| {label} | {fmt(x)} | {fmt(y)} |")
+    checks = lambda m: ", ".join(f"{kk} {'pass' if v.get('ok') else 'FAIL' if v.get('ok') is False else '–'}"
+                                 for kk, v in (m.get("checks") or {}).items() if kk != "deploy_grant") or "not run"
+    L += ["", f"- Checks now: {a.name}: {checks(ma)}; {b.name}: {checks(mb)}.",
+          "- The work index is worth keeping if the re-read over the shared calls is lower with it, files are re-read "
+          "less after compactions, and the checks and the game are no worse. One pair is one reading: run more pairs, "
+          "or swap which arm goes first, before deciding.", ""]
+    out = a.parent / f"{a.name}-vs-{b.name}.md"
+    out.write_text("\n".join(L) + "\n")
+    print("\n".join(L))
+    print(f"wrote {out}")
+    return 0
+
+
 def median(xs):
     xs = sorted(x for x in xs if x is not None)
     return xs[len(xs) // 2] if xs else None
@@ -412,12 +562,19 @@ def main(argv):
         keys = next(iter(per.values())).keys()
         summary = {k_: median([v[k_] for v in per.values()]) for k_ in keys}
         (HERE / "baseline.json").write_text(json.dumps({"sessions": per, "summary": summary}, indent=1))
+        series = {Path(p).parent.name.split('-Documents-')[-1]: [round(x, -2) for x in analyse([Path(p)])["ctx"]] for p in files}
+        (HERE / "baseline-series.json").write_text(json.dumps(series, separators=(",", ":")))
         print(f"wrote {HERE / 'baseline.json'} from {len(per)} sessions")
         return 0
     baseline = json.loads((HERE / "baseline.json").read_text()) if (HERE / "baseline.json").exists() else {}
+    series = json.loads((HERE / "baseline-series.json").read_text()) if (HERE / "baseline-series.json").exists() else {}
+    if "--compare" in argv:
+        a, b = [Path(x).expanduser().resolve() for x in argv[argv.index("--compare") + 1:][:2]]
+        return compare(a, b)
     if "--session" in argv:
         p = Path(argv[argv.index("--session") + 1])
         f = analyse([p])
+        f["same_length"] = same_length(f["ctx"], series) if series else None
         print(report(p.stem, {}, f, {}, baseline))
         return 0
     args = [a for a in argv if not a.startswith("--")]
@@ -433,6 +590,8 @@ def main(argv):
     project = find_project(trial)
     f = analyse(main_t, trial, project)
     f["subagent_transcripts"] = len(subs)
+    f["same_length"] = same_length(f["ctx"], series) if series else None
+    f["hooks"] = hook_events(trial)
     checks = {} if "--no-checks" in argv else run_checks(project, "--full" in argv)
     text = report(trial.name, meta, f, checks, baseline)
     out = trial / "harness"

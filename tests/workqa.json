@@ -1,0 +1,73 @@
+{
+ "about": "Questions an agent asks about its own earlier work, answered from examples/minimal's records and code (tools/ask.py --mine). Some are worded unlike the card that answers them, as real recall is; the floor is how many keyword ranking answers in the top five today, and the check fails below it.",
+ "floor": 8,
+ "questions": [
+  {
+   "q": "what happens when the count would go past the maximum",
+   "cards": [
+    "mine.code.core.counter.adding_stops_at_the_maximum",
+    "mine.code.core.counter.apply"
+   ]
+  },
+  {
+   "q": "can the count go negative",
+   "cards": [
+    "mine.code.core.counter.removing_stops_at_zero",
+    "mine.code.core.counter.apply"
+   ]
+  },
+  {
+   "q": "where are bad settings refused",
+   "cards": [
+    "mine.code.core.counter.check_settings",
+    "mine.code.core.api.bad_settings_are_an_error_message",
+    "mine.code.core.counter.a_zero_step_is_rejected"
+   ]
+  },
+  {
+   "q": "when is the remove button greyed out",
+   "cards": [
+    "mine.code.core.counter.view_disables_remove_only_at_zero",
+    "mine.code.core.counter.view"
+   ]
+  },
+  {
+   "q": "may I push or publish this example",
+   "cards": [
+    "mine.brief.autonomy"
+   ]
+  },
+  {
+   "q": "what did the person ask for originally",
+   "cards": [
+    "mine.brief.the-request-word-for-word",
+    "mine.journal.brief"
+   ]
+  },
+  {
+   "q": "which crates may the core depend on",
+   "cards": [
+    "mine.brief.allowed-core-dependencies"
+   ]
+  },
+  {
+   "q": "where does the journal for this example live",
+   "cards": [
+    "mine.brief.journal"
+   ]
+  },
+  {
+   "q": "how I said I would use Builder for the counter",
+   "cards": [
+    "mine.journal.opening",
+    "mine.journal.opening.p2"
+   ]
+  },
+  {
+   "q": "what counts as finished for this example",
+   "cards": [
+    "mine.brief.done-means"
+   ]
+  }
+ ]
+}

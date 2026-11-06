@@ -21,6 +21,8 @@ No tag is made for it; tagging is the author's action.
 
 Unreleased, on the branch `fold-round-3-retrieval`: reading Builder through cards (`tools/ask.py`, D24), `STATE.md` and the after-compaction hook (D25), quiet runs, digests of earlier projects, and the token log (D26), with BuilderQA (60 questions) in the reference check and eight more planted defects (71 in all). See `docs/context.md`.
 
+Unreleased, on the branch `fold-round-4-memory` (built on the one above): the work index (`tools/ask.py --mine` and `--target`) with optional hybrid ranking through a local embedding model (D27); the context warning and read advice hooks, quiet checks by default, and `STATE.md` kept current after each request (D28); editing large files in place (D29); `kits/codebase-guide`; a deck view of the journal (`tools/journal/present.py`); digests drafted from a journal alone; the trial harness's A/B pair (`harness/ab.sh`, `analyze.py --compare`) and its own test; WorkQA in the reference check; and nineteen more planted defects (90 in all).
+
 Version 0.3.0 (2 November 2026) is the first tagged version, `v0.3.0`. Since 0.2.0 it adds:
 
 - the reason for the second-order notebook, and how a row becomes a rule, in `docs/procedure.md`;

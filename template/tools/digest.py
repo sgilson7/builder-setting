@@ -39,6 +39,20 @@ def strip_tags(s):
     return html.unescape(re.sub(r"<[^>]+>", "", s)).strip()
 
 
+def journal_page(project, journal):
+    """The journal's page: the named or sibling journal folder, else a journal kept
+    inside the project (journal/*.html, *journal*.html), else the project itself
+    when it is a journal with no brief (a maintenance journal like ToyTalk's)."""
+    if journal and (journal / "index.html").exists():
+        return journal / "index.html"
+    inside = sorted(project.glob("journal/*.html")) + sorted(project.glob("*journal*.html")) + sorted(project.glob("*/*journal*.html"))
+    if inside:
+        return max(inside, key=lambda p: p.stat().st_size)
+    if (project / "index.html").exists() and not (project / "BRIEF.md").exists():
+        return project / "index.html"
+    return None
+
+
 def build(project, journal):
     name = project.name
     read = lambda p: (project / p).read_text(errors="replace") if (project / p).exists() else ""
@@ -55,9 +69,16 @@ def build(project, journal):
     core = sorted((project / "crates" / "core" / "src").glob("*.rs")) if (project / "crates").is_dir() else []
     biggest = sorted(core, key=lambda p: -p.stat().st_size)[:6]
     titles = []
-    if journal and (journal / "index.html").exists():
-        page = (journal / "index.html").read_text(errors="replace")
-        titles = [strip_tags(t) for t in re.findall(r"<h3[^>]*>(.*?)</h3>", page, re.S)][:14]
+    page_file = journal_page(project, journal)
+    if page_file:
+        page = page_file.read_text(errors="replace")
+        # each entry's heading with the first sentence after it, so the draft says what the entry found
+        for m in re.finditer(r"<h3[^>]*>(.*?)</h3>(.*?)(?=<h3|\Z)", page, re.S):
+            lede = first(m.group(2), r"<p[^>]*>(.*?)</p>")
+            lede = re.split(r"(?<=[.!?])\s", strip_tags(lede), maxsplit=1)[0][:160] if lede else ""
+            titles.append(strip_tags(m.group(1)) + (f": {lede}" if lede else ""))
+            if len(titles) >= 12:
+                break
     lines = [f"# {title}", "",
              f"Digest of `{name}` for later Builder projects. Read this instead of its transcripts; open a file only when this page names it.", "",
              "## What it is", "",

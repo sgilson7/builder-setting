@@ -21,6 +21,7 @@ A kit never changes a Builder requirement. When a project copies a kit that chan
 | [`mobile/`](mobile/) | touch screens: pointer events, a CSS touch baseline, a manifest, a tablet pass in the browser check | D4 (adds `manifest-src 'self'`), D7 (adds a tablet engine) |
 | [`privacy/`](privacy/) | tools that handle a reader's own data and promise to keep it on the device | tightens D4 and D7; changes nothing else |
 | [`office-intake/`](office-intake/) | a game designed by students in Word, PowerPoint and Excel templates, copied into a new project by an intake script that keeps students' names out | none |
+| [`codebase-guide/`](codebase-guide/) | a project that explains an existing codebase: excerpts checked against it, the codebase kept read-only, measured and proposed parts kept apart | none |
 
 ## Copying a kit
 
@@ -36,4 +37,4 @@ The reference repository runs each kit's core tests inside a copy of the minimal
 
 ## Where the kits come from
 
-The kits collect patterns from games and tools built on Builder or alongside it. Peter (GitHub [ptonkle](https://github.com/ptonkle)), who co-designed Builder, wrote the online transport design, the draw-list renderer and the screenshot path in Mandible and Ape Race. The other sources are the author's own projects: Floodline and Vagrancy (the first transport lessons), Ribbit King, Level Twenty and Raiders of the Lost Mart (online play), Pursuer and Long Time Comin' (realtime input), Slushline (touch screens), Status Trends (privacy), and Idle Game and CHUMWORLD (saves). Each kit names what it took from which. The code in the kits was written fresh for them.
+The kits collect patterns from games and tools built on Builder or alongside it. Peter (GitHub [ptonkle](https://github.com/ptonkle)), who co-designed Builder, wrote the online transport design, the draw-list renderer and the screenshot path in Mandible and Ape Race. The other sources are the author's own projects: Floodline and Vagrancy (the first transport lessons), Ribbit King, Level Twenty and Raiders of the Lost Mart (online play), Pursuer and Long Time Comin' (realtime input), Slushline (touch screens), Status Trends (privacy), Idle Game and CHUMWORLD (saves), and the ToyTalk and SnapClass guides (codebase guides). Each kit names what it took from which. The code in the kits was written fresh for them.

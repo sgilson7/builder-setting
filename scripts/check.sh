@@ -5,9 +5,10 @@
 # 2. every relative link in the Markdown resolves
 # 3. the default style pack stays inside template/styles/
 # 3a. Builder's cards are in order, and BuilderQA finds a right card in the top five for each question
+# 3b. the work index answers WorkQA at or above its floor, and the trial harness passes its own test
 # 4. the blank template passes its own check, and each of its breaks is caught
 # 5. the minimal example passes its own check, and each of its breaks is caught
-# 6. the office-intake kit's tests pass
+# 6. the office-intake and codebase-guide kits' tests pass
 # 7. each kit's core code passes the project's checks inside a copy of the example
 # 8. each planted defect is caught by the check meant to catch it
 set -euo pipefail
@@ -34,6 +35,11 @@ step "cards: template/tools/ask.py --check, and BuilderQA (tests/builderqa.json)
 "$PY" template/tools/ask.py --check
 "$PY" template/tools/ask.py --qa tests/builderqa.json
 
+step "work index: tools/ask.py --mine over examples/minimal (tests/workqa.json), and the trial harness's own test"
+BUILDER_PROJECT=examples/minimal "$PY" template/tools/ask.py --mine --qa tests/workqa.json
+"$PY" -m unittest discover -s harness/tests
+"$PY" -m unittest discover -s tests -p test_context_tools.py
+
 step "template: ./scripts/check.sh"
 (cd template && ./scripts/check.sh)
 
@@ -48,6 +54,9 @@ step "examples/minimal: scripts/break_tests.py"
 
 step "kits/office-intake: its tests"
 "$PY" -m unittest discover -s kits/office-intake/tests
+
+step "kits/codebase-guide: its tests"
+"$PY" -m unittest discover -s kits/codebase-guide/tests
 
 step "kits: scripts/check-kits.sh"
 ./scripts/check-kits.sh

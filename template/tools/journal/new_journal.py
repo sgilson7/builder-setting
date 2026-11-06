@@ -55,4 +55,10 @@ def main(title=None):
 
 
 if __name__ == "__main__":
+    if any(a in ("-h", "--help") for a in sys.argv[1:]):
+        print(__doc__ or "python3 tools/journal/new_journal.py [TITLE]")
+        sys.exit(0)
+    if any(a.startswith("-") for a in sys.argv[1:]):
+        print(f"unknown option {next(a for a in sys.argv[1:] if a.startswith('-'))}; usage: python3 tools/journal/new_journal.py [TITLE]")
+        sys.exit(2)
     sys.exit(main(sys.argv[1] if len(sys.argv) > 1 else None))

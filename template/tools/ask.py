@@ -21,22 +21,54 @@ is, and journal entries and STATE.md cite cards as card:<id>.
     python3 tools/ask.py --check                                cards, start pack and spec rows in order
     python3 tools/ask.py --qa tests/builderqa.json              a question set: each answer in the top 5
 
+Your own work (the work index):
+    python3 tools/ask.py --mine "where does the deck get its counts"
+        searches this project instead of Builder: journal entries, SECOND-ORDER.md
+        and TRIAGE.md rows, STATE.md, PLAN.md, BRIEF.md and HANDOFF.md sections,
+        commits, every function in the project's code, the summaries of long runs
+        in notes/runs/, and the tool results this project's sessions have seen.
+        Cards are cut fresh each run, as Builder's are. Cite them as card:mine.<id>.
+    python3 tools/ask.py --target "how is a submission saved"
+        searches the codebase named in notes/target (one line, a path) or
+        $BUILDER_TARGET, for a project that explains an existing codebase.
+    python3 tools/ask.py --all "..."                             Builder and your own work together
+    python3 tools/ask.py --warm                                  embed any new cards now (a hook runs this)
+BUILDER_MEMORY=off turns --mine, --target and embeddings off (a trial's control arm).
+
 Where Builder is: $BUILDER_HOME, else the repository this file sits in
 (template/ or examples/minimal/), else ../builder/ beside this project. Without
 it, the cards come from this project's own copies (CLAUDE.md, BUILDER-SPEC.md,
 ENTRIES.md, STATE.md). Game digests come from $BUILDER_REFS or ../refs/.
-Standard library only; keyword ranking (BM25), no model.
+
+Ranking: keyword ranking (BM25), standard library only. When the optional local
+embedding model is installed (./scripts/setup-embed.sh), cosine similarity over
+card embeddings is added, and the two rankings are merged by reciprocal rank
+fusion: each card scores 1/(60 + rank) in the keyword list and half that in the
+cosine list (chosen on BuilderQA and a WorkQA set; see docs/context.md). Vectors are kept in
+notes/index/ by a hash of each card's text, so a changed card is embedded again
+and an unchanged one never is. --lexical uses BM25 alone.
 """
 
+import hashlib
 import json
 import math
 import os
 import re
+import subprocess
 import sys
 from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+PROJECT = Path(os.environ.get("BUILDER_PROJECT") or ROOT).resolve()
+EMBED_MODEL = os.environ.get("BUILDER_EMBED_MODEL", "fastembed:BAAI/bge-small-en-v1.5")
+EMBED_VENV = Path.home() / ".cache" / "builder" / "embed-venv" / "bin" / "python"
+RRF_K = int(os.environ.get("BUILDER_RRF_K", "60"))
+SEM_WEIGHT = float(os.environ.get("BUILDER_SEM_WEIGHT", "0.5"))  # the cosine list counts this much against BM25's 1.0
+
+
+def memory_on():
+    return os.environ.get("BUILDER_MEMORY", "on").lower() != "off"
 LIMIT = 1800          # characters per card part, about 450 tokens
 START_BUDGET = 3500   # tokens the start pack may take
 CITE = re.compile(r"card:([a-z0-9][a-z0-9._~-]*[a-z0-9_])")
@@ -221,29 +253,39 @@ def cut(key, path):
     return cards
 
 
-CODE_SKIP = {"target", "dist", ".venv", "node_modules", "vendor", "__pycache__", "mutants.out", ".git"}
+CODE_SKIP = {"target", "dist", ".venv", "node_modules", "vendor", "__pycache__", "mutants.out", ".git", "notes"}
 CODE_EXT = {".py", ".rs", ".sh", ".js"}
+TARGET_EXT = CODE_EXT | {".ts", ".tsx", ".jsx", ".mjs"}
+
+
+def walk_code(base, prefix, rel_to, exts=CODE_EXT, out=None, top="code."):
+    """(key, path, shown path) for the code files under base."""
+    out = [] if out is None else out
+    if not base.is_dir():
+        return out
+    seen = {k for k, _, _ in out}
+    for p in sorted(base.rglob("*"), key=lambda p: (str(p.parent), p.suffix != ".py", p.name)):
+        if p.suffix not in exts or not p.is_file() or CODE_SKIP & set(p.relative_to(base).parts):
+            continue
+        rel = p.relative_to(base)
+        parts = [x for x in rel.with_suffix("").parts if x not in ("crates", "src")]
+        key = top + prefix + ".".join(slug(x).replace("-", "_") for x in parts)
+        if key in seen:
+            key += "_" + p.suffix.lstrip(".")
+        seen.add(key)
+        out.append((key, p, p.relative_to(rel_to).as_posix()))
+    return out
 
 
 def code_sources():
-    """(key, path, shown path) for every code file the cards come from."""
+    """(key, path, shown path) for every Builder code file the cards come from."""
     home = builder_home()
     roots = [(home / "template", "", home)] if home else [(ROOT, "", ROOT)]
     if home:
         roots += [(home / "kits", "kits.", home), (home / "scripts", "repo.scripts.", home)]
     out = []
     for base, prefix, rel_to in roots:
-        if not base.is_dir():
-            continue
-        for p in sorted(base.rglob("*"), key=lambda p: (str(p.parent), p.suffix != ".py", p.name)):
-            if p.suffix not in CODE_EXT or not p.is_file() or CODE_SKIP & set(p.relative_to(base).parts):
-                continue
-            rel = p.relative_to(base)
-            parts = [x for x in rel.with_suffix("").parts if x not in ("crates", "src")]
-            key = "code." + prefix + ".".join(slug(x).replace("-", "_") for x in parts)
-            if any(key == k for k, _, _ in out):
-                key += "_" + p.suffix.lstrip(".")
-            out.append((key, p, p.relative_to(rel_to).as_posix()))
+        walk_code(base, prefix, rel_to, out=out)
     return out
 
 
@@ -258,7 +300,7 @@ COMMENT = {".py": "#", ".rs": "//", ".js": "//", ".sh": "#"}
 
 def cut_code(key, path, shown):
     lines = path.read_text(errors="replace").splitlines()
-    ext = path.suffix
+    ext = {".ts": ".js", ".tsx": ".js", ".jsx": ".js", ".mjs": ".js"}.get(path.suffix, path.suffix)
     cards, used = [], set()
 
     def add(cid, title, text, line):
@@ -336,8 +378,246 @@ def load():
     return cards, keys
 
 
+# ---------------------------------------------------------------- the work index
+
+def html_text(s):
+    s = re.sub(r"<(script|style|svg)\b.*?</\1>", " ", s, flags=re.S | re.I)
+    s = re.sub(r"<[^>]+>", " ", s)
+    for a, b in (("&amp;", "&"), ("&lt;", "<"), ("&gt;", ">"), ("&quot;", '"'), ("&#39;", "'"), ("&nbsp;", " ")):
+        s = s.replace(a, b)
+    return re.sub(r"[ \t]*\n\s*", "\n", re.sub(r"[ \t]+", " ", s)).strip()
+
+
+def journal_dir():
+    env = os.environ.get("BUILDER_JOURNAL")
+    if env and Path(env, "index.html").exists():
+        return Path(env)
+    cand = PROJECT.parent / f"{PROJECT.name}-journal"
+    return cand if (cand / "index.html").exists() else None
+
+
+def session_files():
+    """Claude Code transcripts for this project and for the folder it sits in."""
+    out = []
+    for folder in (PROJECT, PROJECT.parent):
+        d = Path.home() / ".claude" / "projects" / re.sub(r"[^A-Za-z0-9]", "-", str(folder))
+        if d.is_dir():
+            out += sorted(d.glob("*.jsonl"), key=lambda p: p.stat().st_mtime)
+    return out
+
+
+def seen_cards(limit_chars=300):
+    """One card per tool result a session of this project has seen (EM-Q2 B)."""
+    cards = []
+    for f in session_files():
+        sid = f.stem[:6]
+        calls, n = {}, 0
+        try:
+            lines = f.read_text(errors="replace").splitlines()
+        except OSError:
+            continue
+        for line in lines:
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue
+            content = (r.get("message") or {}).get("content")
+            if not isinstance(content, list):
+                continue
+            for b in content:
+                if not isinstance(b, dict):
+                    continue
+                if b.get("type") == "tool_use":
+                    i = b.get("input") or {}
+                    what = i.get("command") or i.get("file_path") or i.get("pattern") or i.get("url") or json.dumps(i)[:120]
+                    calls[b.get("id")] = (b.get("name", "tool"), str(what))
+                elif b.get("type") == "tool_result":
+                    name, what = calls.get(b.get("tool_use_id"), ("tool", ""))
+                    c = b.get("content")
+                    text = "".join(x.get("text", "") for x in c if isinstance(x, dict)) if isinstance(c, list) else str(c or "")
+                    if len(text) < limit_chars or "ask.py" in what or name in ("Write", "Edit"):
+                        continue
+                    n += 1
+                    more = len(text) - LIMIT
+                    body = text[:LIMIT] + (f"\n… ({more} more characters; open the file or re-run the command for them)" if more > 0 else "")
+                    first = what.strip().splitlines()[0][:90] if what.strip() else ""
+                    cards.append({"id": f"mine.seen.{sid}.{n}", "title": f"seen: {name} {first}",
+                                  "text": body, "file": f"session {f.stem[:8]}, tool result {n}", "path": f})
+    return cards
+
+
+def mine_cards():
+    """The work index: this project's own records, code, runs and what its sessions have seen."""
+    cards = []
+    for name in ("STATE", "PLAN", "BRIEF", "HANDOFF", "DECISIONS", "MEASUREMENTS"):
+        p = PROJECT / f"{name}.md"
+        if p.exists():
+            for c in cut(f"mine.{name.lower()}", p):
+                c["path"] = p
+                cards.append(c)
+    for name, prefix in (("SECOND-ORDER.md", "notebook"), ("TRIAGE.md", "triage")):
+        p = PROJECT / name
+        if not p.exists():
+            continue
+        for i, line in enumerate(p.read_text().splitlines()):
+            m = re.match(r"^\|\s*([RT]\d+(?:\.\d+)?)\s*\|(.*)", line)
+            if m and m.group(2).replace("|", "").strip():
+                rid = m.group(1)
+                cells = [x.strip() for x in m.group(2).strip().strip("|").split("|")]
+                cards.append({"id": f"mine.{prefix}.{rid.lower().replace('.', '-')}", "title": f"{name} {rid}: {cells[0][:60]}",
+                              "text": f"{rid} | " + " | ".join(cells), "file": f"{name}:{i + 1}", "path": p})
+    j = journal_dir()
+    if j:
+        html = (j / "index.html").read_text(errors="replace")
+        for m in re.finditer(r'<article\b[^>]*\bid="([^"]+)"[^>]*>(.*?)</article>', html, re.S):
+            title = re.search(r"<h3[^>]*>(.*?)</h3>", m.group(2), re.S)
+            title = html_text(title.group(1)) if title else m.group(1)
+            for i, part in enumerate(split_long(html_text(m.group(2)))):
+                cid = f"mine.journal.{slug(m.group(1))}" + ("" if i == 0 else f".p{i + 1}")
+                cards.append({"id": cid, "title": f"journal: {title}" + ("" if i == 0 else f" (part {i + 1})"),
+                              "text": part, "file": f"{j.name}/index.html#{m.group(1)}", "path": j / "index.html"})
+    if (PROJECT / ".git").exists():
+        try:
+            log = subprocess.run(["git", "-C", str(PROJECT), "log", "-n", "300", "--date=short",
+                                  "--format=@@%h|%ad|%s", "--name-only"], capture_output=True, text=True, timeout=20).stdout
+        except (OSError, subprocess.SubprocessError):
+            log = ""
+        for block in log.split("@@")[1:]:
+            head, *files = [x for x in block.splitlines() if x.strip()]
+            h, date, subject = (head.split("|", 2) + ["", ""])[:3]
+            cards.append({"id": f"mine.commit.{h}", "title": f"commit {h} {date}: {subject[:70]}",
+                          "text": f"{subject}\nfiles: " + ", ".join(files[:40]), "file": f"git show {h}", "path": PROJECT})
+    home = builder_home()
+    for key, path, shown in walk_code(PROJECT, "", PROJECT, top="mine.code."):
+        if home:   # a file still as Builder's template has it is Builder's, not this project's work
+            orig = home / "template" / shown
+            try:
+                if orig.is_file() and orig.read_bytes() == path.read_bytes():
+                    continue
+            except OSError:
+                pass
+        for c in cut_code(key, path, shown):
+            c["path"] = path
+            cards.append(c)
+    runs = PROJECT / "notes" / "runs"
+    for p in sorted(runs.glob("*.log"))[-60:] if runs.is_dir() else []:
+        lines = re.sub(r"\x1b\[[0-9;]*m", "", p.read_text(errors="replace")).splitlines()
+        errs = [l for l in lines if re.search(r"FAIL|error|panicked|failed|assert", l)][:12]
+        steps = [l for l in lines if l.startswith("== ")][-3:]
+        text = "\n".join(steps + errs + ["…"] + [l for l in lines if l.strip()][-8:])
+        cards.append({"id": f"mine.run.{slug(p.stem)}", "title": f"run log {p.name}", "text": text[:LIMIT],
+                      "file": f"notes/runs/{p.name}", "path": p})
+    cards += seen_cards()
+    # ids stay unique, as Builder's do
+    used = Counter()
+    for c in cards:
+        used[c["id"]] += 1
+        if used[c["id"]] > 1:
+            c["id"] += f"-{used[c['id']]}"
+    return cards
+
+
+def target_dir():
+    env = os.environ.get("BUILDER_TARGET")
+    if env and Path(env).is_dir():
+        return Path(env).resolve()
+    f = PROJECT / "notes" / "target"
+    if f.exists():
+        p = Path(f.read_text().strip()).expanduser()
+        p = p if p.is_absolute() else (PROJECT / p)
+        if p.is_dir():
+            return p.resolve()
+    return None
+
+
+def target_cards():
+    """Cards of the codebase this project explains, cut the way Builder's code is."""
+    base = target_dir()
+    if not base:
+        return []
+    cards = []
+    for p in sorted(base.glob("*.md")) + sorted((base / "docs").glob("**/*.md")):
+        for c in cut(f"target.doc.{slug(p.relative_to(base).with_suffix('').as_posix())}", p):
+            c["path"] = p
+            cards.append(c)
+    for key, path, shown in walk_code(base, "", base, exts=TARGET_EXT, top="target."):
+        try:
+            for c in cut_code(key, path, shown):
+                c["path"] = path
+                cards.append(c)
+        except (OSError, UnicodeError):
+            continue
+    return cards
+
+
+# ---------------------------------------------------------------- embeddings
+
+def embed_python():
+    if os.environ.get("BUILDER_EMBED", "on").lower() == "off" or not memory_on():
+        return None
+    env = os.environ.get("BUILDER_EMBED_PYTHON")
+    if env and Path(env).exists():
+        return env
+    return str(EMBED_VENV) if EMBED_VENV.exists() else None
+
+
+def card_hash(c):
+    return hashlib.sha1((EMBED_MODEL + "\n" + c["title"] + "\n" + c["text"]).encode()).hexdigest()[:20]
+
+
+def embed_text(c):
+    return (c["title"] + "\n" + c["text"])[:2000]
+
+
+class Vectors:
+    """Card vectors by hash, kept in notes/index/; only new text is embedded."""
+
+    def __init__(self):
+        self.py = embed_python()
+        self.file = PROJECT / "notes" / "index" / f"vectors-{slug(EMBED_MODEL)}.json"
+        self.cache = {}
+        if self.py and self.file.exists():
+            try:
+                self.cache = json.loads(self.file.read_text())
+            except ValueError:
+                self.cache = {}
+        self.dirty = False
+
+    def ok(self):
+        return bool(self.py)
+
+    def _run(self, texts, mode="doc"):
+        script = Path(__file__).resolve().parent / "context" / "embed.py"
+        env = dict(os.environ, HF_HUB_OFFLINE=os.environ.get("HF_HUB_OFFLINE", "1"), TOKENIZERS_PARALLELISM="false")
+        r = subprocess.run([self.py, str(script), EMBED_MODEL, mode], input=json.dumps(texts), capture_output=True,
+                           text=True, env=env, timeout=600)
+        if r.returncode != 0:
+            raise RuntimeError(r.stderr.strip().splitlines()[-1] if r.stderr.strip() else "embedding failed")
+        return json.loads(r.stdout)
+
+    def for_cards(self, cards):
+        todo = [c for c in cards if card_hash(c) not in self.cache]
+        if todo:
+            vecs = self._run([embed_text(c) for c in todo])
+            for c, v in zip(todo, vecs):
+                self.cache[card_hash(c)] = v
+            self.dirty = True
+        return [self.cache[card_hash(c)] for c in cards]
+
+    def query(self, q):
+        return self._run([q], "query")[0]
+
+    def save(self, keep=None):
+        if not self.dirty:
+            return
+        if keep is not None:
+            self.cache = {h: v for h, v in self.cache.items() if h in keep}
+        self.file.parent.mkdir(parents=True, exist_ok=True)
+        self.file.write_text(json.dumps(self.cache, separators=(",", ":")))
+
+
 class Index:
-    def __init__(self, cards):
+    def __init__(self, cards, vectors=None):
         self.cards = cards
         self.docs = []
         for c in cards:
@@ -349,12 +629,21 @@ class Index:
             df.update(d.keys())
         n = len(self.docs)
         self.idf = {w: math.log(1 + (n - f + 0.5) / (f + 0.5)) for w, f in df.items()}
+        self.vectors = vectors if vectors and vectors.ok() else None
+        self.vecs = None
+        if self.vectors:
+            try:
+                self.vecs = self.vectors.for_cards(cards)
+                self.vectors.save()
+            except (OSError, RuntimeError, ValueError, subprocess.SubprocessError) as e:
+                print(f"(embeddings unavailable, keyword ranking only: {e})", file=sys.stderr)
+                self.vectors = None
 
-    def search(self, query, k=3):
+    def lexical(self, query):
         q = words(query)
         code_q = bool(CODE_WORDS & set(re.findall(r"[a-z]+", query.lower())))
         scored = []
-        for c, d in zip(self.cards, self.docs):
+        for i, (c, d) in enumerate(zip(self.cards, self.docs)):
             size = sum(d.values())
             s = 0.0
             for w in q:
@@ -362,11 +651,30 @@ class Index:
                 if f:
                     s += self.idf[w] * f * 2.2 / (f + 1.2 * (0.25 + 0.75 * size / self.avg))
             if s > 0:
-                if c["id"].startswith("code.") and not code_q:
+                if ".code." in "." + c["id"] and not code_q:
                     s *= 0.8
-                scored.append((s, c))
+                scored.append((s, i))
         scored.sort(key=lambda x: -x[0])
-        return [c for _, c in scored[:k]]
+        return [i for _, i in scored]
+
+    def semantic(self, query, n=100):
+        qv = self.vectors.query(query)
+        scored = sorted(((sum(a * b for a, b in zip(qv, v)), i) for i, v in enumerate(self.vecs)), reverse=True)
+        return [i for _, i in scored[:n]]
+
+    def search(self, query, k=3, lexical=False):
+        lex = self.lexical(query)
+        if lexical or not self.vecs:
+            return [self.cards[i] for i in lex[:k]]
+        try:
+            sem = self.semantic(query)
+        except (OSError, RuntimeError, ValueError, subprocess.SubprocessError):
+            return [self.cards[i] for i in lex[:k]]
+        score = Counter()
+        for ranking, w in ((lex[:100], 1.0), (sem, SEM_WEIGHT)):
+            for r, i in enumerate(ranking):
+                score[i] += w / (RRF_K + r + 1)
+        return [self.cards[i] for i, _ in score.most_common(k)]
 
 
 def tokens(text):
@@ -377,16 +685,22 @@ def show(c):
     return f"── card:{c['id']}  {c['title']}  ({c['file']}, ~{tokens(c['text'])} tokens)\n{c['text']}\n"
 
 
-def known_ids():
+def known_ids(with_mine=False):
     """(ids, keys) for checks that verify card citations; a citation whose key was not loaded is not judged."""
     cards, keys = load()
-    return {c["id"] for c in cards}, keys
+    ids = {c["id"] for c in cards}
+    if with_mine:
+        # a citation of your own work is judged too; what a session saw (mine.seen.*) is not kept
+        ids |= {c["id"] for c in mine_cards() if not c["id"].startswith("mine.seen.")}
+        keys |= {"mine"}
+    return ids, keys
 
 
 def unknown_citations(text):
-    ids, keys = known_ids()
+    cited = sorted(set(CITE.findall(text)))
+    ids, keys = known_ids(with_mine=any(c.startswith("mine.") and not c.startswith("mine.seen.") for c in cited))
     bad = []
-    for cid in sorted(set(CITE.findall(text))):
+    for cid in cited:
         key_known = any(cid == k or cid.startswith(k + ".") for k in keys)
         if key_known and cid not in ids:
             bad.append(cid)
@@ -420,14 +734,15 @@ def check(cards):
     return problems, size
 
 
-def qa(index, path, k=5):
-    items = json.loads(Path(path).read_text())
+def qa(index, path, k=5, lexical=False):
+    data = json.loads(Path(path).read_text())
+    items = data["questions"] if isinstance(data, dict) else data
     ids = {c["id"] for c in index.cards}
     misses, unknown, at = [], [], Counter()
     for it in items:
         want = set(it["cards"])
         unknown += [w for w in want if w not in ids]
-        got = [c["id"] for c in index.search(it["q"], k)]
+        got = [c["id"] for c in index.search(it["q"], k, lexical=lexical)]
         hit = next((i for i, g in enumerate(got) if g in want), None)
         if hit is None:
             misses.append((it["q"], sorted(want), got[:3]))
@@ -438,18 +753,47 @@ def qa(index, path, k=5):
     return items, misses, sorted(set(unknown)), at
 
 
+OFF = ("The work index is off in this project (BUILDER_MEMORY=off). Ask Builder with "
+       "python3 tools/ask.py \"question\", and read your own files as usual.")
+
+
 def main(argv):
-    cards, _ = load()
-    if not cards:
-        print("no Builder files found: set BUILDER_HOME to the Builder folder")
-        return 1
-    index = Index(cards)
-    by = {c["id"]: c for c in cards}
     k = 3
     if "-k" in argv:
         i = argv.index("-k")
         k = int(argv[i + 1])
         del argv[i:i + 2]
+    lexical = "--lexical" in argv
+    mine, target, both = "--mine" in argv, "--target" in argv, "--all" in argv
+    if (mine or target or "--warm" in argv) and not memory_on():
+        print(OFF)
+        return 0
+    if mine or target:
+        cards = mine_cards() if mine else target_cards()
+        if not cards:
+            print("no cards: " + ("nothing of this project's own work was found" if mine else
+                                   "name the codebase in notes/target (one line, a path) or $BUILDER_TARGET"))
+            return 1
+    else:
+        cards, _ = load()
+        if not cards:
+            print("no Builder files found: set BUILDER_HOME to the Builder folder")
+            return 1
+        if both and memory_on():
+            cards = cards + mine_cards()
+    if "--warm" in argv:
+        vec = Vectors()
+        if not vec.ok():
+            print("no embedding model installed (./scripts/setup-embed.sh); keyword ranking only")
+            return 0
+        allc = load()[0] + mine_cards() + target_cards()
+        vec.for_cards(allc)
+        vec.save(keep={card_hash(c) for c in allc})
+        print(f"warm: {len(allc)} cards have vectors in {vec.file.relative_to(PROJECT)}")
+        return 0
+    wants_rank = not any(a in argv for a in ("--list", "--check", "--start", "--card"))
+    index = Index(cards, Vectors() if wants_rank and not lexical else None)
+    by = {c["id"]: c for c in cards}
     if "--list" in argv:
         for c in cards:
             print(f"{c['id']:<52} ~{tokens(c['text']):>4}  {c['title'][:70]}")
@@ -464,15 +808,30 @@ def main(argv):
                   f"every spec row and CLAUDE.md rule on a card, start pack ~{size} tokens (budget {START_BUDGET})")
         return 1 if problems else 0
     if "--qa" in argv:
-        items, misses, unknown, at = qa(index, argv[argv.index("--qa") + 1])
+        qfile = argv[argv.index("--qa") + 1]
+        name = Path(qfile).stem.replace("qa", "QA").replace("builder", "Builder").replace("work", "Work")
+        data = json.loads(Path(qfile).read_text())
+        floor = data.get("floor") if isinstance(data, dict) else None   # a set of hard questions records how many pass now
+        items, misses, unknown, at = qa(index, qfile, lexical=True)
         for u in unknown:
             print(f"FAIL the question set names card {u}, which does not exist")
-        for q, want, got in misses:
-            print(f"FAIL {q!r}: none of {', '.join(want)} in the top 5 (got {', '.join(got)})")
         n = len(items)
-        print(f"BuilderQA: {n - len(misses)}/{n} answered in the top 5; "
-              f"top 1 {at[1]}/{n}, top 3 {at[3]}/{n}")
-        return 1 if misses or unknown else 0
+        word = "FAIL" if floor is None or n - len(misses) < floor else "miss"
+        for q, want, got in misses:
+            print(f"{word} {q!r}: none of {', '.join(want)} in the top 5 (got {', '.join(got)})")
+        print(f"{name} (keyword): {n - len(misses)}/{n} answered in the top 5; "
+              f"top 1 {at[1]}/{n}, top 3 {at[3]}/{n}" + (f" (floor {floor})" if floor is not None else ""))
+        bad = bool(unknown) or (bool(misses) if floor is None else n - len(misses) < floor)
+        if index.vecs:
+            _, hmiss, _, hat = qa(index, qfile, lexical=False)
+            print(f"{name} (hybrid):  {n - len(hmiss)}/{n} answered in the top 5; "
+                  f"top 1 {hat[1]}/{n}, top 3 {hat[3]}/{n}")
+            if len(hmiss) > len(misses):
+                print("FAIL hybrid ranking answers fewer questions in the top 5 than keyword ranking alone")
+                bad = True
+        else:
+            print(f"{name} (hybrid):  skipped, no embedding model installed")
+        return 1 if bad else 0
     if "--start" in argv:
         print("Start pack: the Builder cards an opening entry needs. Cite them as card:<id>.\n"
               "CLAUDE.md's rules are not repeated here; read CLAUDE.md in full.\n"
@@ -493,13 +852,13 @@ def main(argv):
         return bad
     if "--code" in argv or "--docs" in argv:
         want_code = "--code" in argv
-        index = Index([c for c in cards if c["id"].startswith("code.") == want_code])
+        index = Index([c for c in cards if (".code." in "." + c["id"]) == want_code], Vectors() if not lexical else None)
     ids_only = "--ids" in argv
     query = " ".join(a for a in argv if not a.startswith("--"))
     if not query.strip():
         print(__doc__)
         return 2
-    found = index.search(query, k)
+    found = index.search(query, k, lexical=lexical)
     if not found:
         print("no card matches; try other words, or --list")
         return 1

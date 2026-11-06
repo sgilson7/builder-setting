@@ -10,6 +10,7 @@
 #
 #   ./scripts/prove-checks.sh
 set -euo pipefail
+export BUILDER_LOUD=1   # each planted defect is judged on the full output
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/examples/minimal"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/builder-prove.XXXXXX")"
@@ -576,6 +577,76 @@ expect_failure "a renamed heading that drops a card from the start pack" "the st
 fresh; builder_copy
 sed -i.bak 's/^## Copying a kit$/## Bringing one in/' "$WORK/b/kits/README.md" && rm "$WORK/b/kits/README.md.bak"
 expect_failure "a renamed heading that BuilderQA's answer depended on" "names card kits.readme.copying-a-kit, which does not exist" cards_in_copy --qa "$WORK/b/tests/builderqa.json"
+
+# Round four (D27-D29): quiet checks, a STATE.md kept current, the deck, the work index,
+# the context hooks, the codebase-guide kit and the trial harness's own test
+plant() {  # plant FILE OLD NEW: a scripted edit that asserts it matched
+  "$PY" - "$1" "$2" "$3" <<'EOF2'
+import sys; p, old, new = sys.argv[1:]; s = open(p).read()
+assert old in s, (p, old)
+open(p, "w").write(s.replace(old, new, 1))
+EOF2
+}
+
+fresh
+printf '\npub fn   badly_formatted( ) {}\n' >> "$WORK/p/crates/core/src/counter.rs"
+expect_failure "a failing step in a quiet check.sh still names itself" "last step: == 1/9 format" env -u BUILDER_LOUD -u CI ./scripts/check.sh
+
+fresh
+(cd "$WORK/p" && git init -q && git add -A && git -c user.name=p -c user.email=p@p commit -qm planted \
+  && printf '| T9 | "make the counter count by twos" | planted | | | | |\n' >> TRIAGE.md \
+  && git -c user.name=p -c user.email=p@p commit -qam "planted request")
+expect_failure "a request recorded after STATE.md was last rewritten" "TRIAGE.md changed in" context
+
+fresh
+(cd "$WORK/p" && "$PY" tools/journal/present.py >/dev/null)
+add_entry research '' 2026-11-07 '<h3>Later</h3><p>From <a href="https://example.org/">a source</a>.</p>'
+expect_failure "a deck built before the journal's newest entry" "the deck is out of date" "$PY" tools/journal/present.py --check
+
+fresh
+plant "$WORK/p/BRIEF.md" "## Autonomy" "## Permissions"
+expect_failure "a renamed heading that WorkQA's answer depended on" "names card mine.brief.autonomy, which does not exist" \
+  env BUILDER_PROJECT="$WORK/p" "$PY" "$ROOT/template/tools/ask.py" --mine --qa "$ROOT/tests/workqa.json"
+
+tools_copy() { rm -rf "$WORK/t"; mkdir -p "$WORK/t"; (cd "$ROOT/template" && tar --exclude=__pycache__ -cf - tools) | (cd "$WORK/t" && tar -xf -); }
+tools_tests() { BUILDER_HOME="$ROOT" BUILDER_TOOLS="$WORK/t/tools" "$PY" -m unittest discover -s "$ROOT/tests" -p test_context_tools.py; }
+tools_copy; plant "$WORK/t/tools/ask.py" 'EMBED_MODEL + "\n" + c["title"] + "\n" + c["text"]' 'EMBED_MODEL + "\n" + c["title"]'
+expect_failure "a vector kept after its card's text changed" "test_changed_text_is_embedded_again" tools_tests
+tools_copy; plant "$WORK/t/tools/ask.py" 'for ranking, w in ((lex[:100], 1.0), (sem, SEM_WEIGHT)):' 'for ranking, w in ((lex[:100], 0.01), (sem, 1.0)):'
+expect_failure "a fusion that lets the model bury keyword ranking's first card" "test_a_card_first_by_keywords" tools_tests
+tools_copy; plant "$WORK/t/tools/ask.py" 'if orig.is_file() and orig.read_bytes() == path.read_bytes():' 'if False:'
+expect_failure "Builder's own scripts counted as the project's work" "test_a_file_still_as_the_template" tools_tests
+tools_copy; plant "$WORK/t/tools/context/after_tool.py" 'if band <= seen.get(sid, -1):' 'if False:'
+expect_failure "a context warning repeated on every call" "test_warns_once_past_200k" tools_tests
+tools_copy; plant "$WORK/t/tools/context/before_read.py" 'if i.get("offset") or i.get("limit") or not path.is_file():' 'if not path.is_file():'
+expect_failure "read advice for a read that already took a range" "test_long_whole_read_gets_its_parts" tools_tests
+
+guide_copy() { rm -rf "$WORK/g"; mkdir -p "$WORK/g"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - codebase-guide) | (cd "$WORK/g" && tar -xf -); }
+guide_tests() { "$PY" -m unittest discover -s "$WORK/g/codebase-guide/tests"; }
+guide_copy; plant "$WORK/g/codebase-guide/tools/guide/excerpts.py" "if must not in lines[first - 1]:" "if False:"
+expect_failure "an excerpt whose function moved" "test_moved_function_fails" guide_tests
+guide_copy; plant "$WORK/g/codebase-guide/scripts/target_unchanged.py" "added = sorted(set(now) - set(then))" "added = []"
+expect_failure "an install inside the read-only codebase" "test_edit_addition_and_install_fail" guide_tests
+guide_copy; plant "$WORK/g/codebase-guide/scripts/target_unchanged.py" "        if manifest.exists():" "        if False:"
+expect_failure "a manifest written over" "test_manifest_is_written_once" guide_tests
+guide_copy; plant "$WORK/g/codebase-guide/tools/guide/labels.py" 'elif kind == "proposed":' 'elif False:'
+expect_failure "a proposed part that shows code" "test_proposed_part_with_code_fails" guide_tests
+guide_copy; plant "$WORK/g/codebase-guide/tools/guide/labels.py" "            if not cited:" "            if False:"
+expect_failure "a measured part with no code" "test_measured_part_without_code_fails" guide_tests
+
+harness_copy() { rm -rf "$WORK/h"; mkdir -p "$WORK/h/template"; (cd "$ROOT" && tar --exclude=__pycache__ -cf - harness) | (cd "$WORK/h" && tar -xf -);
+  cp -R "$ROOT/template/tools" "$WORK/h/template/tools"; }
+harness_tests() { "$PY" -m unittest discover -s "$WORK/h/harness/tests"; }
+harness_copy; plant "$WORK/h/harness/analyze.py" "    for rx in BASH_WRITE[2:]:" "    for rx in []:"
+expect_failure "STATE.md written through a heredoc, missed" "test_state_written_through_a_heredoc" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" 'p = path if path.startswith("/") else "/" + path' 'p = path'
+expect_failure "a Builder file read with cat, missed" "test_builder_file_read_with_cat" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" 'return [p for p in out if not p.startswith("/dev/")' 'return [p for p in out + ["notes/STATE.md"] if not p.startswith("/dev/")'
+expect_failure "HTML in a heredoc counted as a STATE.md rewrite" "test_state_written_through_a_heredoc" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" "if fp in known and n > REWRITE_LINES:" "if False:"
+expect_failure "a whole-file rewrite, missed" "test_whole_rewrite_is_counted" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" "if d <= r[0] < nxt and r[2] in before]" "if False]"
+expect_failure "a file re-read after a compaction, missed" "test_reread_after_compaction" harness_tests
 
 echo
 echo "caught $pass, missed $fail"

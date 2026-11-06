@@ -26,6 +26,12 @@ tools/ask.py
 tools/tokens.py
 tools/digest.py
 tools/context/after_compact.py
+tools/context/after_tool.py
+tools/context/before_read.py
+tools/context/hooklib.py
+tools/context/embed.py
+tools/journal/present.py
+scripts/setup-embed.sh
 .claude/settings.json
 tools/journal/index.html
 tools/journal/ENTRIES.md

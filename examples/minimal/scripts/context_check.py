@@ -7,6 +7,9 @@
 - STATE.md: at most MAX characters (about two pages); once it names a commit,
   the commit exists and is at most BEHIND commits older than HEAD; every card
   it cites exists;
+- STATE.md and HANDOFF.md kept current: neither was last rewritten before the
+  newest commit that changed TRIAGE.md, since a person's request is new work;
+  HANDOFF.md is judged once its 'Commit:' line names a commit;
 - every digest BRIEF.md names under References (a path ending in .md) has the
   sections a digest needs, fits on a page, and has had its "What to copy"
   section filled in (tools/digest.py --check).
@@ -56,6 +59,33 @@ def state_problems(text):
     return out
 
 
+def last_commit(name):
+    return git("log", "-1", "--format=%h", "--", name).stdout.strip()
+
+
+def freshness_problems():
+    """A request recorded in TRIAGE.md after STATE.md (or HANDOFF.md) was last rewritten."""
+    out = []
+    if git("rev-parse", "--git-dir").returncode != 0:
+        return out
+    t = last_commit("TRIAGE.md")
+    if not t:
+        return out
+    for name in ("STATE.md", "HANDOFF.md"):
+        path = ROOT / name
+        if not path.exists():
+            continue
+        if name == "HANDOFF.md":
+            m = re.search(r"^Commit:\s*(\S+)", path.read_text(), re.M)
+            if not m or m.group(1).startswith("("):
+                continue
+        s = last_commit(name)
+        if s and git("merge-base", "--is-ancestor", t, s).returncode != 0:
+            out.append(f"TRIAGE.md changed in {t}, after {name} was last rewritten ({s}); "
+                       f"rewrite {name} for the new request (rule 21)")
+    return out
+
+
 def digest_paths(brief):
     out = []
     for line in brief.splitlines():
@@ -75,6 +105,7 @@ def main():
         problems.append("STATE.md is missing; copy it from Builder's template/STATE.md")
     else:
         problems += state_problems(state.read_text())
+        problems += freshness_problems()
     brief = (ROOT / "BRIEF.md").read_text() if (ROOT / "BRIEF.md").exists() else ""
     for rel in digest_paths(brief):
         path = (ROOT / rel).resolve()

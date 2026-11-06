@@ -71,32 +71,32 @@
    "above_200k_share": 0.48593718240129047
   },
   "CirqueGame": {
-   "calls": 219,
-   "base": 43788,
-   "plan_at_call": 70,
-   "at_plan": 240560,
-   "climb": 196772,
-   "peak": 496130,
-   "mean": 306022,
-   "compactions": 0,
-   "reread": 66225276,
-   "startup_reread": 39571912,
-   "startup_share": 0.5975348747508429,
-   "above_200k_share": 0.40218344992566735
+   "calls": 324,
+   "base": 39821,
+   "plan_at_call": 27,
+   "at_plan": 155839,
+   "climb": 116018,
+   "peak": 823495,
+   "mean": 439693,
+   "compactions": 2,
+   "reread": 140500643,
+   "startup_reread": 9961753,
+   "startup_share": 0.07090183210051217,
+   "above_200k_share": 0.5979149616799464
   }
  },
  "summary": {
   "calls": 1531,
-  "base": 42853,
-  "plan_at_call": 37,
-  "at_plan": 192935,
-  "climb": 150028,
+  "base": 42546,
+  "plan_at_call": 31,
+  "at_plan": 156323,
+  "climb": 116018,
   "peak": 952468,
-  "mean": 373379,
+  "mean": 375101,
   "compactions": 6,
   "reread": 570521972,
-  "startup_reread": 27583345,
-  "startup_share": 0.25879390286177145,
-  "above_200k_share": 0.5134566670977859
+  "startup_reread": 23162204,
+  "startup_share": 0.07090183210051217,
+  "above_200k_share": 0.5206950568102234
  }
 }

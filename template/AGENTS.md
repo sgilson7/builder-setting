@@ -37,13 +37,15 @@
 
 ## Context
 
-Each model call re-reads the whole context, so what is read once is paid for on every later call. These rules change how Builder is found, not what it asks (`docs/context.md`).
+Each model call re-reads the whole context, so what is read once is paid for on every later call. These rules change how Builder and your own work are found and carried, not what Builder asks (`docs/context.md`).
 
 19. Read Builder through its cards. Start with `python3 tools/ask.py --start`, and ask `python3 tools/ask.py "question"` (`--code` for code) before opening a Builder document or source file. Open a file only where a card points, and only the lines it names. Read `CLAUDE.md`, `BRIEF.md`, `BUILDER-SPEC.md` and `GLOSSARY.md` in full as rule 1 says. Cite cards as `card:<id>`.
 20. Read an earlier project through its digest (`tools/digest.py`), not its transcripts. When a reference has none, write one, fill in its "What to copy", and read the project only for what the digest names.
-21. Keep `STATE.md`: rewrite it at each milestone (a stage boundary, a finished feature, a deploy) and before a handoff, naming the latest commit. After a compaction or in a new session, read `STATE.md` and ask for cards; do not re-read files it already summarises.
-22. Run long commands through `./scripts/quiet.sh` (`./scripts/quiet.sh ./scripts/check.sh`), which keeps the full output in `notes/runs/` and prints a summary. Read the log only for what the summary leaves out. A failed approach becomes a `SECOND-ORDER.md` row saying how it failed.
+21. Keep `STATE.md`: rewrite it at each milestone (a stage boundary, a finished feature, a deploy), after each request you record in `TRIAGE.md`, and before a handoff, naming the latest commit. When the context passes about 200k tokens (the after-tool hook says so; `python3 tools/tokens.py --print` shows it), rewrite it, commit, and ask the person to type `/compact`: you cannot compact yourself. After a compaction or in a new session, read `STATE.md` and ask for cards; do not re-read files it already summarises. `scripts/context_check.py` fails when `TRIAGE.md` changed after `STATE.md` was last rewritten.
+22. `./scripts/check.sh` and `./scripts/quick-check.sh` keep their full output in `notes/runs/` and print only a summary; run any other long command through `./scripts/quiet.sh`. Read a log only for what the summary leaves out (`BUILDER_LOUD=1` prints everything). A failed approach becomes a `SECOND-ORDER.md` row saying how it failed.
 23. Before a handoff, run `python3 tools/tokens.py` and quote its row in `HANDOFF.md`.
+24. Ask your own work before re-reading it. `python3 tools/ask.py --mine "question"` searches this project's journal entries, notebook and triage rows, `STATE.md`, `PLAN.md`, commits, code, run logs and the tool results its sessions have seen; `--target` searches a codebase this project explains. Before reading a long file again, ask, then open only the lines a card names; the read hook lists a long file's parts when you read it whole. In `STATE.md`, cite work cards (`card:mine.<id>`) rather than restating them.
+25. Change a file of more than about 200 lines with edits, not by writing it again whole: a whole rewrite sends all of it again, and it stays in the context. When a rewrite is really needed, add a `SECOND-ORDER.md` row saying why.
 
 ## Rules agreed for this project
 

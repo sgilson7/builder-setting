@@ -26,8 +26,8 @@ lends: "the lobby from Ape Race", "Lowballer's 2D style"]. List them under
 References in BRIEF.md.
 
 First, read Builder through its cards (python3 <project>/tools/ask.py
---start, then ask.py "question"; open a Builder file only where a card
-points) and write the design journal's opening entry: how you will use
+--start, then ask.py "question"; open no file under builder/, its
+CLAUDE.md included, except where a card points) and write the design journal's opening entry: how you will use
 Builder for this [game | tool], the rules you will hold to and what holds
 each, and your questions as answer chips. Read an earlier project through
 its digest in refs/ when it has one. Use [MODEL JOURNAL: e.g.

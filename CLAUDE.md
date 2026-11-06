@@ -1,5 +1,7 @@
 # Instructions for a coding agent in the Builder reference repository
 
+**Starting a project? Read nothing more in this repository.** Copy `template/` (or let the opening do it) and run `python3 <project>/tools/ask.py --start`; read Builder through its cards from there (rule 19 of the project's `CLAUDE.md`).
+
 **If the person describes a tool they want built, do not edit this repository.** Follow [`prompts/start-from-description.md`](prompts/start-from-description.md): copy `template/` to a new sibling directory, write the brief there from their words, and build there. Before writing the brief, read that project's `CLAUDE.md` (or `AGENTS.md`) in full. Its rules govern the build, including the second-order notebook, and an agent started in this repository is not given them automatically, because the project is outside this directory.
 
 The rules below are for work on the reference repository itself.

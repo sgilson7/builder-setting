@@ -5,8 +5,15 @@
 #   BUILDER_ENGINES=chromium ./scripts/check.sh   one engine while iterating
 #
 # Each step prints its name first, so a failure names the step that failed.
+#
+# Quiet by default (rule 22): the full output goes to notes/runs/ and only a
+# summary is printed (what passed, the step reached, the first errors).
+# BUILDER_LOUD=1 prints everything, as CI does.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+if [ -z "${BUILDER_LOUD:-}${CI:-}${BUILDER_QUIET_INNER:-}" ]; then
+  BUILDER_QUIET_INNER=1 exec ./scripts/quiet.sh ./scripts/check.sh "$@"
+fi
 
 PY="${BUILDER_PYTHON:-}"
 if [ -z "$PY" ]; then
@@ -39,8 +46,9 @@ step "7/9 notebook form, test tags and context (scripts/notebook_check.py, scrip
 "$PY" scripts/quick_check.py --guard
 "$PY" scripts/context_check.py
 
-step "8/9 design journal (scripts/journal_check.py)"
+step "8/9 design journal (scripts/journal_check.py, tools/journal/present.py --check)"
 "$PY" scripts/journal_check.py
+"$PY" tools/journal/present.py --check
 
 step "9/9 browser check (tests/browser/check.py)"
 "$PY" tests/browser/check.py
