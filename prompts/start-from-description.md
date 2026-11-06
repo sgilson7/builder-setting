@@ -47,7 +47,9 @@ The root `CLAUDE.md` sends the agent here when a person describes a tool. The ag
    Leave names of people and employers out of a public repository.
    Leave the Journal section at `default` unless the person said not to
    keep one. Then write the journal's opening entry (tools/journal/ENTRIES.md,
-   kind reading): what Builder asks of you, what this project changes, what
+   kind reading). Read Builder through its cards first (python3
+   tools/ask.py --start, then ask.py "question" as needed; docs/context.md):
+   what Builder asks of you comes written with its cards, so add what this project changes, what
    you measured, numbered rules with what holds each, the question prefix,
    where you stop, your questions. Add a brief entry: the description word
    for word and where each requirement lands.

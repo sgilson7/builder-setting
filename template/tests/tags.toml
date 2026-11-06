@@ -8,7 +8,7 @@
 # When unsure, give a file the wider rule: a quick check is only as safe as
 # its rules. ./scripts/check.sh stays the check before a handoff or a deploy.
 #
-# Steps: fmt, clippy, core, build, wasm, art, notebook, journal, browser, all.
+# Steps: fmt, clippy, core, build, wasm, art, notebook, context, journal, browser, all.
 # After Peter's quick check in Ape Race, Honey Hole and Crabble.
 
 ignore = [".gitignore", "notes/**", ".claude/**", "LICENSE*", "README.md", "LICENSES.md", "MEASUREMENTS.md", "DECISIONS.md"]
@@ -37,7 +37,14 @@ steps = ["art"]
 [[rule]]
 name = "the records"
 files = ["BRIEF.md", "PLAN.md", "SECOND-ORDER.md", "TRIAGE.md", "HANDOFF.md", "CLAUDE.md", "AGENTS.md", "BUILDER-SPEC.md"]
-steps = ["notebook", "journal"]
+# CLAUDE.md and BUILDER-SPEC.md are cut into cards, and BRIEF.md names digests
+steps = ["notebook", "context", "journal"]
+
+[[rule]]
+name = "the context files"
+# docs/context.md: the cards, STATE.md, digests and the token log
+files = ["STATE.md", "tools/ask.py", "tools/tokens.py", "tools/digest.py", "tools/context/**", "scripts/context_check.py"]
+steps = ["context", "journal"]
 
 [[rule]]
 name = "the journal's tools"

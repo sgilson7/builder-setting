@@ -19,6 +19,8 @@ Version 0.2.0 (13 October 2026) folds in what thirteen of the author's projects 
 
 No tag is made for it; tagging is the author's action.
 
+Unreleased, on the branch `fold-round-3-retrieval`: reading Builder through cards (`tools/ask.py`, D24), `STATE.md` and the after-compaction hook (D25), quiet runs, digests of earlier projects, and the token log (D26), with BuilderQA (60 questions) in the reference check and eight more planted defects (71 in all). See `docs/context.md`.
+
 Version 0.3.0 (2 November 2026) is the first tagged version, `v0.3.0`. Since 0.2.0 it adds:
 
 - the reason for the second-order notebook, and how a row becomes a rule, in `docs/procedure.md`;

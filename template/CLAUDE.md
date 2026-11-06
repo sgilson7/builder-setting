@@ -26,7 +26,7 @@
 ## The design journal
 
 13. Keep the design journal unless `BRIEF.md`'s Journal section says `none`. Start it with `python3 tools/journal/new_journal.py`; it lives beside the project (by default `../<this folder>-journal/`) as its own repository and is never pushed. `tools/journal/ENTRIES.md` says what each kind of entry holds.
-14. Before writing `PLAN.md`, open every project `BRIEF.md` names under References, then write the journal's opening entry: read Builder, the brief and those references back to the person, with numbered rules and what holds each, the question prefix, where you stop, and your questions. When the person answers, each rule that applies to every later session goes under "Rules agreed for this project" below, and each rule the core can enforce becomes a test.
+14. Before writing `PLAN.md`, open every project `BRIEF.md` names under References (its digest, when it has one), then write the journal's opening entry: read Builder (through the start pack, rule 19), the brief and those references back to the person, with numbered rules and what holds each, the question prefix, where you stop, and your questions. When the person answers, each rule that applies to every later session goes under "Rules agreed for this project" below, and each rule the core can enforce becomes a test.
 15. Every decision put to the person, visible change, divergence from the plan and deploy gets a journal entry when it happens, citing its rows (T4, R2.3, XX-Q5). Never remove an entry. `scripts/journal_check.py` checks the form; commit in the journal's repository after each change, and republish it if it has an address.
 16. Put questions to the person as answer chips in the journal (`decisions.json`, drawn by `tools/journal/decisions.py`), each with a default, never as a list to answer in chat. When the person says the answers are in the journal, read them there and record them with `decisions.py --answers`.
 
@@ -34,6 +34,16 @@
 
 17. Work as one agent unless `BRIEF.md`'s Autonomy paragraph names subagents. A question that offers them gives a token estimate. A subagent's brief says it runs no browser check; the coordinator merges several parts and runs one.
 18. While iterating, run `./scripts/quick-check.sh`, which runs only the tests the changed files touch. `./scripts/check.sh` stays the check before a handoff, a deploy or a publish.
+
+## Context
+
+Each model call re-reads the whole context, so what is read once is paid for on every later call. These rules change how Builder is found, not what it asks (`docs/context.md`).
+
+19. Read Builder through its cards. Start with `python3 tools/ask.py --start`, and ask `python3 tools/ask.py "question"` (`--code` for code) before opening a Builder document or source file. Open a file only where a card points, and only the lines it names. Read `CLAUDE.md`, `BRIEF.md`, `BUILDER-SPEC.md` and `GLOSSARY.md` in full as rule 1 says. Cite cards as `card:<id>`.
+20. Read an earlier project through its digest (`tools/digest.py`), not its transcripts. When a reference has none, write one, fill in its "What to copy", and read the project only for what the digest names.
+21. Keep `STATE.md`: rewrite it at each milestone (a stage boundary, a finished feature, a deploy) and before a handoff, naming the latest commit. After a compaction or in a new session, read `STATE.md` and ask for cards; do not re-read files it already summarises.
+22. Run long commands through `./scripts/quiet.sh` (`./scripts/quiet.sh ./scripts/check.sh`), which keeps the full output in `notes/runs/` and prints a summary. Read the log only for what the summary leaves out. A failed approach becomes a `SECOND-ORDER.md` row saying how it failed.
+23. Before a handoff, run `python3 tools/tokens.py` and quote its row in `HANDOFF.md`.
 
 ## Rules agreed for this project
 

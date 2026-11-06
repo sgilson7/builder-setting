@@ -28,7 +28,8 @@ about whether an entry is right:
 - the Live now page's data-commit is the newest *live* entry's data-commit;
 - a *research* entry links at least one source, and an *intake* entry quotes
   the input it reads (a blockquote);
-- every project named under BRIEF.md's References is named in the opening entry.
+- every project named under BRIEF.md's References is named in the opening entry;
+- every card the journal cites (card:spec.D20) exists (tools/ask.py).
 
 On CI the journal is usually absent, since it is never pushed; a missing
 journal is then reported and not failed. Everywhere else it fails.
@@ -45,7 +46,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools"))
 from notebook_check import cells, rows  # noqa: E402
+import ask  # noqa: E402
 
 ENTRY = re.compile(r"<article\b[^>]*>", re.I)
 BLOCK = re.compile(r"(<article\b[^>]*>)(.*?)</article>", re.I | re.S)
@@ -278,6 +281,9 @@ def main(root):
     for name in references(brief):
         if name.lower() not in opening:
             problems.append(f"BRIEF.md names {name} under References, and the opening entry does not say what it took from it")
+
+    for cid in ask.unknown_citations(page):
+        problems.append(f"the journal cites card:{cid}, which does not exist (python3 tools/ask.py --ids \"...\")")
 
     before = committed_ids(index)
     if before:

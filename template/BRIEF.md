@@ -34,7 +34,7 @@ How the tool carries information besides colour (shape, pattern, brightness, tex
 
 ## References
 
-`none`, or earlier projects this one borrows from, one per line, with where their files are and what each lends, in the form `- **Ape Race** (../ape-race): the main menu and the online lobby`.
+`none`, or earlier projects this one borrows from, one per line, with where their files are and what each lends, in the form `- **Ape Race** (../ape-race): the main menu and the online lobby`. When a project has a digest (`tools/digest.py`), name the digest instead: `- **Ape Race** (../refs/ape-race.md): the main menu and the online lobby`; `scripts/context_check.py` checks every digest named here.
 
 The agent opens each one before planning and says in the opening entry what it took from it; `scripts/journal_check.py` fails while a name here is missing from that entry. A project named here is read, not copied wholesale: code comes in only under its licence, and art only with its owner's say.
 

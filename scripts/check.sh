@@ -4,6 +4,7 @@
 # 1. the template and the example agree on the files a project inherits
 # 2. every relative link in the Markdown resolves
 # 3. the default style pack stays inside template/styles/
+# 3a. Builder's cards are in order, and BuilderQA finds a right card in the top five for each question
 # 4. the blank template passes its own check, and each of its breaks is caught
 # 5. the minimal example passes its own check, and each of its breaks is caught
 # 6. the office-intake kit's tests pass
@@ -28,6 +29,10 @@ step "links"
 
 step "style leak: scripts/check-style-leak.py"
 "$PY" scripts/check-style-leak.py
+
+step "cards: template/tools/ask.py --check, and BuilderQA (tests/builderqa.json)"
+"$PY" template/tools/ask.py --check
+"$PY" template/tools/ask.py --qa tests/builderqa.json
 
 step "template: ./scripts/check.sh"
 (cd template && ./scripts/check.sh)

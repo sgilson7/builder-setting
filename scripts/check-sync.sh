@@ -20,6 +20,13 @@ scripts/quick_check.py
 scripts/quick-check.sh
 tests/tags.toml
 scripts/journal_check.py
+scripts/context_check.py
+scripts/quiet.sh
+tools/ask.py
+tools/tokens.py
+tools/digest.py
+tools/context/after_compact.py
+.claude/settings.json
 tools/journal/index.html
 tools/journal/ENTRIES.md
 tools/journal/new_journal.py

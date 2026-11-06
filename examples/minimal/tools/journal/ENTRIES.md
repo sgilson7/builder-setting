@@ -17,6 +17,7 @@ The design journal is where the person reads the build. Each entry reports one t
 11. On every deploy, rewrite the Live now page and set its `data-commit` to the deployed commit, and add a *live* entry with the same `data-commit`.
 12. A request with more than a few points, or a pasted transcript, chat or a co-designer's notes, gets an *intake* entry and a stop before any code. A small fix goes straight to `TRIAGE.md`.
 13. When the journal has a published address, republish it after every entry. The person reads the published page, and a stale one ("it still says the town is not on main") costs a round of asking.
+14. Cite Builder by card, not by restating it: `card:spec.D20`, `card:claude.r14` (`python3 tools/ask.py --ids "..."` finds one). The opening entry's "What Builder asks of me" comes written with its cards; write only what is particular to this project. `scripts/journal_check.py` fails on a card that does not exist.
 
 `scripts/journal_check.py` checks the form of rules 1, 3, 4, 8, 10 and 11, and that a *research* entry links a source and an *intake* entry quotes its input. Whether an entry is right is the person's reading.
 

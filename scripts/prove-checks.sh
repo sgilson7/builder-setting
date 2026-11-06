@@ -528,6 +528,55 @@ shutil.move(tmp, p)
 EOF2
 expect_failure "a blank template that carries an author's name" "test_the_blank_templates_carry_no_author" kit_tests
 
+# Context (D24-D26): cards, STATE.md, digests and quiet runs
+context() { "$PY" scripts/context_check.py; }
+
+fresh
+add_entry research '' 2026-11-06 '<h3>Read</h3><p>From <a href="https://example.org/">a source</a>, held by card:claude.r99.</p>'
+expect_failure "a journal entry citing a card that does not exist" "cites card:claude.r99, which does not exist" journal
+
+fresh
+"$PY" -c "import sys; open(sys.argv[1], 'a').write('\n' + 'Too much carried over. ' * 400)" "$WORK/p/STATE.md"
+expect_failure "a STATE.md longer than two pages" "STATE.md is" context
+
+fresh
+(cd "$WORK/p" && git init -q && git add -A && git -c user.name=p -c user.email=p@p commit -qm planted)
+sed -i.bak 's/^Commit: .*/Commit: 0123abc/' "$WORK/p/STATE.md" && rm "$WORK/p/STATE.md.bak"
+expect_failure "a STATE.md naming a commit the repository does not have" "names commit 0123abc, which this repository does not have" context
+
+fresh
+printf '\n`card:claude.r99`\n' >> "$WORK/p/STATE.md"
+expect_failure "a STATE.md citing a card that does not exist" "STATE.md cites card:claude.r99" context
+
+fresh
+mkdir -p "$WORK/refs"
+(cd "$WORK/p" && "$PY" tools/digest.py "$WORK/p" --out "$WORK/refs/planted.md" >/dev/null)
+"$PY" - "$WORK/p/BRIEF.md" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+s += "\n## References\n\n- **Planted** (../refs/planted.md): its counter\n"
+open(p, "w").write(s)
+EOF2
+expect_failure "a digest named in the brief whose What to copy was never written" "still says TO FILL" context
+
+fresh
+expect_failure "a quiet run that would hide a failing command" "FAILED (exit 3)" ./scripts/quiet.sh sh -c 'echo planted failure; exit 3'
+
+# the next two need Builder itself on disk: a copy of this repository, minus builds
+builder_copy() {
+  rm -rf "$WORK/b"; mkdir -p "$WORK/b"
+  (cd "$ROOT" && tar --exclude=./template/target --exclude=./template/dist --exclude=./template/.venv \
+     --exclude=./examples --exclude=./.venv --exclude=./.git --exclude='*/target' -cf - .) | (cd "$WORK/b" && tar -xf -)
+}
+cards_in_copy() { BUILDER_HOME="$WORK/b" "$PY" "$WORK/b/template/tools/ask.py" "$@"; }
+
+fresh; builder_copy
+sed -i.bak 's/^## How to read Builder$/## Reading Builder/' "$WORK/b/docs/context.md" && rm "$WORK/b/docs/context.md.bak"
+expect_failure "a renamed heading that drops a card from the start pack" "the start pack names card docs.context.how-to-read-builder" cards_in_copy --check
+
+fresh; builder_copy
+sed -i.bak 's/^## Copying a kit$/## Bringing one in/' "$WORK/b/kits/README.md" && rm "$WORK/b/kits/README.md.bak"
+expect_failure "a renamed heading that BuilderQA's answer depended on" "names card kits.readme.copying-a-kit, which does not exist" cards_in_copy --qa "$WORK/b/tests/builderqa.json"
+
 echo
 echo "caught $pass, missed $fail"
 if [ $((pass + fail)) -eq 0 ]; then
