@@ -97,12 +97,23 @@ class ContextWarning(unittest.TestCase):
             (proj / "tools").mkdir(parents=True)
             (proj / "STATE.md").write_text("# State\n")
             (proj / "tools" / "ask.py").write_text("")
-            env = {"BUILDER_PROJECT": str(proj), "BUILDER_EMBED": "off"}
+            env = {"BUILDER_PROJECT": str(proj), "BUILDER_EMBED": "off", "CLAUDE_CODE_AUTO_COMPACT_WINDOW": ""}
             low = {"session_id": "s", "transcript_path": str(self.transcript(d, 150_000)), "tool_name": "Bash", "tool_input": {}}
             self.assertEqual(run_hook("after_tool.py", low, env), "")
             high = {**low, "transcript_path": str(self.transcript(d, 250_000))}
             self.assertIn("past the 200k mark", run_hook("after_tool.py", high, env))
             self.assertEqual(run_hook("after_tool.py", high, env), "")
+
+    def test_under_a_200k_cap_the_mark_is_133k(self):
+        # the platformer pair: compacted at about 167k under a 200k cap, so a 200k mark never fired
+        with tempfile.TemporaryDirectory() as d:
+            proj = Path(d) / "p"
+            (proj / "tools").mkdir(parents=True)
+            (proj / "STATE.md").write_text("# State\n")
+            (proj / "tools" / "ask.py").write_text("")
+            env = {"BUILDER_PROJECT": str(proj), "BUILDER_EMBED": "off", "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "200000"}
+            at = {"session_id": "s", "transcript_path": str(self.transcript(d, 140_000)), "tool_name": "Bash", "tool_input": {}}
+            self.assertIn("past the 133k mark", run_hook("after_tool.py", at, env))
 
 
 class ReadAdvice(unittest.TestCase):
@@ -117,6 +128,12 @@ class ReadAdvice(unittest.TestCase):
             self.assertEqual(run_hook("before_read.py", {"tool_name": "Read", "tool_input": {"file_path": str(f), "offset": 10}}), "")
             self.assertEqual(run_hook("before_read.py", {"tool_name": "Read", "tool_input": {"file_path": str(f)}},
                                       {"BUILDER_MEMORY": "off"}), "")
+
+    def test_an_image_gets_no_advice(self):
+        with tempfile.TemporaryDirectory() as d:
+            f = Path(d) / "shot.png"
+            f.write_bytes(b"\x89PNG\r\n\x1a\n\0\0" + b"\n" * 2000)
+            self.assertEqual(run_hook("before_read.py", {"tool_name": "Read", "tool_input": {"file_path": str(f)}}), "")
 
 
 if __name__ == "__main__":

@@ -28,9 +28,12 @@ def main():
     if i.get("offset") or i.get("limit") or not path.is_file():
         return 0
     try:
-        text = path.read_text(errors="replace")
+        raw = path.read_bytes()
     except OSError:
         return 0
+    if b"\0" in raw[:8192]:          # an image or other binary: its "lines" mean nothing
+        return 0
+    text = raw.decode(errors="replace")
     n = text.count("\n") + 1
     if n <= LINES:
         return 0

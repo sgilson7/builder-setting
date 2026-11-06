@@ -4,7 +4,11 @@
 Two jobs, both quiet unless needed:
 - The context warning (rule 21). When the context passes 200k tokens
   ($BUILDER_CONTEXT_WARN), and again at each further 100k, it tells the agent
-  once: rewrite STATE.md, then ask the person to type /compact.
+  once: rewrite STATE.md, then ask the person to type /compact. Under a
+  compaction cap ($CLAUDE_CODE_AUTO_COMPACT_WINDOW) the mark is two thirds of
+  the cap instead: Claude Code compacts at about five sixths of it, so a 200k
+  mark under a 200k cap is never reached, and two thirds left 7 to 25 calls
+  before each compaction in the platformer trials.
 - The work index (rule 24). After a write, an edit or a commit it embeds the
   new cards in the background, so tools/ask.py --mine stays fast. Nothing is
   embedded without the optional model, and nothing at all with BUILDER_MEMORY=off.
@@ -20,7 +24,16 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import hooklib  # noqa: E402
 
-WARN = int(os.environ.get("BUILDER_CONTEXT_WARN", "200000"))
+def warn_at():
+    mark = int(os.environ.get("BUILDER_CONTEXT_WARN", "200000"))
+    try:
+        cap = int(os.environ.get("CLAUDE_CODE_AUTO_COMPACT_WINDOW", "0"))
+    except ValueError:
+        cap = 0
+    return min(mark, cap * 2 // 3) if cap > 0 else mark
+
+
+WARN = warn_at()
 STEP = 100_000
 
 

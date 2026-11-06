@@ -86,5 +86,21 @@ class Planted(unittest.TestCase):
         self.assertEqual((sl["trial"], sl["baseline_median"], sl["baseline_sessions"]), (200, 100, 1))
 
 
+class Platformer(unittest.TestCase):
+    """Look-alikes from the platformer pair's transcripts."""
+
+    def test_journal_written_by_python_through_a_name_after_cd(self):
+        cmd = "cd /w/game-journal && python3 - <<'EOF'\np='index.html'; s=open(p).read()\nopen(p,'w').write(s)\nEOF"
+        self.assertEqual([analyze.classify(w) for w in analyze.bash_writes(cmd)], ["journal"])
+
+    def test_helper_called_with_a_path_counts(self):
+        cmd = "python3 - <<'EOF'\ndef sub(p, pairs):\n    open(p,'w').write('')\nsub('web/app.js',[])\nEOF"
+        self.assertIn("web/app.js", analyze.bash_writes(cmd))
+
+    def test_cat_of_a_check_script_is_not_a_check_run(self):
+        self.assertFalse(analyze.check_runs("cat web/app.js tests/browser/check.py scripts/build.sh"))
+        self.assertTrue(analyze.check_runs("cargo fmt --all && ./scripts/check.sh 2>&1 | tail -15"))
+
+
 if __name__ == "__main__":
     unittest.main()

@@ -74,7 +74,28 @@ def bash_writes(cmd):
         out += [m.group(1) for m in rx.finditer(head)]
     for rx in BASH_WRITE[2:]:
         out += [m.group(1) for m in rx.finditer(cmd)]
-    return [p for p in out if not p.startswith("/dev/") and not p.endswith((".log", ".tmp"))]
+    # Python that writes through a name (p = "index.html" ... open(p, "w"), or a helper
+    # called as sub("web/app.js", ...)): take the paths named in assignments and first arguments
+    if re.search(r"open\(\s*[A-Za-z_]\w*\s*,\s*['\"][wa]|Path\(\s*[A-Za-z_]\w*\s*\)\.write_text|\.write_text\(", cmd):
+        out += re.findall(r"\b[A-Za-z_]\w*\s*=\s*['\"]([~\w./-]+\.\w+)['\"]", cmd)
+        out += re.findall(r"\b[A-Za-z_]\w*\(\s*['\"]([~\w./-]+\.\w+)['\"]\s*,", cmd)
+    out = [p for p in dict.fromkeys(out) if not p.startswith("/dev/") and not p.endswith((".log", ".tmp"))]
+    # a command that starts in another folder (cd DIR && ...) writes its relative paths there
+    cd = re.match(r"\s*cd\s+['\"]?([~\w./-]+)['\"]?\s*(?:&&|;|\n)", cmd)
+    if cd:
+        out = [p if p.startswith(("/", "~")) else cd.group(1).rstrip("/") + "/" + p for p in out]
+    return out
+
+
+CHECK_SKIP = re.compile(r"^\s*(cat|sed|head|tail|grep|wc|less|bat|ls|git|echo|diff|rg)\b")
+
+
+def check_runs(cmd):
+    """Whether a shell command runs a check (not merely names a check file, as cat does)."""
+    for seg in re.split(r"&&|\|\||;|\n|\|", cmd.split("<<")[0]):
+        if CHECK_CMD.search(seg) and not CHECK_SKIP.match(seg):
+            return True
+    return False
 
 
 def classify(fp):
@@ -228,7 +249,7 @@ def analyse(paths, trial=None, project=None):
             head = cmd.split("<<")[0]
             if head and DEPLOY_CMD.search(head):
                 deploys.append((i, cmd[:100]))
-            if cmd and CHECK_CMD.search(cmd):
+            if cmd and check_runs(cmd):
                 (checks_quiet if "quiet.sh" in cmd else checks_raw).append((i, cmd[:90], size))
             # reads
             targets = []
@@ -236,7 +257,7 @@ def analyse(paths, trial=None, project=None):
                 partial = bool(inp.get("offset") or inp.get("limit"))
                 targets.append((fp, partial))
             elif cmd and READ_CMD.search(cmd):
-                for m in re.finditer(r"([~\w./-]*/[\w./-]+\.(?:md|py|rs|sh|js|json|toml|html))", cmd):
+                for m in re.finditer(r"([~\w./-]*/[\w./-]+\.(?:md|py|rs|sh|json|js|toml|html))\b", cmd):
                     targets.append((m.group(1), "sed -n" in cmd or "head" in cmd or "tail" in cmd))
             elif name == "Grep" and inp.get("path"):
                 targets.append((str(inp.get("path")), True))

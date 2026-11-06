@@ -620,6 +620,10 @@ tools_copy; plant "$WORK/t/tools/context/after_tool.py" 'if band <= seen.get(sid
 expect_failure "a context warning repeated on every call" "test_warns_once_past_200k" tools_tests
 tools_copy; plant "$WORK/t/tools/context/before_read.py" 'if i.get("offset") or i.get("limit") or not path.is_file():' 'if not path.is_file():'
 expect_failure "read advice for a read that already took a range" "test_long_whole_read_gets_its_parts" tools_tests
+tools_copy; plant "$WORK/t/tools/context/after_tool.py" 'return min(mark, cap * 2 // 3) if cap > 0 else mark' 'return mark'
+expect_failure "a warning mark the compaction cap never lets the context reach" "test_under_a_200k_cap" tools_tests
+tools_copy; plant "$WORK/t/tools/context/before_read.py" 'if b"\0" in raw[:8192]:' 'if False:'
+expect_failure "read advice on an image" "test_an_image_gets_no_advice" tools_tests
 
 guide_copy() { rm -rf "$WORK/g"; mkdir -p "$WORK/g"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - codebase-guide) | (cd "$WORK/g" && tar -xf -); }
 guide_tests() { "$PY" -m unittest discover -s "$WORK/g/codebase-guide/tests"; }
@@ -641,12 +645,16 @@ harness_copy; plant "$WORK/h/harness/analyze.py" "    for rx in BASH_WRITE[2:]:"
 expect_failure "STATE.md written through a heredoc, missed" "test_state_written_through_a_heredoc" harness_tests
 harness_copy; plant "$WORK/h/harness/analyze.py" 'p = path if path.startswith("/") else "/" + path' 'p = path'
 expect_failure "a Builder file read with cat, missed" "test_builder_file_read_with_cat" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" 'return [p for p in out if not p.startswith("/dev/")' 'return [p for p in out + ["notes/STATE.md"] if not p.startswith("/dev/")'
+harness_copy; plant "$WORK/h/harness/analyze.py" 'out = [p for p in dict.fromkeys(out) if not p.startswith("/dev/")' 'out = [p for p in dict.fromkeys(out + ["notes/STATE.md"]) if not p.startswith("/dev/")'
 expect_failure "HTML in a heredoc counted as a STATE.md rewrite" "test_state_written_through_a_heredoc" harness_tests
 harness_copy; plant "$WORK/h/harness/analyze.py" "if fp in known and n > REWRITE_LINES:" "if False:"
 expect_failure "a whole-file rewrite, missed" "test_whole_rewrite_is_counted" harness_tests
 harness_copy; plant "$WORK/h/harness/analyze.py" "if d <= r[0] < nxt and r[2] in before]" "if False]"
 expect_failure "a file re-read after a compaction, missed" "test_reread_after_compaction" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" "if CHECK_CMD.search(seg) and not CHECK_SKIP.match(seg):" "if CHECK_CMD.search(seg):"
+expect_failure "cat of a check script counted as a check run" "test_cat_of_a_check_script" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" "    if cd:" "    if False:"
+expect_failure "a journal written by Python after cd, missed" "test_journal_written_by_python" harness_tests
 
 echo
 echo "caught $pass, missed $fail"

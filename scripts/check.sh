@@ -47,7 +47,7 @@ step "template: scripts/break_tests.py"
 (cd template && "$PY" scripts/break_tests.py)
 
 step "examples/minimal: ./scripts/check.sh"
-(cd examples/minimal && ./scripts/check.sh)
+(cd examples/minimal && BUILDER_LOUD=1 ./scripts/check.sh)   # loud: a quiet run would leave a log in the example, and WorkQA reads its notes
 
 step "examples/minimal: scripts/break_tests.py"
 (cd examples/minimal && "$PY" scripts/break_tests.py)
