@@ -52,13 +52,18 @@ def push_cards(state):
     if not ask.exists() or not query:
         return ""
     try:
-        out = subprocess.run([sys.executable, str(ask), "--mine", query, "-k", str(PUSH_K)], cwd=state.parent,
+        out = subprocess.run([sys.executable, str(ask), "--mine", query, "-k", str(PUSH_K + 2)], cwd=state.parent,
                              capture_output=True, text=True, timeout=60,
                              env=dict(os.environ, BUILDER_PROJECT=str(state.parent))).stdout
     except (OSError, subprocess.SubprocessError):
         return ""
     out = out.strip()
     if not out or "is off in this project" in out:
+        return ""
+    # STATE.md is printed above in full: drop its own cards and keep PUSH_K others
+    blocks = re.split(r"(?m)^(?=── card:)", out)
+    out = "".join([b for b in blocks if b.startswith("── card:") and not b.startswith("── card:mine.state")][:PUSH_K]).strip()
+    if not out:
         return ""
     if len(out) > PUSH_CHARS:
         out = out[:PUSH_CHARS].rsplit("\n", 1)[0] + "\n…"
