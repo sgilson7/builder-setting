@@ -92,7 +92,9 @@ CHECK_SKIP = re.compile(r"^\s*(cat|sed|head|tail|grep|wc|less|bat|ls|git|echo|di
 
 def check_runs(cmd):
     """Whether a shell command runs a check (not merely names a check file, as cat does)."""
-    for seg in re.split(r"&&|\|\||;|\n|\|", cmd.split("<<")[0]):
+    # quoted text first: a pattern like "engine\|webkit" is not a pipe
+    bare = re.sub(r"'[^']*'|\"(?:\\.|[^\"\\])*\"", "''", cmd.split("<<")[0])
+    for seg in re.split(r"&&|\|\||;|\n|\|", bare):
         if CHECK_CMD.search(seg) and not CHECK_SKIP.match(seg):
             return True
     return False
@@ -195,6 +197,8 @@ def events(path):
             elif isinstance(content, str) and "context was just compacted" in content:
                 notes.append(("hook", len(calls)))
         elif t == "system" or d.get("isCompactSummary"):
+            if d.get("subtype") == "compact_boundary":
+                notes.append(("boundary", len(calls)))
             if "compact" in json.dumps(d)[:2000].lower():
                 notes.append(("compact", len(calls)))
         if "The context was just compacted" in line:
@@ -234,7 +238,12 @@ def analyse(paths, trial=None, project=None):
         results.update(r)
         notes += [(k, i + offset) for k, i in n]
     ctx = [tokens.context(c["usage"]) for c in calls]
-    drops = [i for i in range(1, len(ctx)) if ctx[i] < 0.5 * ctx[i - 1] and ctx[i - 1] > 60_000]
+    # Claude Code marks each compaction with a compact_boundary record; under a low cap the context
+    # after one stays above half the context before it (the system prompt and STATE.md remain), so
+    # the fall in context alone misses it. The fall is kept for transcripts without the record.
+    marked = {i for k, i in notes if k == "boundary" and 0 < i < len(ctx)}
+    fell = {i for i in range(1, len(ctx)) if ctx[i] < 0.5 * ctx[i - 1] and ctx[i - 1] > 60_000}
+    drops = sorted(marked | {i for i in fell if not any(abs(i - m) <= 2 for m in marked)})
 
     def carried(i, size):
         nxt = next((d for d in drops if d > i), len(ctx))
@@ -409,7 +418,7 @@ def analyse(paths, trial=None, project=None):
         "reads": builder_reads,
     }
     recalls_after = [a for a in mine_asks if any(d <= a[0] for d in drops)]
-    f["memory"] = {"state_writes": [w + 1 for w in state_writes], "hook_fired": [n for k, n in notes if k == "hook"],
+    f["memory"] = {"state_writes": [w + 1 for w in state_writes], "hook_fired": sorted({n for k, n in notes if k == "hook"}),
                    "mine_asks": len(mine_asks), "mine_ask_tokens": sum(a[2] for a in mine_asks),
                    "mine_asks_after_compaction": len(recalls_after),
                    "rereads_after_compaction": len(rereads_after),

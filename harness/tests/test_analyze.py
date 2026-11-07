@@ -115,6 +115,19 @@ class Platformer(unittest.TestCase):
             f = analyze.analyse([p], trial)
             self.assertEqual(any("opened none of them" in s["what"] for s in f["slips"]), slip)
 
+    def test_a_pipe_inside_a_quoted_pattern_does_not_split(self):
+        self.assertFalse(analyze.check_runs('sed -n 1,9p web/input.js; grep -n "engine\\|chromium" tests/browser/check.py | head'))
+
+    def test_a_compaction_the_context_barely_falls_from_is_counted(self):
+        # under a 120k cap: 88k before, 56k after (the system prompt and STATE.md stay), marked by Claude Code
+        rows = transcript([(80_000, []), (88_000, [])]).splitlines()
+        rows.append(json.dumps({"type": "system", "subtype": "compact_boundary", "compactMetadata": {"trigger": "auto"}}))
+        rows += [r.replace('"m1"', '"m3"').replace('"m2"', '"m4"') for r in transcript([(56_000, []), (60_000, [])]).splitlines()]
+        p = Path(tempfile.mkdtemp()) / "c.jsonl"
+        p.write_text("\n".join(rows) + "\n")
+        f = analyze.analyse([p])
+        self.assertEqual(f["tokens"]["compaction_calls"], [3])
+
 
 if __name__ == "__main__":
     unittest.main()

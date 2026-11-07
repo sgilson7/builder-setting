@@ -659,6 +659,10 @@ harness_copy; plant "$WORK/h/harness/analyze.py" "    if cd:" "    if False:"
 expect_failure "a journal written by Python after cd, missed" "test_journal_written_by_python" harness_tests
 harness_copy; plant "$WORK/h/harness/analyze.py" 'if d["named"] and not d["opened"]:' 'if False:'
 expect_failure "a digest's code rewritten without being opened, missed" "test_a_digest_read_and_its_code" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" 'marked = {i for k, i in notes if k == "boundary" and 0 < i < len(ctx)}' 'marked = set()'
+expect_failure "a compaction under a low cap, missed" "test_a_compaction_the_context_barely_falls" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" "bare = re.sub(" "bare = (lambda *a: a[2])("
+expect_failure "a quoted pipe split into a check run" "test_a_pipe_inside_a_quoted_pattern" harness_tests
 
 echo
 echo "caught $pass, missed $fail"
