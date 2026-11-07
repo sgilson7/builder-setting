@@ -624,6 +624,8 @@ tools_copy; plant "$WORK/t/tools/context/after_tool.py" 'return min(mark, cap * 
 expect_failure "a warning mark the compaction cap never lets the context reach" "test_under_a_200k_cap" tools_tests
 tools_copy; plant "$WORK/t/tools/context/before_read.py" 'if b"\0" in raw[:8192]:' 'if False:'
 expect_failure "read advice on an image" "test_an_image_gets_no_advice" tools_tests
+tools_copy; plant "$WORK/t/tools/context/after_compact.py" "cards = push_cards(state)" 'cards = ""'
+expect_failure "no cards pushed after a compaction" "test_after_a_compaction_the_next_steps_cards" tools_tests
 
 guide_copy() { rm -rf "$WORK/g"; mkdir -p "$WORK/g"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - codebase-guide) | (cd "$WORK/g" && tar -xf -); }
 guide_tests() { "$PY" -m unittest discover -s "$WORK/g/codebase-guide/tests"; }
@@ -655,6 +657,8 @@ harness_copy; plant "$WORK/h/harness/analyze.py" "if CHECK_CMD.search(seg) and n
 expect_failure "cat of a check script counted as a check run" "test_cat_of_a_check_script" harness_tests
 harness_copy; plant "$WORK/h/harness/analyze.py" "    if cd:" "    if False:"
 expect_failure "a journal written by Python after cd, missed" "test_journal_written_by_python" harness_tests
+harness_copy; plant "$WORK/h/harness/analyze.py" 'if d["named"] and not d["opened"]:' 'if False:'
+expect_failure "a digest's code rewritten without being opened, missed" "test_a_digest_read_and_its_code" harness_tests
 
 echo
 echo "caught $pass, missed $fail"

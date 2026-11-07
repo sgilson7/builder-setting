@@ -27,7 +27,7 @@ Then build as you normally would: paste the opening with its slots filled, then 
 
 ## An A/B pair
 
-`harness/ab.sh NAME --prompt FILE [--compact-window N] [--refs DIR]` makes `NAME-index` (work index on) and `NAME-plain` (off) from the same commit, digests and hooks, launches neither, and picks which to run first by a coin flip. Run each in its own folder, paste the same prompt, and steer both the same way. `harness/prompts/platformer.md` is the first such prompt: the platformer from Chumontillado's movement and Ape Race's vines, with the plan approved in advance so both arms run on their defaults.
+`harness/ab.sh NAME --prompt FILE [--compact-window N] [--refs DIR]` makes `NAME-index` (work index on) and `NAME-plain` (off) from the same commit, digests and hooks, launches neither, and picks which to run first by a coin flip. `--also-cap N` adds a third arm, `NAME-index<N/1000>k`, with the work index on and the cap at N; `--first ARM` fixes the first arm and coin-flips the rest, and the order is written to `NAME-order.txt`. Run each in its own folder, paste the same prompt, and steer every arm the same way. `--compare` takes two or more folders. The report also counts the cards the after-compaction hook pushed, and, for each digest the agent read, how many of the code files it names for copying were opened (none is a rule 20 slip). `harness/prompts/platformer.md` is the first such prompt: the platformer from Chumontillado's movement and Ape Race's vines, with the plan approved in advance so both arms run on their defaults.
 
 Then analyse each, and compare them:
 

@@ -101,6 +101,20 @@ class Platformer(unittest.TestCase):
         self.assertFalse(analyze.check_runs("cat web/app.js tests/browser/check.py scripts/build.sh"))
         self.assertTrue(analyze.check_runs("cargo fmt --all && ./scripts/check.sh 2>&1 | tail -15"))
 
+    def test_a_digest_read_and_its_code_never_opened_is_a_slip(self):
+        trial = Path(tempfile.mkdtemp())
+        (trial / "refs").mkdir()
+        (trial / "refs" / "game.md").write_text("# Game\n\n## What to copy\n\n- `crates/core/src/movement.rs` the mover\n\n"
+                                              "## Where things are\n\n- Folder: `/src/game`\n")
+        rewrote = [(50_000, [("Bash", {"command": "cat refs/game.md"}, "digest")]),
+                   (60_000, [("Write", {"file_path": "/w/p/crates/core/src/movement.rs", "content": "x"}, "ok")])]
+        ported = rewrote[:1] + [(60_000, [("Read", {"file_path": "/src/game/crates/core/src/movement.rs"}, "code")])]
+        for calls, slip in ((rewrote, True), (ported, False)):
+            p = trial / ("a.jsonl" if slip else "b.jsonl")
+            p.write_text(transcript(calls))
+            f = analyze.analyse([p], trial)
+            self.assertEqual(any("opened none of them" in s["what"] for s in f["slips"]), slip)
+
 
 if __name__ == "__main__":
     unittest.main()

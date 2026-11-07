@@ -116,6 +116,23 @@ class ContextWarning(unittest.TestCase):
             self.assertIn("past the 133k mark", run_hook("after_tool.py", at, env))
 
 
+class PushRecall(unittest.TestCase):
+    def test_after_a_compaction_the_next_steps_cards_come_with_state(self):
+        # the platformer pair: the index arm asked --mine once in 208 calls, so the hook asks for it
+        with tempfile.TemporaryDirectory() as d:
+            proj = Path(d)
+            (proj / "tools").mkdir()
+            (proj / "STATE.md").write_text("# State\n\n## What is next\n\nTune the vine release boost.\n")
+            (proj / "tools" / "ask.py").write_text("import sys\nprint('── card:mine.code.vine.release  ' + ' '.join(sys.argv[1:]))\n")
+            r = subprocess.run([sys.executable, str(TOOLS / "context" / "after_compact.py")], input="{}", capture_output=True,
+                               text=True, cwd=proj, env={**os.environ, "BUILDER_MEMORY": "on"}, timeout=60)
+            self.assertIn("card:mine.code.vine.release  --mine Tune the vine release boost.", r.stdout)
+            off = subprocess.run([sys.executable, str(TOOLS / "context" / "after_compact.py")], input="{}", capture_output=True,
+                                 text=True, cwd=proj, env={**os.environ, "BUILDER_MEMORY": "off"}, timeout=60)
+            self.assertIn("Tune the vine release boost.", off.stdout)
+            self.assertNotIn("card:mine", off.stdout)
+
+
 class ReadAdvice(unittest.TestCase):
     def test_long_whole_read_gets_its_parts_and_a_range_read_gets_nothing(self):
         with tempfile.TemporaryDirectory() as d:

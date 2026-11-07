@@ -116,6 +116,32 @@ def classify(fp):
     return None
 
 
+def digest_named(text):
+    """(folder, [paths]) a digest names: its Folder line, and the code paths in "What to copy"."""
+    folder = re.search(r"^- Folder: `([^`]+)`", text, re.M)
+    copy = re.search(r"^## What to copy\n(.*?)(?=^## |\Z)", text, re.S | re.M)
+    paths = sorted(set(re.findall(r"`([\w./-]+/[\w.-]+\.(?:rs|js|ts|py|glsl|frag|vert|wgsl|json|css|html))", copy.group(1)))) if copy else []
+    return (folder.group(1).rstrip("/") if folder else ""), paths
+
+
+def digest_use(touched, trial):
+    """For each digest read in the session: the code it names for copying, and which of it was opened."""
+    out = []
+    refs = Path(trial) / "refs" if trial else None
+    if not refs or not refs.is_dir():
+        return out
+    for dg in sorted(refs.glob("*.md")):
+        reads = [i for i, t in touched if "refs/" + dg.name in t or str(dg) in t]
+        if not reads:
+            continue
+        folder, named = digest_named(dg.read_text(errors="replace"))
+        base = folder.rsplit("/", 1)[-1] if folder else dg.stem
+        opened = sorted({p for p in named for i, t in touched
+                         if (folder and folder in t or "/" + base + "/" in t) and p.rsplit("/", 1)[-1] in t})
+        out.append({"digest": dg.stem, "read_at": reads[0] + 1, "named": named, "opened": opened})
+    return out
+
+
 def tok(chars):
     return max(0, chars // 4)
 
@@ -220,6 +246,7 @@ def analyse(paths, trial=None, project=None):
     state_writes, journal_writes, plan_writes, code_writes, brief_writes = [], [], [], [], []
     checks_raw, checks_quiet, subagents, deploys, chips, digests, tokens_runs = [], [], [], [], [], [], []
     mine_asks, rewrites, file_reads, known = [], [], [], {}
+    touched = []   # (call, what a tool use names): for which digests were read and which of their code was opened
     for i, c in enumerate(calls):
         for u in c["uses"]:
             name, inp = u.get("name"), u.get("input") or {}
@@ -227,6 +254,8 @@ def analyse(paths, trial=None, project=None):
             size = tok(len(text))
             cmd = inp.get("command", "") if name == "Bash" else ""
             fp = str(inp.get("file_path", ""))
+            if name in ("Read", "Bash", "Grep", "Glob"):
+                touched.append((i, cmd + " " + fp + " " + str(inp.get("path", "")) + " " + str(inp.get("pattern", ""))))
             if imgs:
                 images.append((i, fp or cmd[:60], imgs))
             if "tools/ask.py" in cmd and re.search(r"--(mine|target|all)\b", cmd):
@@ -360,6 +389,11 @@ def analyse(paths, trial=None, project=None):
         slips.append(("medium", "decisions.py never ran: no questions were drawn as answer chips (rule 16)", None, 0))
     if not tokens_runs:
         slips.append(("low", "tools/tokens.py never ran (rule 23; the harness measured instead)", None, 0))
+    ported = digest_use(touched, trial)
+    for d in ported:
+        if d["named"] and not d["opened"]:
+            slips.append(("medium", f"read the {d['digest']} digest, which names {len(d['named'])} files to copy, and opened none of them (rule 20: port, do not rewrite)", d["read_at"], 0))
+    f["digests"] = ported
     order = {"high": 0, "medium": 1, "low": 2, "info": 3}
     slips.sort(key=lambda s: (order[s[0]], -s[3]))
     f["slips"] = [{"severity": s, "what": w, "call": c, "carried_tokens": car} for s, w, c, car in slips]
@@ -514,7 +548,7 @@ def same_length(ctx, series):
 
 
 def hook_events(trial):
-    out = {"read_advice": 0, "context_warning": 0}
+    out = {"read_advice": 0, "context_warning": 0, "push_recall": 0}
     log = trial / "harness" / "hooks.jsonl"
     if log.exists():
         for line in log.read_text().splitlines():
@@ -526,45 +560,48 @@ def hook_events(trial):
     return out
 
 
-def compare(a, b):
-    """Two trials of one prompt, side by side; the shorter sets the length both are judged over."""
-    ma = json.loads((a / "harness" / "metrics.json").read_text())
-    mb = json.loads((b / "harness" / "metrics.json").read_text())
-    n = min(len(ma["ctx"]), len(mb["ctx"]))
-    arm = lambda m: (m.get("meta") or {}).get("memory", "?")
-    L = [f"# A/B: {a.name} against {b.name}", "",
-         f"Same prompt, Builder `{(ma.get('meta') or {}).get('builder_commit')}`; work index **{arm(ma)}** against **{arm(mb)}**; "
-         f"compact window {(ma.get('meta') or {}).get('compact_window')} and {(mb.get('meta') or {}).get('compact_window')}.", "",
-         "| | " + a.name + " | " + b.name + " |", "| --- | --- | --- |"]
+def compare(*trials):
+    """Trials of one prompt, side by side; the shortest sets the length all are judged over."""
+    ms = [json.loads((t / "harness" / "metrics.json").read_text()) for t in trials]
+    n = min(len(m["ctx"]) for m in ms)
+    meta = lambda m, key: (m.get("meta") or {}).get(key)
+    mem, hk = (lambda m, key: m["memory"].get(key)), (lambda m, key: (m.get("hooks") or {}).get(key))
+    L = [f"# {' against '.join(t.name for t in trials)}", "",
+         f"Same prompt, Builder `{meta(ms[0], 'builder_commit')}`. "
+         + "; ".join(f"{t.name}: work index **{meta(m, 'memory')}**, compact window {meta(m, 'compact_window')}" for t, m in zip(trials, ms)) + ".", "",
+         "| | " + " | ".join(t.name for t in trials) + " |", "| --- |" + " --- |" * len(trials)]
     rows = [
-        ("Model calls", len(ma["ctx"]), len(mb["ctx"])),
-        (f"Re-read over the first {n} calls (both)", sum(ma["ctx"][:n]), sum(mb["ctx"][:n])),
-        ("Re-read, whole session", ma["tokens"]["reread"], mb["tokens"]["reread"]),
-        ("Mean context", ma["tokens"]["mean"], mb["tokens"]["mean"]),
-        ("Peak context", ma["tokens"]["peak"], mb["tokens"]["peak"]),
-        ("Compactions", ma["tokens"]["compactions"], mb["tokens"]["compactions"]),
-        ("Share above 200k", ma["tokens"]["above_200k_share"], mb["tokens"]["above_200k_share"]),
-        ("Context at the opening entry", ma["tokens"]["at_plan"], mb["tokens"]["at_plan"]),
-        ("ask.py --mine / --target calls", ma["memory"].get("mine_asks"), mb["memory"].get("mine_asks")),
-        ("…of them after a compaction", ma["memory"].get("mine_asks_after_compaction"), mb["memory"].get("mine_asks_after_compaction")),
-        ("Files re-read after a compaction", ma["memory"].get("rereads_after_compaction"), mb["memory"].get("rereads_after_compaction")),
-        ("Tokens of those re-reads", ma["memory"].get("reread_tokens_after_compaction"), mb["memory"].get("reread_tokens_after_compaction")),
-        ("Whole-file rewrites", ma["memory"].get("rewrites"), mb["memory"].get("rewrites")),
-        ("Read advice shown (hook)", (ma.get("hooks") or {}).get("read_advice"), (mb.get("hooks") or {}).get("read_advice")),
-        ("Context warnings (hook)", (ma.get("hooks") or {}).get("context_warning"), (mb.get("hooks") or {}).get("context_warning")),
-        ("STATE.md rewrites", len(ma["memory"]["state_writes"]), len(mb["memory"]["state_writes"])),
-        ("High slips", sum(1 for s in ma["slips"] if s["severity"] == "high"), sum(1 for s in mb["slips"] if s["severity"] == "high")),
+        ("Model calls", lambda m: len(m["ctx"])),
+        (f"Re-read over the first {n} calls (all)", lambda m: sum(m["ctx"][:n])),
+        ("Re-read, whole session", lambda m: m["tokens"]["reread"]),
+        ("Mean context", lambda m: m["tokens"]["mean"]),
+        ("Peak context", lambda m: m["tokens"]["peak"]),
+        ("Compactions", lambda m: m["tokens"]["compactions"]),
+        ("Share above 200k", lambda m: m["tokens"]["above_200k_share"]),
+        ("Context at the opening entry", lambda m: m["tokens"]["at_plan"]),
+        ("ask.py --mine / --target calls", lambda m: mem(m, "mine_asks")),
+        ("…of them after a compaction", lambda m: mem(m, "mine_asks_after_compaction")),
+        ("Cards pushed after a compaction (hook)", lambda m: hk(m, "push_recall")),
+        ("Files re-read after a compaction", lambda m: mem(m, "rereads_after_compaction")),
+        ("Tokens of those re-reads", lambda m: mem(m, "reread_tokens_after_compaction")),
+        ("Whole-file rewrites", lambda m: mem(m, "rewrites")),
+        ("Read advice shown (hook)", lambda m: hk(m, "read_advice")),
+        ("Context warnings (hook)", lambda m: hk(m, "context_warning")),
+        ("STATE.md rewrites", lambda m: len(m["memory"]["state_writes"])),
+        ("Compactions with STATE.md rewritten in the 60 calls before", lambda m: m["tokens"]["compactions"] - next(
+            (int(re.match(r"(\d+) of", s["what"]).group(1)) for s in m["slips"] if "had no STATE.md rewrite" in s["what"]), 0)),
+        ("Digest-named code files opened", lambda m: sum(len(d["opened"]) for d in m.get("digests", [])) if m.get("digests") is not None else None),
+        ("High slips", lambda m: sum(1 for s in m["slips"] if s["severity"] == "high")),
     ]
-    for label, x, y in rows:
-        fmt = (lambda v: "–" if v is None else (str(v) if isinstance(v, int) and v < 1000 else k(v)))
-        L.append(f"| {label} | {fmt(x)} | {fmt(y)} |")
+    fmt = (lambda v: "–" if v is None else (f"{v:.0%}" if isinstance(v, float) and v <= 1 else str(v) if isinstance(v, int) and v < 1000 else k(v)))
+    for label, get in rows:
+        L.append(f"| {label} | " + " | ".join(fmt(get(m)) for m in ms) + " |")
     checks = lambda m: ", ".join(f"{kk} {'pass' if v.get('ok') else 'FAIL' if v.get('ok') is False else '–'}"
                                  for kk, v in (m.get("checks") or {}).items() if kk != "deploy_grant") or "not run"
-    L += ["", f"- Checks now: {a.name}: {checks(ma)}; {b.name}: {checks(mb)}.",
+    L += ["", "- Checks now: " + "; ".join(f"{t.name}: {checks(m)}" for t, m in zip(trials, ms)) + ".",
           "- The work index is worth keeping if the re-read over the shared calls is lower with it, files are re-read "
-          "less after compactions, and the checks and the game are no worse. One pair is one reading: run more pairs, "
-          "or swap which arm goes first, before deciding.", ""]
-    out = a.parent / f"{a.name}-vs-{b.name}.md"
+          "less after compactions, and the checks and the game are no worse. One run per arm is one reading.", ""]
+    out = trials[0].parent / ("-vs-".join(t.name for t in trials) + ".md")
     out.write_text("\n".join(L) + "\n")
     print("\n".join(L))
     print(f"wrote {out}")
@@ -590,8 +627,11 @@ def main(argv):
     baseline = json.loads((HERE / "baseline.json").read_text()) if (HERE / "baseline.json").exists() else {}
     series = json.loads((HERE / "baseline-series.json").read_text()) if (HERE / "baseline-series.json").exists() else {}
     if "--compare" in argv:
-        a, b = [Path(x).expanduser().resolve() for x in argv[argv.index("--compare") + 1:][:2]]
-        return compare(a, b)
+        trials = [Path(x).expanduser().resolve() for x in argv[argv.index("--compare") + 1:] if not x.startswith("--")]
+        if len(trials) < 2:
+            print("--compare needs two or more trial folders")
+            return 2
+        return compare(*trials)
     if "--session" in argv:
         p = Path(argv[argv.index("--session") + 1])
         f = analyse([p])
