@@ -1,6 +1,7 @@
 /* The Manim player (Manim Lab PLAN.md P10): plays a scene's rendered clips one step at a time
    with the deck's own controls. Markup: <div data-manim="ID"></div>; it reads
-   scenes/ID.json for the words and timings and media/ID/manifest.json for the files.
+   scenes/ID.json for the words and timings and media/ID/manifest.json for the files,
+   below the page's folder or below the folder data-manim-base names.
 
    Play plays the current step's clip, holds its last frame for the step's hold_ms,
    then goes on; Pause stops; back and forward play that step's clip, as FlowScene
@@ -175,8 +176,11 @@
 
   const players = [];
   document.querySelectorAll("[data-manim]").forEach(root => {
-    const id = root.dataset.manim, base = "media/" + id + "/";
-    Promise.all([fetch("scenes/" + id + ".json"), fetch(base + "manifest.json")])
+    /* A page below the folder that holds scenes/ and media/ names the way up,
+       data-manim-base="../../", on the player or any element around it (Manim Lab T4). */
+    const up = root.closest("[data-manim-base]"), pre = up ? up.dataset.manimBase : "";
+    const id = root.dataset.manim, base = pre + "media/" + id + "/";
+    Promise.all([fetch(pre + "scenes/" + id + ".json"), fetch(base + "manifest.json")])
       .then(rs => Promise.all(rs.map(r => {
         if (!r.ok) throw new Error(r.url);
         return r.json();
