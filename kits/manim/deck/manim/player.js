@@ -58,6 +58,7 @@
     stage.style.aspectRatio = scene.width + " / " + scene.height;
     const pic = el("img", "mp-pic", stage);
     pic.alt = scene.title;
+    pic.loading = "lazy";  /* a deck of many players fetches a slide's frame only when the slide shows (Manim Lab R3.16) */
     const vid = el("video", "mp-vid", stage);
     vid.muted = true;
     vid.playsInline = true;
