@@ -1,0 +1,14 @@
+{
+ "id": "sample-dots",
+ "title": "Twelve dots, three ways",
+ "summary": "The same twelve dots regroup as 3 rows of 4, 2 rows of 6 and 1 row of 12, so the total stays 12.",
+ "source": "The kit's sample code scene, written by hand for kits/manim (animations/sample-dots.py). hold_ms = 900 + 28 per character of the step's words.",
+ "width": 640,
+ "height": 320,
+ "code": "animations/sample-dots.py",
+ "steps": [
+  {"t": "Twelve dots, in 3 rows of 4.", "move_ms": 1200, "hold_ms": 1684},
+  {"t": "The same dots move into 2 rows of 6.", "move_ms": 1200, "hold_ms": 1908},
+  {"t": "And into 1 row of 12: each arrangement still holds 12.", "move_ms": 1200, "hold_ms": 2412}
+ ]
+}

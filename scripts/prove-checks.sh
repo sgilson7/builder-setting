@@ -664,6 +664,74 @@ expect_failure "a compaction under a low cap, missed" "test_a_compaction_the_con
 harness_copy; plant "$WORK/h/harness/analyze.py" "bare = re.sub(" "bare = (lambda *a: a[2])("
 expect_failure "a quoted pipe split into a check run" "test_a_pipe_inside_a_quoted_pattern" harness_tests
 
+# The Manim kit's tests, each against a planted defect in a copy of the kit.
+manim_copy() { rm -rf "$WORK/m" "$WORK/p"; mkdir -p "$WORK/m" "$WORK/p"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - manim) | (cd "$WORK/m" && tar -xf -); }
+manim_tests() { "$PY" -m unittest discover -s "$WORK/m/manim/tests/manim"; }
+manim_page() { BUILDER_ENGINES=chromium "$PY" "$WORK/m/manim/tests/manim/page_check.py"; }
+M="$WORK/m/manim"
+manim_copy; plant "$M/deck/scenes/sample-flow.json" '"move_ms": 800' '"move_ms": 810'
+expect_failure "a committed scene file whose move is not whole frames" "test_the_committed_scenes_are_valid" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" "if nid not in nodes:" "if False:"
+expect_failure "a scene naming a missing node" "test_a_scene_naming_a_missing_node_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'for nid in s.get("light", []):' "for nid in []:"
+expect_failure "a lit node the scene lacks" "test_a_lit_node_that_does_not_exist_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if not s["t"].strip():' "if False:"
+expect_failure "a step without words" "test_a_step_without_words_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" "    if isinstance(value, float):" "    if False:"
+expect_failure "a fraction in a scene file" "test_a_scene_with_a_fraction_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if s["move_ms"] % fm:' "if False:"
+expect_failure "a move that is not whole frames" "test_a_move_that_is_not_whole_frames_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if s["move_ms"] < scene["fade_ms"]:' "if False:"
+expect_failure "a move shorter than the fade" "test_a_move_shorter_than_the_fade_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" "            if style not in styles:" "            if False:"
+expect_failure "a text style the theme lacks" "test_a_text_style_the_theme_lacks_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" "sort_keys=True" "sort_keys=False"
+expect_failure "a scene hash that depends on key order" "test_the_scene_hash_ignores_key_order" manim_tests
+manim_copy; plant "$M/tools/manim/geometry.py" "s = min(sx, sy)" "s = max(sx, sy)"
+expect_failure "an edge that leaves its box at the farther edge" "test_the_border_point_by_hand" manim_tests
+manim_copy; plant "$M/tools/manim/geometry.py" "return 3 * u * u * t * p1 + 3 * u * t * t * p2 + t ** 3" "return 3 * u * u * t * p1 + 3 * u * t * t * p2"
+expect_failure "an ease without its cubic term" "test_the_css_ease_by_hand" manim_tests
+manim_copy; plant "$M/tools/manim/mp4.py" "for k in range(n))" "for k in range(n)) + 1"
+expect_failure "an MP4 reader that counts one frame too many" "test_the_reader_counts_frames_in_a_hand_built_file" manim_tests
+manim_copy; plant "$M/tools/manim/mp4.py" '        raise ValueError("not an MP4 file: no ftyp box first")' "        return {}"
+expect_failure "an MP4 reader that accepts any file" "test_the_reader_refuses_a_file_that_is_not_mp4" manim_tests
+manim_copy; plant "$M/deck/media/sample-flow/manifest.json" '"clip": "light/step-03.mp4"' '"clip": "light/step-04.mp4"'
+expect_failure "a manifest naming a clip that does not exist" "test_every_step_has_a_clip_and_a_final_frame_in_each_theme" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if m["scene_sha256"] != scenefile.scene_hash(scene):' "if False:"
+expect_failure "a scene edited after its render, unseen" "test_a_scene_edited_after_its_render_is_stale" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if m["theme_sha256"] != scenefile.scene_hash(theme):' "if False:"
+expect_failure "a changed theme, unseen" "test_a_changed_theme_makes_the_render_stale" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if scenefile.sha256(data) != row["sha256"] or len(data) != row["bytes"]:' "if False:"
+expect_failure "a swapped clip, unseen" "test_a_swapped_clip_fails_its_hash" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" "if not clip.exists() or not png.exists():" "if not clip.exists():"
+expect_failure "a missing final frame, unseen" "test_a_missing_final_frame_fails" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if info["frames"] != step["move_ms"] // fm or info["ms"] != step["move_ms"]:' "if False:"
+expect_failure "a clip whose length disagrees with the scene" "test_a_clip_whose_length_disagrees_with_the_scene_fails" manim_tests
+manim_copy; plant "$M/data/manim/budget.json" '"clip_bytes": 1048576' '"clip_bytes": 40000'
+expect_failure "a clip over the budget" "test_the_media_fits_the_budget" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if biggest > budget["clip_bytes"]:' "if False:"
+expect_failure "a clip budget that is not checked" "test_a_tight_budget_fails" manim_tests
+manim_copy; plant "$M/tools/manim/theme.py" 'name = "--" + k.replace("_", "-")' 'name = "--" + k'
+expect_failure "theme CSS that is not what theme.json writes" "test_the_theme_css_matches_theme_json" manim_tests
+manim_copy; plant "$M/README.md" '`deck/fonts/PublicSans-wght.ttf`' '`deck/fonts/PublicSans.ttf`'
+expect_failure "a font without its licence row" "test_every_font_the_renderer_registers_is_in_licenses" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if not (ROOT / scene["code"]).is_file():' "if False:"
+expect_failure "a code scene without its code" "test_a_code_scene_whose_code_is_missing_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if s["move_ms"] <= 0 or s["move_ms"] % fm:' 'if s["move_ms"] <= 0:'
+expect_failure "a code step that is not whole frames" "test_a_code_step_that_is_not_whole_frames_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" '        scene["code_sha256"] = sha256((ROOT / scene["code"]).read_bytes())' "        pass"
+expect_failure "code left out of its scene's hash" "test_the_code_is_part_of_the_render_it_made" manim_tests
+manim_copy; plant "$M/tests/manim/test_manim.py" "lambda m: \" \" if m[0].startswith(\"/\") else '\"\"'" 'lambda m: ""'
+expect_failure "a JavaScript scanner that blanks code too" "test_code_of_blanks_comments_and_strings" manim_tests
+manim_copy; plant "$M/deck/manim/player.js" "const steps = scene.steps, last = steps.length - 1;" "const steps = scene.steps, last = steps.length - 2;"
+expect_failure "a number in the player" "test_the_player_holds_no_number_but_0_and_1" manim_tests
+manim_copy; plant "$M/deck/manim/player.js" "      words(now, steps[i].t);" "      now.innerHTML += steps[i].t;"
+expect_failure "step words set as HTML" "test_the_player_parses_no_html" manim_tests
+manim_copy; plant "$M/deck/manim/player.js" "if (!animate || reduceQ.matches) {" "if (!animate) {"
+expect_failure "a player that plays clips under reduced motion" "reduced motion: sample-flow's Next plays no clip" manim_page
+manim_copy; plant "$M/deck/manim/player.js" $'      clearTimeout(timer);\n      vid.pause();\n' ""
+expect_failure "a Pause that leaves the clip playing" "FAIL Pause stops the clip and the timer" manim_page
+
 echo
 echo "caught $pass, missed $fail"
 if [ $((pass + fail)) -eq 0 ]; then

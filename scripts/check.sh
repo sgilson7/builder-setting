@@ -8,7 +8,7 @@
 # 3b. the work index answers WorkQA at or above its floor, and the trial harness passes its own test
 # 4. the blank template passes its own check, and each of its breaks is caught
 # 5. the minimal example passes its own check, and each of its breaks is caught
-# 6. the office-intake and codebase-guide kits' tests pass
+# 6. the office-intake, codebase-guide and manim kits' tests pass
 # 7. each kit's core code passes the project's checks inside a copy of the example
 # 8. each planted defect is caught by the check meant to catch it
 set -euo pipefail
@@ -57,6 +57,9 @@ step "kits/office-intake: its tests"
 
 step "kits/codebase-guide: its tests"
 "$PY" -m unittest discover -s kits/codebase-guide/tests
+
+step "kits/manim: its tests (no Manim needed)"
+"$PY" -m unittest discover -s kits/manim/tests/manim
 
 step "kits: scripts/check-kits.sh"
 ./scripts/check-kits.sh
