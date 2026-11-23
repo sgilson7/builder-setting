@@ -1,0 +1,67 @@
+{
+  "prefix": "CM",
+  "questions": [
+    {
+      "id": "CM-Q1", "page": "reading",
+      "question": "What should \"interactive Manim animations\" mean on a static page?",
+      "context": "Manim renders video ahead of time, on a machine with Python; a page in a browser cannot run it. So an animation of the numbers a reader types has to be drawn by the page, and a Manim render can only show numbers chosen in advance.",
+      "blocks": "the whole build: the core's scene output, the page's stage, and whether kits/manim is copied",
+      "options": [
+        {"key": "A", "default": true, "text": "Both, from one source: the core works out each calculation's written method as steps, the page animates those steps live on the reader's numbers in Manim's look, and Manim renders the same core steps for one worked example per operation, played beside the calculator."},
+        {"key": "B", "text": "Manim renders only: a fixed set of worked examples, chosen by operation. The reader's own numbers get an answer and no animation."},
+        {"key": "C", "text": "Live animation only, in Manim's look; no Manim install and no renders."}
+      ]
+    },
+    {
+      "id": "CM-Q2", "page": "reading",
+      "question": "Which numbers does the calculator take?",
+      "context": "Written methods are taught on whole numbers first. Decimals change every layout (the point has to line up) and roughly double the work.",
+      "blocks": "the core's number type, the display, and every method's layout",
+      "options": [
+        {"key": "A", "default": true, "text": "Whole numbers, up to 6 digits per entry. An answer below zero is shown with a minus sign, and its animation explains the sign. Division gives a quotient and a remainder (952 ÷ 5 = 190 r 2)."},
+        {"key": "B", "text": "As A, and decimals to two places."},
+        {"key": "C", "text": "Whole numbers that never go below zero: a subtraction past zero is refused."}
+      ]
+    },
+    {
+      "id": "CM-Q3", "page": "reading",
+      "question": "Which method does each animation show?",
+      "context": "Countries lay these out differently; the layout is a teaching decision and stays yours.",
+      "blocks": "the core's step rules for each operation",
+      "options": [
+        {"key": "A", "default": true, "text": "The column methods: addition with carries written above the next column, subtraction by borrowing (decomposition), long multiplication with one partial product per digit, long division with the divisor to the left of a bracket."},
+        {"key": "B", "text": "Counting pictures: a number line for adding and subtracting, an array for multiplying, sharing into groups for dividing."}
+      ]
+    },
+    {
+      "id": "CM-Q4", "page": "reading",
+      "question": "How does a chain like 2 + 3 × 4 work?",
+      "context": "A pocket calculator works each operation as its operator is pressed; a scientific one waits and applies order of operations.",
+      "blocks": "the calculator's key rules and what one animation covers",
+      "options": [
+        {"key": "A", "default": true, "text": "Like a pocket calculator: each operation is worked when the next operator or = is pressed (2 + 3 × 4 gives 20), and each gets its own animation."},
+        {"key": "B", "text": "Order of operations (2 + 3 × 4 gives 14), with one animation per operation in the order worked."}
+      ]
+    },
+    {
+      "id": "CM-Q5", "page": "reading",
+      "question": "What should the animation look like?",
+      "context": "With no style named, Builder's art falls back to its default style pack. The description names Manim, whose look is well known.",
+      "blocks": "the stage's colours and fonts",
+      "options": [
+        {"key": "A", "default": true, "text": "Manim's own look on the stage: black background, white digits, Manim Community's blue, yellow, green and red for the parts of the method. The page around it is plain, in light and dark."},
+        {"key": "B", "text": "Builder's default style pack for the stage and the page."}
+      ]
+    },
+    {
+      "id": "CM-Q6", "page": "reading",
+      "question": "Which worked examples should the Manim renders show?",
+      "context": "Each render is fixed until it is rendered again. The examples below each show the hard part of their method.",
+      "blocks": "the four Manim renders",
+      "options": [
+        {"key": "A", "default": true, "text": "478 + 356 (two carries), 503 − 278 (a borrow across a zero), 34 × 26 (two partial products), 952 ÷ 4 (a remainder carried down at each step)."},
+        {"key": "B", "text": "Examples you supply, one per operation."}
+      ]
+    }
+  ]
+}

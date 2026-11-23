@@ -1,0 +1,26 @@
+{
+  "CM-Q1": {
+    "byDefault": true,
+    "choice": "A"
+  },
+  "CM-Q2": {
+    "byDefault": true,
+    "choice": "A"
+  },
+  "CM-Q3": {
+    "byDefault": true,
+    "choice": "A"
+  },
+  "CM-Q4": {
+    "byDefault": true,
+    "choice": "A"
+  },
+  "CM-Q5": {
+    "byDefault": true,
+    "choice": "A"
+  },
+  "CM-Q6": {
+    "byDefault": true,
+    "choice": "A"
+  }
+}
