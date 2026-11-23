@@ -1,0 +1,37 @@
+{
+ "id": "keypress",
+ "title": "One press of = , from the key to the moving digits",
+ "status": "proposed",
+ "viewBox": "0 0 900 280",
+ "zones": [
+  {"x": 20, "y": 30, "w": 250, "h": 220, "label": "Page (web/)", "tone": "a"},
+  {"x": 300, "y": 30, "w": 150, "h": 220, "label": "Shim", "tone": "b"},
+  {"x": 480, "y": 30, "w": 400, "h": 220, "label": "Core (crates/core)", "tone": "c"}
+ ],
+ "nodes": {
+  "key": [145, 80, "= key or Enter", "client"],
+  "stage": [145, 200, "SVG stage", "client"],
+  "shim": [375, 140, "act()", "mod"],
+  "act": [570, 80, "api::act"],
+  "calc": [780, 80, "calc::press"],
+  "method": [780, 200, "method::steps"],
+  "ui": [570, 200, "api::ui", "store"]
+ },
+ "edges": [["key","shim"],["shim","act"],["act","calc"],["calc","method"],["method","ui"],["ui","shim"],["shim","stage"]],
+ "flows": [
+  {
+   "id": "equals",
+   "title": "478 + 356 =",
+   "sum": "The page sends the key; the core works the sum and its method; the page moves each digit to where the core puts it.",
+   "steps": [
+    {"t": "The = key (or Enter, looked up in the core's key list) calls act with the state and \"key.equals\".", "go": [{"path": ["key","shim"], "kind": "req"}]},
+    {"t": "The shim passes the strings to the core unchanged.", "go": [{"path": ["shim","act"], "kind": "req"}]},
+    {"t": "calc::press works 478 + 356 = 834 in integers and keeps the sum as the last work.", "go": [{"path": ["act","calc"], "kind": "req"}]},
+    {"t": "method::steps lays out the column addition: digits, the ones and tens carries, the answer, each with a pixel position from data/stage.json.", "go": [{"path": ["calc","method"], "kind": "req"}]},
+    {"t": "api::ui puts the display, the keys and the current step's glyphs and sentence into the screen.", "go": [{"path": ["method","ui"], "kind": "req"}]},
+    {"t": "The screen goes back through the shim as JSON.", "go": [{"path": ["ui","shim","stage"], "kind": "res"}]},
+    {"t": "The stage moves each glyph to its new position with a CSS transition; Next and Play ask the core for the next step the same way.", "work": ["stage"]}
+   ]
+  }
+ ]
+}
