@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>FlowScene kit sample</title>
+<link rel="stylesheet" href="flowscene/host.css">
+<link rel="stylesheet" href="flowscene/engine.css">
+<style>
+  body { margin: 0; padding: 24px 16px; background: var(--bg); color: var(--fg); font: 16px/1.5 var(--body); }
+  main { max-width: 1100px; margin: 0 auto; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Saving a note</h1>
+  <p>A FlowScene: boxes for the parts of a system, and marks that carry each request between them, with the code that runs at each step.</p>
+  <div data-flow="sample"></div>
+</main>
+<script type="application/json" id="flow-labels">
+{"pick": "Requests", "picture": "Request animation", "codePanel": "The code or contract for this step",
+ "back": "◀", "backName": "Previous step", "next": "▶", "nextName": "Next step", "play": "Play", "pause": "Pause",
+ "restart": "Restart", "speed": "Speed", "slow": "slow", "normal": "normal", "fast": "fast",
+ "kinds": {"req": "a request", "res": "a reply", "stream": "a stream (kept open)", "msg": "an event or queued message"},
+ "everyStep": "Every step as text", "noCode": "No code for this step", "count": "Step {n} of {of}",
+ "failed": "This animation could not load its scene file. Open the page through a web server, not from disk."}
+</script>
+<script src="flowscene/engine.js"></script>
+</body>
+</html>

@@ -732,6 +732,61 @@ expect_failure "a player that plays clips under reduced motion" "reduced motion:
 manim_copy; plant "$M/deck/manim/player.js" $'      clearTimeout(timer);\n      vid.pause();\n' ""
 expect_failure "a Pause that leaves the clip playing" "FAIL Pause stops the clip and the timer" manim_page
 
+manim_site() { "$PY" -m unittest discover -s "$WORK/m/manim/tests/manim" -p "test_site.py"; }
+manim_copy; printf '<!-- edited by hand -->\n' >> "$M/deck/flow/index.html"
+expect_failure "a site page edited by hand" "test_the_pages_on_disk_are_current" manim_site
+manim_copy; plant "$M/tools/manim/sitepages.py" "base = f' data-manim-base=\"{pre}\"' if pre else ''" "base = ''"
+expect_failure "an animation's page without data-manim-base" "test_every_animation_has_its_own_route" manim_site
+manim_copy; plant "$M/tools/manim/sitepages.py" "own = f'{s[\"scene\"]}/' if unit else f'{u[\"id\"]}/{s[\"scene\"]}/'" "own = f'{s[\"scene\"]}/'"
+expect_failure "the deck links to a page by the wrong folder" "test_every_link_on_the_site_resolves" manim_site
+manim_copy; plant "$M/tools/manim/sitepages.py" "n = rows[i + 1]" "n = rows[i]"
+expect_failure "the pager's Next points at its own page" "test_the_pager_walks_every_animation_in_deck_order" manim_site
+manim_copy; plant "$M/tools/manim/sitepages.py" "if dupes or missing or unlisted:" "if dupes or missing:"
+expect_failure "a scene in no unit" "test_a_scene_in_no_unit_is_refused" manim_site
+manim_copy; plant "$M/data/manim/site.json" '"All {n} animations as one deck"' '"All 2 animations as one deck"'
+expect_failure "a count typed into site.json" "test_counts_are_computed" manim_site
+manim_copy; plant "$M/tools/manim/publish.py" "kept = {k: scene[k] for k in SCENE_KEEP}" "kept = scene"
+expect_failure "scene files published whole, source and all" "test_nothing_published_names_a_source" manim_site
+manim_copy; plant "$M/tools/manim/publish.py" '"manim/page.js", ' ''
+expect_failure "page.js left out of the published site" "test_every_file_a_page_needs_is_published" manim_site
+manim_copy; plant "$M/deck/manim/deck.js" "if (k < 0 || k > slides.length - 1) return;" "if (k < 0 || k > slides.length - 2) return;"
+expect_failure "a number in the slide script" "test_the_player_holds_no_number_but_0_and_1" manim_tests
+manim_copy; plant "$M/deck/manim/page.js" "else localStorage.setItem(key, pick.value);" "else localStorage.removeItem(key);"
+expect_failure "a theme forgotten between pages" "FAIL the theme chosen on one page holds on the next" manim_page
+
+# The FlowScene kit's tests, each against a planted defect in a copy of the kit.
+flow_copy() { rm -rf "$WORK/f" "$WORK/p"; mkdir -p "$WORK/f" "$WORK/p"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - flowscene) | (cd "$WORK/f" && tar -xf -); }
+flow_tests() { "$PY" -m unittest discover -s "$WORK/f/flowscene/tests/flowscene"; }
+flow_page() { BUILDER_ENGINES=chromium "$PY" "$WORK/f/flowscene/tests/flowscene/page_check.py"; }
+F="$WORK/f/flowscene"
+flow_copy; plant "$F/deck/flows/sample.json" '{"path": ["page", "api"], "kind": "req"}], "t": "The page sends' '{"path": ["page", "db"], "kind": "req"}], "t": "The page sends'
+expect_failure "a committed scene with a mark between unjoined boxes" "test_the_committed_scenes_are_valid" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" "                for nid in path:" "                for nid in []:"
+expect_failure "a path through a missing node" "test_a_path_through_a_missing_node_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" "for a, b in zip(path, path[1:]):" "for a, b in []:"
+expect_failure "a mark between unjoined boxes" "test_a_mark_between_unjoined_nodes_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" 'if not (c["first"] <= a <= b <= last):' "if False:"
+expect_failure "a highlight outside its excerpt" "test_a_highlight_outside_its_excerpt_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" 'if s["c"] not in code:' "if False:"
+expect_failure "an excerpt the scene lacks" "test_an_excerpt_the_scene_lacks_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" "if not isinstance(v, str) or not v.strip():" "if not isinstance(v, str):"
+expect_failure "a step without words" "test_a_step_without_words_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" 'if m.get("kind") not in MARK_KINDS:' "if False:"
+expect_failure "an unknown mark kind" "test_an_unknown_mark_kind_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" "if isinstance(v, bool) or not isinstance(v, int):" "if False:"
+expect_failure "a fraction in a node" "test_a_fraction_in_a_node_is_refused" flow_tests
+flow_copy; plant "$F/deck/flowscene/engine.js" "L.restart)" "L.restartNow)"
+expect_failure "a label the sample page lacks" "test_every_label_the_engine_reads_is_on_the_sample_page" flow_tests
+flow_copy; plant "$F/deck/flowscene/engine.js" 'htmlEl("button", "fx-play", ctl, L.play)' 'htmlEl("button", "fx-play", ctl, "Play")'
+expect_failure "a word written into the engine" "test_the_engine_holds_no_words_of_its_own" flow_tests
+flow_copy; plant "$F/deck/flowscene/engine.js" 'now.textContent = (at + 1) + ". " + step.t;' 'now.innerHTML = (at + 1) + ". " + step.t;'
+expect_failure "step words set as HTML" "test_the_engine_parses_no_html" flow_tests
+flow_copy; plant "$F/deck/flowscene/engine.js" "      if (reduce) { items.forEach(it => place(it, 1)); done(); return; }
+" ""
+expect_failure "an engine that ignores reduced motion" "FAIL reduced motion: the mark is placed at once" flow_page
+flow_copy; plant "$F/deck/flowscene/engine.js" "function stop() { playing = false; clearTimeout(timer); bPlay.textContent = L.play; }" "function stop() { bPlay.textContent = L.play; }"
+expect_failure "a Pause that leaves the timer running" "FAIL Pause holds the step" flow_page
+
 echo
 echo "caught $pass, missed $fail"
 if [ $((pass + fail)) -eq 0 ]; then

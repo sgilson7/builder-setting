@@ -1,0 +1,22 @@
+/* A site's own pages, written by tools/manim/site.py: the home page and one page per
+   animation. Colours and fonts come from theme.css; headings, eyebrow and lead from
+   deck.css. From Manim Lab's CSC 226 site. */
+.top { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
+  max-width: 1000px; margin: 0 auto; padding: 14px max(16px, env(safe-area-inset-right, 0px)) 0 max(16px, env(safe-area-inset-left, 0px)); }
+.crumbs { font: .86em var(--mono); color: var(--muted); }
+.crumbs a { text-decoration: none; } .crumbs a:hover { text-decoration: underline; }
+.pick { font: inherit; font-size: .88em; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; }
+.page { max-width: 1000px; margin: 0 auto; padding: 20px max(16px, env(safe-area-inset-right, 0px)) 48px max(16px, env(safe-area-inset-left, 0px)); }
+.page h2 { margin-top: 32px; }
+.unit { border-top: 1px solid var(--line); margin-top: 28px; }
+a.mp-btn { display: inline-block; text-decoration: none; }
+ol.anims { padding-left: 1.6em; } ol.anims li { margin: 10px 0; max-width: 75ch; }
+ol.anims li span { display: block; color: var(--muted); font-size: .92em; }
+ol.steps { padding-left: 1.6em; } ol.steps li { margin: 6px 0; max-width: 75ch; }
+.pager { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 36px; border-top: 1px solid var(--line); padding-top: 16px; }
+.pager a { text-decoration: none; display: block; }
+.pager a span { display: block; font: .8em var(--mono); color: var(--muted); }
+.pager .next { text-align: right; grid-column: 2; }
+.also { margin-top: 32px; }
+.foot { max-width: 1000px; margin: 0 auto; padding: 16px max(16px, env(safe-area-inset-right, 0px)) 40px max(16px, env(safe-area-inset-left, 0px));
+  border-top: 1px solid var(--line); color: var(--muted); font-size: .86em; }

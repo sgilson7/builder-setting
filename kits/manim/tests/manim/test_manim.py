@@ -259,7 +259,7 @@ class CodeScenes(unittest.TestCase):
         self.assertEqual(faults, ["sample-dots: the scene file or its code changed after its render; render it again"])
 
 class PageScripts(unittest.TestCase):
-    SCRIPTS = ["deck/manim/player.js"]
+    SCRIPTS = ["deck/manim/player.js", "deck/manim/deck.js", "deck/manim/page.js"]
 
     def test_code_of_blanks_comments_and_strings(self):
         self.assertEqual(code_of('a = "2" + 3; /* 4 */ b(\'5\') // 6\n'), 'a = "" + 3;   b("")  \n')
@@ -273,8 +273,9 @@ class PageScripts(unittest.TestCase):
 
     def test_the_player_parses_no_html(self):
         # step words go in with textContent, `backticks` become <code>
-        code = code_of((ROOT / "deck/manim/player.js").read_text())
-        self.assertEqual(re.findall(r"\b(?:innerHTML|outerHTML|insertAdjacentHTML|eval)\b", code), [])
+        for path in self.SCRIPTS:
+            code = code_of((ROOT / path).read_text())
+            self.assertEqual(re.findall(r"\b(?:innerHTML|outerHTML|insertAdjacentHTML|eval)\b", code), [], path)
 
 
 if __name__ == "__main__":

@@ -13,11 +13,11 @@ Measured in Manim Lab, which rebuilt two deck animations beside their originals:
 - **Toolchain.** Building needs Python 3.11 to 3.14, Manim, Cairo, Pango and FFmpeg, plus BasicTeX and dvisvgm for maths. Viewing needs only a browser.
 - **What it buys.** Exact frames, fixed at build time and checked byte for byte; a true still for reduced motion; one render that plays in a deck, a page or a lecture video; and animations that a page of boxes and lines cannot describe.
 
-Use it where the animation *is* the explanation and changes rarely. For boxes and arrows that change with the text, keep drawing them in the page.
+Use it where the animation *is* the explanation and changes rarely. For boxes and arrows that change with the text, keep drawing them in the page: for how code runs through a system, with the code beside each step, use [`kits/flowscene/`](../flowscene/), which draws in SVG from a scene file. A deck can use both.
 
 ## Where it comes from
 
-Manim Lab (2026-11), a Builder project that tried Manim for the SnapClass guide's FlowScene animations and the MerryQuery deck's stepper. It rebuilt one of each beside its original and added three discrete-maths animations FlowScene could not draw. The palette in `data/manim/theme.json` is those two decks' colours. `tools/manim/geometry.py` ports FlowScene's border-to-border edge rule (the SnapClass guide's `engine.js`, lines 102 to 120). Comments that cite `Manim Lab R2.1` and similar refer to rows of that project's `SECOND-ORDER.md`. The rest was written for the lab.
+Manim Lab (2026-11), a Builder project that tried Manim for the SnapClass guide's FlowScene animations and the MerryQuery deck's stepper. It rebuilt one of each beside its original, added three discrete-maths animations FlowScene could not draw, and then made thirty-seven for CSC 226 and published them as a site; `sitepages.py`, `publish.py`, `page.js` and `SCENE-BRIEF.md` come from that site. `deck.js` and `deck.css` follow the MerryQuery deck's slides. The palette in `data/manim/theme.json` is those two decks' colours. `tools/manim/geometry.py` ports FlowScene's border-to-border edge rule (the SnapClass guide's `engine.js`, lines 102 to 120). Comments that cite `Manim Lab R2.1` and similar refer to rows of that project's `SECOND-ORDER.md`. The rest was written for the lab.
 
 ## What to copy
 
@@ -38,8 +38,15 @@ Paths mirror a project's layout: `kits/manim/tools/manim/render.py` goes to `too
 | `deck/fonts/` | Public Sans and JetBrains Mono (SIL OFL 1.1), with their licences and `SHA256SUMS` |
 | `deck/scenes/sample-flow.json`, `deck/scenes/sample-dots.json`, `animations/sample-dots.py`, `deck/media/sample-*` | a scene file and a code scene, rendered; delete them once the project has its own |
 | `deck/sample.html` | a page with both players: the markup to copy |
+| `SCENE-BRIEF.md` | the brief for writing a set of code scenes, by hand or by agents in parallel |
+| `tools/manim/sitepages.py`, `data/manim/site.json` | writes a site of animations: a home page, a deck per unit, a deck of all of them, and a page per animation |
+| `tools/manim/publish.py` | copies that site, and only that site, into a clone of the repository that serves it |
+| `deck/manim/deck.js`, `deck.css` | slides for a deck of players: one at a time, arrow keys, a bottom bar, a theme picker |
+| `deck/manim/page.js`, `page.css` | the site's own pages, and the theme choice kept from page to page |
+| `deck/index.html`, `deck/deck.html`, `deck/flow/`, `deck/code/` | the sample site, written by `sitepages.py`; delete them with the samples |
 | `tests/manim/test_manim.py` | 29 tests that need no Manim |
-| `tests/manim/page_check.py` | the sample page in Chromium, Firefox and WebKit (Playwright) |
+| `tests/manim/test_site.py` | 8 tests of the site and what is published, no Manim needed |
+| `tests/manim/page_check.py` | the sample page, then the sample site, in Chromium, Firefox and WebKit (Playwright) |
 | `scripts/setup-manim.sh`, `requirements-manim.txt` | Manim, pinned, in `.venv-manim` |
 | `scripts/render-audit.sh` | renders everything again and requires the committed bytes |
 
@@ -58,7 +65,19 @@ Then, in the project:
 
 **Maths** needs BasicTeX and dvisvgm (`brew install --cask basictex`, `brew install dvisvgm`). `stepscene.py` sets maths with a plain `article` template, because BasicTeX lacks `preview.sty`, which Manim's default template needs.
 
-**Render** with `.venv-manim/bin/python tools/manim/build.py` (or name scene files). Commit `deck/media/`. **Show it** with `<div data-manim="ID"></div>`, the labels script and `player.js`, as `deck/sample.html` does. Serve the page; opened from disk, the player can't fetch its files and says so.
+**Render** with `.venv-manim/bin/python tools/manim/build.py` (or name scene files). Commit `deck/media/`. **Show it** with `<div data-manim="ID"></div>`, the labels script and `player.js`, as `deck/sample.html` does. Serve the page; opened from disk, the player can't fetch its files and says so. A page in a subfolder sets `data-manim-base="../"` on an ancestor, so the player finds `scenes/` and `media/`.
+
+## A set of animations, as a site
+
+Manim Lab made thirty-seven code scenes for a discrete-mathematics course (CSC 226) and published them as a site with a page per animation and a deck per unit. The kit carries that workflow.
+
+1. **Plan the set.** List each animation's ID, title and what it must show, grouped into units. Write the units into `data/manim/site.json`: each unit has an `id`, a `name`, a `lead`, and `slides`, each `{scene, lead}`. Every scene in `deck/scenes/` must be in one unit exactly once; `sitepages.py` refuses the site otherwise.
+2. **Write the scenes** to [`SCENE-BRIEF.md`](SCENE-BRIEF.md). It splits cleanly: CSC 226's thirty-seven were written by several agents at once, each given the brief and a group of IDs. Every number in a step is checked by computation, and every render is looked at before it is accepted.
+3. **Render** each scene with `build.py`, and run the tests: a stale render, a clip over budget or a step that is not whole frames fails.
+4. **Write the site**: `python3 tools/manim/sitepages.py`. Under the site's root (`deck/` unless `site.json` says otherwise) it writes `index.html`, `deck.html`, `<unit>/index.html` and `<unit>/<scene>/index.html`. Each animation's page has its player, its summary, every step as text, a link to the same slide in its unit's deck, and a pager through all of them in deck order. Every word comes from `site.json` or the scene files, and counts are computed. `--check` fails when a page is out of date.
+5. **Publish**, when the person says so: `python3 tools/manim/publish.py ../the-serving-clone` copies the pages, the scripts, the fonts, each scene file cut to the fields the player reads, and the media, and removes anything else in the clone. A scene's `source` and `code` stay behind; CSC 226's sources named course files, and a first deploy published them before this rule existed. The commit and push are done by hand.
+
+On GitHub Pages, a site of this kind costs about 3.5 MB an animation; CSC 226's thirty-seven came to 961 files and about 128 MB. A claude.ai artifact holds at most 511 files, so a set that large is published there one unit at a time.
 
 ## Tests
 
@@ -99,10 +118,19 @@ Each test listed here was seen to fail against a planted defect in `scripts/prov
 | `test_a_code_step_that_is_not_whole_frames_is_refused` | a code step's whole-frames check is switched off |
 | `test_the_code_is_part_of_the_render_it_made` | the code's hash is left out of the scene |
 | `test_code_of_blanks_comments_and_strings` | the test's own JavaScript scanner blanks code too |
-| `test_the_player_holds_no_number_but_0_and_1` | a `2` in the player |
+| `test_the_player_holds_no_number_but_0_and_1` | a `2` in the player; a `2` in the slide script |
 | `test_the_player_parses_no_html` | the player sets step words with `innerHTML` |
+| `test_the_pages_on_disk_are_current` | a page edited by hand after `sitepages.py` wrote it |
+| `test_every_animation_has_its_own_route` | an animation's page without `data-manim-base` |
+| `test_every_link_on_the_site_resolves` | the deck links to an animation's page by the wrong folder |
+| `test_the_pager_walks_every_animation_in_deck_order` | the pager's Next points at its own page |
+| `test_a_scene_in_no_unit_is_refused` | the check for scenes in no unit is switched off |
+| `test_counts_are_computed` | the all-animations count is written into `site.json` |
+| `test_nothing_published_names_a_source` | `publish.py` copies scene files whole |
+| `test_every_file_a_page_needs_is_published` | `publish.py` leaves out `page.js` |
 | `page_check.py`: reduced motion plays no clip | the player ignores `prefers-reduced-motion` |
 | `page_check.py`: Pause stops the clip and the timer | Pause leaves the clip playing |
+| `page_check.py`: the theme chosen on one page holds on the next | `page.js` forgets the theme between pages |
 
 `scripts/render-audit.sh` is outside the everyday check because it needs Manim and takes seconds per scene. Run it after changing the renderer, the theme or a scene. On another machine a different Cairo, Pango or x264 can change bytes without a stale render; each manifest records the versions to compare.
 

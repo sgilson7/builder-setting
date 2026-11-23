@@ -11,6 +11,11 @@ in each engine, in light, dark and reduced motion, checks:
 - Play starts, Pause stops the clip and the timer, Restart returns to step 1;
 - the page makes no off-origin request and logs no error.
 
+Then, once per engine, the site tools/manim/sitepages.py writes: the home page links
+to each animation's own page; that page's player loads from two folders down; its
+pager reaches the next animation; a unit's deck loads its player; and a theme chosen
+on one page holds on the next.
+
 Needs Playwright (Builder's .venv has it):
 
     .venv/bin/python kits/manim/tests/manim/page_check.py
@@ -145,6 +150,43 @@ def run_engine(p, engine, base, **ctx):
     browser.close()
 
 
+def site_pass(p, engine, base):
+    print(f"\n[{engine} site]")
+    seen = {"foreign": [], "errors": []}
+    browser = getattr(p, engine).launch()
+    context = browser.new_context()
+    context.route("**/*", lambda r: r.continue_() if r.request.url.startswith(base + "/")
+                  else (seen["foreign"].append(r.request.url), r.abort()))
+    page = context.new_page()
+    page.on("pageerror", lambda e: seen["errors"].append(str(e)))
+    site = json.loads((ROOT / "data" / "manim" / "site.json").read_text())
+    rows = [(u["id"], s["scene"]) for u in site["units"] for s in u["slides"]]
+    page.goto(base + "/index.html")
+    hrefs = page.evaluate("() => [...document.querySelectorAll('ol.anims a')].map(a => a.getAttribute('href'))")
+    check(hrefs == [f"{u}/{s}/" for u, s in rows], f"the home page links to every animation's page {hrefs}")
+    page.locator("ol.anims a").first.click()
+    unit, first = rows[0]
+    page.wait_for_selector(f"[data-manim='{first}'][data-steps]", timeout=15000)
+    check(page.url == f"{base}/{unit}/{first}/", f"the link opens {unit}/{first}/ {page.url}")
+    check(state(page, first)["pic"] == f"../../media/{first}/light/step-01.png",
+          f"the player two folders down finds its media {state(page, first)['pic']}")
+    page.select_option("#nav-theme", "dark")
+    page.locator("a.next").click()
+    unit2, second = rows[1]
+    page.wait_for_selector(f"[data-manim='{second}'][data-steps]", timeout=15000)
+    check(page.url == f"{base}/{unit2}/{second}/", f"the pager reaches {unit2}/{second}/ {page.url}")
+    s = state(page, second)
+    check(page.evaluate("() => document.documentElement.dataset.theme") == "dark"
+          and s["pic"] == f"../../media/{second}/dark/step-01.png", f"the theme chosen on one page holds on the next {s['pic']}")
+    page.goto(f"{base}/{unit}/#{first}")
+    page.wait_for_selector(f"[data-manim='{first}'][data-steps]", timeout=15000)
+    check(state(page, first)["pic"] == f"../media/{first}/dark/step-01.png",
+          f"the {unit} deck shows its player, in the theme kept from the last page {state(page, first)['pic']}")
+    check(not seen["foreign"], f"no off-origin request {seen['foreign']}")
+    check(not seen["errors"], f"no uncaught page error {seen['errors']}")
+    browser.close()
+
+
 def main():
     server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), functools.partial(Handler, directory=str(DECK)))
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -154,6 +196,7 @@ def main():
             run_engine(p, engine, base)
             run_engine(p, engine, base, color_scheme="dark")
             run_engine(p, engine, base, reduced_motion="reduce")
+            site_pass(p, engine, base)
     server.shutdown()
     if failures:
         sys.exit(f"\nPAGE CHECK FAILED: {len(failures)} checks")

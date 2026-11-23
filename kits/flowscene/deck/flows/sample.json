@@ -1,0 +1,52 @@
+{
+ "id": "sample",
+ "title": "A page, its server and a database: saving a note",
+ "viewBox": "0 60 1000 340",
+ "pickLabel": "Requests in the sample",
+ "nodes": {
+  "page": [110, 150, "Notes page", "client"],
+  "store": [110, 320, "localStorage", "store"],
+  "api": [420, 150, "API server\nPOST /notes"],
+  "check": [420, 320, "Validator"],
+  "db": [720, 150, "Database", "store"],
+  "mail": [900, 320, "Mail service", "ext"]
+ },
+ "zones": [
+  {"x": 10, "y": 80, "w": 200, "h": 300, "label": "Browser", "tone": "a"},
+  {"x": 300, "y": 80, "w": 520, "h": 300, "label": "Server", "tone": "b"},
+  {"x": 830, "y": 250, "w": 160, "h": 130, "label": "Outside", "tone": "d"}
+ ],
+ "edges": [["page", "api"], ["page", "store"], ["api", "check"], ["api", "db"], ["db", "mail", true]],
+ "via": {"db>mail": [[900, 150]]},
+ "flows": [
+  {"id": "save", "title": "Save a note",
+   "sum": "The page sends the note; the server checks it, stores it and answers with its new id.",
+   "steps": [
+    {"go": [{"path": ["page", "api"], "kind": "req"}], "t": "The page sends the note as a POST request.", "c": "post", "hl": [12, 13]},
+    {"go": [{"path": ["api", "check"], "kind": "req"}], "work": ["api"], "t": "The server hands the note to the validator.", "c": "handler", "hl": [21, 21]},
+    {"go": [{"path": ["api", "db"], "kind": "req"}], "t": "A valid note is written to the database.", "c": "handler", "hl": [22, 22]},
+    {"go": [{"path": ["db", "api", "page"], "kind": "res"}], "t": "The new id comes back to the page in the reply.", "c": "handler", "hl": [23, 23]}
+   ]},
+  {"id": "offline", "title": "Save while offline",
+   "sum": "Without a connection the page keeps the note in localStorage and sends it later.",
+   "steps": [
+    {"go": [{"path": ["page", "store"], "kind": "msg"}], "t": "The request fails, so the page queues the note in localStorage."},
+    {"go": [{"path": ["store", "page", "api"], "kind": "req"}], "t": "Back online, the page sends the queued note.", "c": "post", "hl": [12, 13]},
+    {"go": [{"path": ["db", "mail"], "kind": "msg"}], "work": ["db"], "t": "Once stored, the server tells the mail service, which may answer much later.",
+     "x": {"h": "Proposed: the notification contract", "body": "event note.saved\n  id: the note's id\n  at: when it was stored"}}
+   ]}
+ ],
+ "code": {
+  "post": {"file": "web/notes.js", "first": 10, "lines": [
+   "async function save(note) {",
+   "  const body = JSON.stringify(note);",
+   "  const r = await fetch(\"/notes\", {method: \"POST\", body});",
+   "  return (await r.json()).id;",
+   "}"]},
+  "handler": {"file": "server/notes.py", "first": 20, "lines": [
+   "def post_note(req):",
+   "    note = validate(req.json())",
+   "    nid = db.insert(note)",
+   "    return {\"id\": nid}"]}
+ }
+}

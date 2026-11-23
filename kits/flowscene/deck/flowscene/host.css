@@ -1,0 +1,9 @@
+/* The six tokens engine.css takes from its host page, for a page that has none of its
+   own: the SnapClass guide's colours, the same as kits/manim's theme. A project whose
+   deck or journal already defines --bg --panel --fg --muted --line --accent leaves
+   this file out. */
+:root { --bg: #fbfcfc; --panel: #ffffff; --fg: #1c2629; --muted: #5a6a6e; --line: #d6dfe0; --accent: #0f6b6b;
+  --body: system-ui, -apple-system, "Segoe UI", sans-serif; --mono: ui-monospace, Menlo, Consolas, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #121819; --panel: #182123; --fg: #e2eaea; --muted: #9db0b2; --line: #2b3a3d; --accent: #6cc4c0; color-scheme: dark; } }
+:root[data-theme="dark"] { --bg: #121819; --panel: #182123; --fg: #e2eaea; --muted: #9db0b2; --line: #2b3a3d; --accent: #6cc4c0; color-scheme: dark; }

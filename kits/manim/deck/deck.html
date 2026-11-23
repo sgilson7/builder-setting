@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Manim kit sample animations</title>
+<meta name="description" content="The kit&#x27;s two sample animations as a slide deck: a scene file of boxes and lines, and a code scene.">
+<link rel="stylesheet" href="manim/theme.css">
+<link rel="stylesheet" href="manim/deck.css">
+<link rel="stylesheet" href="manim/player.css">
+</head>
+<body data-theme-key="manim-kit-sample-theme">
+<main id="deck">
+
+<section id="start" data-title="Manim kit sample animations">
+  <div class="eyebrow">Manim kit · Samples</div>
+  <h1>Manim kit sample animations</h1>
+  <p class="lead">The kit&#x27;s two sample animations as a slide deck: a scene file of boxes and lines, and a code scene.</p>
+  <ol class="units">
+    <li><a href="#flow">Scene files</a>: 1 animations</li>
+    <li><a href="#code">Code scenes</a>: 1 animations</li>
+  </ol>
+  <p>Use the bar at the bottom, or the arrow keys, to move between slides; the theme picker there switches every animation between light and dark. With reduced motion turned on in your system settings, each animation shows its steps as still frames.</p>
+  <p>Each animation also has a page of its own, listed on the <a href="./">home page</a>.</p>
+</section>
+
+<section id="flow" data-title="Scene files">
+  <div class="eyebrow">Manim kit · Samples · Scene files</div>
+  <h2>Scene files</h2>
+  <p class="lead">An animation described as boxes, lines and steps in a scene file.</p>
+  <ol class="units">
+    <li><a href="#sample-flow">From a scene file to the deck</a></li>
+  </ol>
+</section>
+
+<section id="sample-flow" data-title="From a scene file to the deck">
+  <div class="eyebrow">Scene files · 1 of 1</div>
+  <h2>From a scene file to the deck</h2>
+  <p class="lead">A scene file is rendered once, then played in the deck.</p>
+  <div data-manim="sample-flow"></div>
+  <p class="from"><a href="flow/sample-flow/">This animation on its own page</a></p>
+</section>
+
+<section id="code" data-title="Code scenes">
+  <div class="eyebrow">Manim kit · Samples · Code scenes</div>
+  <h2>Code scenes</h2>
+  <p class="lead">An animation written as Manim code, one block per step.</p>
+  <ol class="units">
+    <li><a href="#sample-dots">Twelve dots, three ways</a></li>
+  </ol>
+</section>
+
+<section id="sample-dots" data-title="Twelve dots, three ways">
+  <div class="eyebrow">Code scenes · 1 of 1</div>
+  <h2>Twelve dots, three ways</h2>
+  <p class="lead">Twelve dots regroup three ways and the total stays the same.</p>
+  <div data-manim="sample-dots"></div>
+  <p class="from"><a href="code/sample-dots/">This animation on its own page</a></p>
+</section>
+
+</main>
+
+<nav class="pnav" aria-label="Slides">
+  <button class="mp-btn" id="nav-prev" type="button">‹ Back</button>
+  <span class="count" id="nav-count"></span>
+  <select id="nav-pick" aria-label="Go to slide"></select>
+  <button class="mp-btn mp-solid" id="nav-next" type="button">Next ›</button>
+  <select id="nav-theme" aria-label="Theme">
+    <option value="auto">Theme: system</option>
+    <option value="light">Theme: light</option>
+    <option value="dark">Theme: dark</option>
+  </select>
+</nav>
+
+<script type="application/json" id="manim-labels">
+{"play": "Play", "pause": "Pause", "back": "‹ Back", "backName": "Previous step", "next": "Next ›", "nextName": "Next step", "restart": "Restart", "count": "step {n} of {of}", "everyStep": "Every step, as text", "failed": "This animation could not load its files. Open the page through a web server, not from disk."}
+</script>
+<script src="manim/page.js"></script>
+<script src="manim/player.js"></script>
+<script src="manim/deck.js"></script>
+</body>
+</html>
