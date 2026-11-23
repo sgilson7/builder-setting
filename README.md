@@ -188,7 +188,7 @@ In a project, that runs format and lint, the core, boundary, copy and storage te
 ## Examples and prompts
 
 - [`examples/minimal/`](examples/minimal/) is a bounded counter: one rule in the core, its tests, a glossary, the shim, a page, a browser interaction and the full check.
-- [`examples/manim-calc-journal/`](examples/manim-calc-journal/) is the design journal a Builder agent kept while it built [Manim Calc](https://sgilson7.github.io/builder-setting/) from a one-line description: its opening entry, its questions, a plan with an animation, and the build with screenshots.
+- [`examples/manim-calc-journal/`](examples/manim-calc-journal/) is the design journal a Builder agent kept while it built [Manim Calc](https://sgilson7.github.io/builder-setting/) from a one-line description: its opening entry, its questions, a plan with an animation, and the build with screenshots. [Read it in a browser](https://sgilson7.github.io/builder-setting/journal/).
 - [`prompts/`](prompts/) holds the prompts for starting from a description or a brief, reviewing a plan and auditing the boundary, and a template for writing a prompt set.
 - [`prompts/sets/C-feedback-drafts.md`](prompts/sets/C-feedback-drafts.md) is a prompt set from a teacher's request; a fresh agent session built [Feedback Drafts](https://github.com/sgilson7/feedback-drafts) from it.
 

@@ -1,6 +1,6 @@
 # Manim Calc journal
 
-The design journal a Builder agent kept while it built Manim Calc, the tool at <https://sgilson7.github.io/builder-setting/>, from a one-line description: "a simple calculator program with interactive Manim animations in the browser". Open `index.html` to read it.
+The design journal a Builder agent kept while it built Manim Calc, the tool at <https://sgilson7.github.io/builder-setting/>, from a one-line description: "a simple calculator program with interactive Manim animations in the browser". Open `index.html`, or read it at <https://sgilson7.github.io/builder-setting/journal/>.
 
 It shows the journal working on a real build:
 
