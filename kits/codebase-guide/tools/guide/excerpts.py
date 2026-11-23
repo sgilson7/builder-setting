@@ -9,7 +9,7 @@ that is: the file (relative to the codebase), its first and last line, and text
 the first line must contain. When the codebase changes and the function moves,
 the check fails and says where that text is now, so a page never shows the
 wrong lines. The codebase is named in notes/target (one line, a path), the same
-file tools/ask.py --target reads.
+file scripts/target_unchanged.py reads.
 
     python3 tools/guide/excerpts.py              check every excerpt
     python3 tools/guide/excerpts.py KEY          print one excerpt with its line numbers

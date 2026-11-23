@@ -5,7 +5,7 @@
 # 2. every relative link in the Markdown resolves
 # 3. the default style pack stays inside template/styles/
 # 3a. Builder's cards are in order, and BuilderQA finds a right card in the top five for each question
-# 3b. the work index answers WorkQA at or above its floor, and the trial harness passes its own test
+# 3b. the context hooks, the template's 300k compaction cap and the journal's animations pass their tests
 # 4. the blank template passes its own check, and each of its breaks is caught
 # 5. the minimal example passes its own check, and each of its breaks is caught
 # 6. the office-intake, codebase-guide, manim and flowscene kits' tests pass
@@ -35,10 +35,9 @@ step "cards: template/tools/ask.py --check, and BuilderQA (tests/builderqa.json)
 "$PY" template/tools/ask.py --check
 "$PY" template/tools/ask.py --qa tests/builderqa.json
 
-step "work index: tools/ask.py --mine over examples/minimal (tests/workqa.json), and the trial harness's own test"
-BUILDER_PROJECT=examples/minimal "$PY" template/tools/ask.py --mine --qa tests/workqa.json
-"$PY" -m unittest discover -s harness/tests
+step "context hooks, compaction cap and journal animations: tests/test_context_tools.py, tests/test_journal_animate.py"
 "$PY" -m unittest discover -s tests -p test_context_tools.py
+"$PY" -m unittest discover -s tests -p test_journal_animate.py
 
 step "template: ./scripts/check.sh"
 (cd template && ./scripts/check.sh)
@@ -47,7 +46,7 @@ step "template: scripts/break_tests.py"
 (cd template && "$PY" scripts/break_tests.py)
 
 step "examples/minimal: ./scripts/check.sh"
-(cd examples/minimal && BUILDER_LOUD=1 ./scripts/check.sh)   # loud: a quiet run would leave a log in the example, and WorkQA reads its notes
+(cd examples/minimal && BUILDER_LOUD=1 ./scripts/check.sh)   # loud: a quiet run would leave a log in the example
 
 step "examples/minimal: scripts/break_tests.py"
 (cd examples/minimal && "$PY" scripts/break_tests.py)

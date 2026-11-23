@@ -14,7 +14,7 @@ that was context above 200k tokens. It adds one row to notes/tokens.md.
     python3 tools/tokens.py --json ...      print every number as JSON
 
 Other agents keep other transcripts; for them, log the numbers by hand in the
-same table. The harness in the reference repository (harness/) uses this file.
+same table.
 """
 
 import json

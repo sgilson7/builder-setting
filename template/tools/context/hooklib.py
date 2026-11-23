@@ -1,5 +1,5 @@
 """Shared by the Claude Code hooks in this folder: find the project, read the
-hook's input, log to a trial harness, and answer the agent.
+hook's input, and answer the agent.
 
 A hook runs from the folder the session started in. That is the project
 itself, or (in a trial, or the folder flow) the folder above it, where the
@@ -9,7 +9,6 @@ project is the newest folder holding a STATE.md.
 import json
 import os
 import sys
-import time
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parents[2]
@@ -35,21 +34,6 @@ def hook_input():
     except ValueError:
         return {}
 
-
-def memory_on():
-    return os.environ.get("BUILDER_MEMORY", "on").lower() != "off"
-
-
-def log(event, **fields):
-    """One line in the trial harness's log, when a trial set BUILDER_HARNESS_LOG."""
-    path = os.environ.get("BUILDER_HARNESS_LOG")
-    if not path:
-        return
-    try:
-        with open(path, "a") as f:
-            f.write(json.dumps({"event": event, "at": time.time(), **fields}) + "\n")
-    except OSError:
-        pass
 
 
 def tell(event_name, text):

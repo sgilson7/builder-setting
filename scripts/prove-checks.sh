@@ -375,7 +375,7 @@ add_entry agreed "" 2026-10-20 "<h3>Your answers</h3><p>MC-Q1: B.</p>"
 expect_failure "an answer that overrides the default with no triage row" "not the default A, and no TRIAGE.md row cites it" journal
 
 fresh
-add_entry mockups "" 2026-10-20 "<h3>The counter, drawn</h3>"
+add_entry mockups "" 2026-10-20 "<h3>The counter, drawn</h3><figure><img src=\"img/counter.svg\" alt=\"The counter\"></figure>"
 add_entry live 'data-commit="abc1234"' 2026-10-21 "<h3>Published</h3>"
 "$PY" - "$WORK/p-journal/index.html" <<'EOF2'
 import sys; p = sys.argv[1]; s = open(p).read()
@@ -388,6 +388,14 @@ expect_failure "a deploy after mockups with no against-the-mockup entry" "with n
 fresh
 add_entry live 'data-commit="abc1234"' 2026-10-21 "<h3>Published</h3>"
 expect_failure "a Live now page that names an older deploy" "Live now says nothing is deployed" journal
+
+fresh
+add_entry plan "" 2026-10-20 "<h3>The plan</h3><p>Build the counter, then the reset.</p>"
+expect_failure "a plan entry with no picture or animation" "plan entry plan-2026-10-20 has no picture or animation" journal
+
+fresh
+add_entry plan "" 2026-10-20 "<h3>The plan</h3><!--FLOW id=nowhere--><!--/FLOW-->"
+expect_failure "an animation placed with no scene file" "flows/nowhere.json does not exist" journal
 
 fresh
 add_entry research "" 2026-10-20 "<h3>What other counters do</h3><p>Two counters, unnamed.</p>"
@@ -578,8 +586,8 @@ fresh; builder_copy
 sed -i.bak 's/^## Copying a kit$/## Bringing one in/' "$WORK/b/kits/README.md" && rm "$WORK/b/kits/README.md.bak"
 expect_failure "a renamed heading that BuilderQA's answer depended on" "names card kits.readme.copying-a-kit, which does not exist" cards_in_copy --qa "$WORK/b/tests/builderqa.json"
 
-# Round four (D27-D29): quiet checks, a STATE.md kept current, the deck, the work index,
-# the context hooks, the codebase-guide kit and the trial harness's own test
+# Round four (D28-D29): quiet checks, a STATE.md kept current, the deck, the context hooks
+# and the codebase-guide kit; round five: the 300k compaction cap
 plant() {  # plant FILE OLD NEW: a scripted edit that asserts it matched
   "$PY" - "$1" "$2" "$3" <<'EOF2'
 import sys; p, old, new = sys.argv[1:]; s = open(p).read()
@@ -603,29 +611,36 @@ fresh
 add_entry research '' 2026-11-07 '<h3>Later</h3><p>From <a href="https://example.org/">a source</a>.</p>'
 expect_failure "a deck built before the journal's newest entry" "the deck is out of date" "$PY" tools/journal/present.py --check
 
-fresh
-plant "$WORK/p/BRIEF.md" "## Autonomy" "## Permissions"
-expect_failure "a renamed heading that WorkQA's answer depended on" "names card mine.brief.autonomy, which does not exist" \
-  env BUILDER_PROJECT="$WORK/p" "$PY" "$ROOT/template/tools/ask.py" --mine --qa "$ROOT/tests/workqa.json"
-
-tools_copy() { rm -rf "$WORK/t"; mkdir -p "$WORK/t"; (cd "$ROOT/template" && tar --exclude=__pycache__ -cf - tools) | (cd "$WORK/t" && tar -xf -); }
+tools_copy() { rm -rf "$WORK/t"; mkdir -p "$WORK/t"; (cd "$ROOT/template" && tar --exclude=__pycache__ -cf - tools .claude) | (cd "$WORK/t" && tar -xf -); }
 tools_tests() { BUILDER_HOME="$ROOT" BUILDER_TOOLS="$WORK/t/tools" "$PY" -m unittest discover -s "$ROOT/tests" -p test_context_tools.py; }
-tools_copy; plant "$WORK/t/tools/ask.py" 'EMBED_MODEL + "\n" + c["title"] + "\n" + c["text"]' 'EMBED_MODEL + "\n" + c["title"]'
-expect_failure "a vector kept after its card's text changed" "test_changed_text_is_embedded_again" tools_tests
-tools_copy; plant "$WORK/t/tools/ask.py" 'for ranking, w in ((lex[:100], 1.0), (sem, SEM_WEIGHT)):' 'for ranking, w in ((lex[:100], 0.01), (sem, 1.0)):'
-expect_failure "a fusion that lets the model bury keyword ranking's first card" "test_a_card_first_by_keywords" tools_tests
-tools_copy; plant "$WORK/t/tools/ask.py" 'if orig.is_file() and orig.read_bytes() == path.read_bytes():' 'if False:'
-expect_failure "Builder's own scripts counted as the project's work" "test_a_file_still_as_the_template" tools_tests
 tools_copy; plant "$WORK/t/tools/context/after_tool.py" 'if band <= seen.get(sid, -1):' 'if False:'
 expect_failure "a context warning repeated on every call" "test_warns_once_past_200k" tools_tests
-tools_copy; plant "$WORK/t/tools/context/before_read.py" 'if i.get("offset") or i.get("limit") or not path.is_file():' 'if not path.is_file():'
-expect_failure "read advice for a read that already took a range" "test_long_whole_read_gets_its_parts" tools_tests
 tools_copy; plant "$WORK/t/tools/context/after_tool.py" 'return min(mark, cap * 2 // 3) if cap > 0 else mark' 'return mark'
 expect_failure "a warning mark the compaction cap never lets the context reach" "test_under_a_200k_cap" tools_tests
-tools_copy; plant "$WORK/t/tools/context/before_read.py" 'if b"\0" in raw[:8192]:' 'if False:'
-expect_failure "read advice on an image" "test_an_image_gets_no_advice" tools_tests
-tools_copy; plant "$WORK/t/tools/context/after_compact.py" "cards = push_cards(state)" 'cards = ""'
-expect_failure "no cards pushed after a compaction" "test_after_a_compaction_the_next_steps_cards" tools_tests
+
+tools_copy; plant "$WORK/t/tools/context/after_compact.py" '        print(state.read_text())' '        pass'
+expect_failure "STATE.md left out after a compaction" "test_state_comes_back_and_no_index_is_asked" tools_tests
+tools_copy; plant "$WORK/t/.claude/settings.json" '"300000"' '"200000"'
+expect_failure "the template's compaction cap set back to 200k" "test_the_template_compacts_at_300k" tools_tests
+
+# Round five: the journal's animations (tools/journal/animate.py), each test against a planted defect
+anim_tests() { BUILDER_TOOLS="$WORK/t/tools" "$PY" -m unittest discover -s "$ROOT/tests" -p test_journal_animate.py; }
+tools_copy; plant "$WORK/t/tools/journal/animate.py" 'for s in f["steps"])' 'for s in [])'
+expect_failure "an animation with no step list as text" "test_a_placed_scene_becomes_a_figure" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '.replace("</", "<\\/")' ''
+expect_failure "a step whose words end the scene's script early" "test_closing_script_text" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '    if fresh != page:' '    if False:'
+expect_failure "a page left out of date with its scene files" "test_an_edited_scene_leaves" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '            page = page.rstrip("\n") + "\n" + block + "\n"' '            pass'
+expect_failure "a page with no </body> left without the engine" "test_a_page_without_a_closing_body_tag" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '        if p.stem not in placed:' '        if False:'
+expect_failure "a scene file placed in no entry" "test_a_scene_placed_in_no_entry" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '    if status == "measured" and not' '    if False and not'
+expect_failure "a measured scene that does not say where its steps came from" "test_a_measured_scene_says" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '    if status not in STATUS:' '    if False:'
+expect_failure "a scene with no status" "test_a_scene_without_a_status" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/flowscene/check.py" '                    if (a, b) not in drawn:' '                    if False:'
+expect_failure "the journal's copy of the scene check lets a mark cross empty space" "test_a_mark_between_unjoined_boxes" anim_tests
 
 guide_copy() { rm -rf "$WORK/g"; mkdir -p "$WORK/g"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - codebase-guide) | (cd "$WORK/g" && tar -xf -); }
 guide_tests() { "$PY" -m unittest discover -s "$WORK/g/codebase-guide/tests"; }
@@ -640,29 +655,6 @@ expect_failure "a proposed part that shows code" "test_proposed_part_with_code_f
 guide_copy; plant "$WORK/g/codebase-guide/tools/guide/labels.py" "            if not cited:" "            if False:"
 expect_failure "a measured part with no code" "test_measured_part_without_code_fails" guide_tests
 
-harness_copy() { rm -rf "$WORK/h"; mkdir -p "$WORK/h/template"; (cd "$ROOT" && tar --exclude=__pycache__ -cf - harness) | (cd "$WORK/h" && tar -xf -);
-  cp -R "$ROOT/template/tools" "$WORK/h/template/tools"; }
-harness_tests() { "$PY" -m unittest discover -s "$WORK/h/harness/tests"; }
-harness_copy; plant "$WORK/h/harness/analyze.py" "    for rx in BASH_WRITE[2:]:" "    for rx in []:"
-expect_failure "STATE.md written through a heredoc, missed" "test_state_written_through_a_heredoc" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" 'p = path if path.startswith("/") else "/" + path' 'p = path'
-expect_failure "a Builder file read with cat, missed" "test_builder_file_read_with_cat" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" 'out = [p for p in dict.fromkeys(out) if not p.startswith("/dev/")' 'out = [p for p in dict.fromkeys(out + ["notes/STATE.md"]) if not p.startswith("/dev/")'
-expect_failure "HTML in a heredoc counted as a STATE.md rewrite" "test_state_written_through_a_heredoc" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" "if fp in known and n > REWRITE_LINES:" "if False:"
-expect_failure "a whole-file rewrite, missed" "test_whole_rewrite_is_counted" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" "if d <= r[0] < nxt and r[2] in before]" "if False]"
-expect_failure "a file re-read after a compaction, missed" "test_reread_after_compaction" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" "if CHECK_CMD.search(seg) and not CHECK_SKIP.match(seg):" "if CHECK_CMD.search(seg):"
-expect_failure "cat of a check script counted as a check run" "test_cat_of_a_check_script" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" "    if cd:" "    if False:"
-expect_failure "a journal written by Python after cd, missed" "test_journal_written_by_python" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" 'if d["named"] and not d["opened"]:' 'if False:'
-expect_failure "a digest's code rewritten without being opened, missed" "test_a_digest_read_and_its_code" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" 'marked = {i for k, i in notes if k == "boundary" and 0 < i < len(ctx)}' 'marked = set()'
-expect_failure "a compaction under a low cap, missed" "test_a_compaction_the_context_barely_falls" harness_tests
-harness_copy; plant "$WORK/h/harness/analyze.py" "bare = re.sub(" "bare = (lambda *a: a[2])("
-expect_failure "a quoted pipe split into a check run" "test_a_pipe_inside_a_quoted_pattern" harness_tests
 
 # The Manim kit's tests, each against a planted defect in a copy of the kit.
 manim_copy() { rm -rf "$WORK/m" "$WORK/p"; mkdir -p "$WORK/m" "$WORK/p"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - manim) | (cd "$WORK/m" && tar -xf -); }
@@ -781,7 +773,7 @@ flow_copy; plant "$F/deck/flowscene/engine.js" 'htmlEl("button", "fx-play", ctl,
 expect_failure "a word written into the engine" "test_the_engine_holds_no_words_of_its_own" flow_tests
 flow_copy; plant "$F/deck/flowscene/engine.js" 'now.textContent = (at + 1) + ". " + step.t;' 'now.innerHTML = (at + 1) + ". " + step.t;'
 expect_failure "step words set as HTML" "test_the_engine_parses_no_html" flow_tests
-flow_copy; plant "$F/deck/flowscene/engine.js" "      if (reduce) { items.forEach(it => place(it, 1)); done(); return; }
+flow_copy; plant "$F/deck/flowscene/engine.js" "      if (reduced()) { items.forEach(it => place(it, 1)); done(); return; }
 " ""
 expect_failure "an engine that ignores reduced motion" "FAIL reduced motion: the mark is placed at once" flow_page
 flow_copy; plant "$F/deck/flowscene/engine.js" "function stop() { playing = false; clearTimeout(timer); bPlay.textContent = L.play; }" "function stop() { bPlay.textContent = L.play; }"

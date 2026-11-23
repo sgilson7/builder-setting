@@ -2,6 +2,8 @@
 
 For a deck or journal that explains how a system runs: boxes for its parts, grouped in zones, and marks that carry each request, reply, stream or event between them, one step at a time, beside the code that runs at that step. The page draws everything in SVG from a scene file, so the boxes, labels and code stay text that can be selected, searched and edited.
 
+The template's design journal already plays this engine: `tools/journal/flowscene/` holds the same files, and `tools/journal/animate.py` puts a scene into the journal page (`tools/journal/ENTRIES.md`, Animations). Copy this kit for a deck or another page outside the journal.
+
 It changes no reference default. The engine holds layout and timing numbers, which D3 forbids in `web/`, so it belongs in a deck or journal page and not in a tool's `web/` folder. Its scene files and media load from the page's own origin, so D4's `default-src 'self'` already allows them.
 
 ## FlowScene or Manim

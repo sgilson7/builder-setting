@@ -25,6 +25,8 @@ Unreleased, on the branch `fold-round-4-memory` (built on the one above): the wo
 
 Unreleased, on the branch `manim-kit` (built on the one above): `kits/manim`, animations for decks and journals rendered with Manim Community, with a player, a sample scene file and code scene, 29 tests that need no Manim, a browser check of its sample page, and thirty-one more planted defects (129 in all). Then a site of Manim animations with a page per animation (`sitepages.py`, `publish.py`, eight more tests and a site pass in the browser check), and `kits/flowscene`, the SnapClass guide's FlowScene engine with a scene checker, 11 tests and a browser check; and twenty-three more planted defects (152 in all).
 
+Unreleased, on the branch `fold-round-5-plain` (built on the one above): Builder ships the plain arm of the platformer trials. The work index (`tools/ask.py --mine`, `--target`, `--all`, embeddings and `scripts/setup-embed.sh`), the read-advice hook (`before_read.py`), the cards pushed after a compaction, `tests/workqa.json` and the trial harness (`harness/`) are removed; they stay on `fold-round-4-memory`. `template/.claude/settings.json` sets a 300k compaction cap (`CLAUDE_CODE_AUTO_COMPACT_WINDOW`), so the context warning comes at 200k. Spec D27 now says how an agent gets its own work back by pointer (`STATE.md` names files and lines), and rule 24 says the same.
+
 Version 0.3.0 (2 November 2026) is the first tagged version, `v0.3.0`. Since 0.2.0 it adds:
 
 - the reason for the second-order notebook, and how a row becomes a rule, in `docs/procedure.md`;

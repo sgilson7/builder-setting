@@ -6,10 +6,16 @@
    flow, the contract), and keeps a text list of every step.
 
    The author's engine from the SnapClass guide, carried into Builder as kits/flowscene
-   with their approval (Manim Lab T8). Two changes from the original: every word the
-   reader sees comes from <script type="application/json" id="flow-labels">, and
-   <div data-flow="ID"> loads flows/ID.json by itself. It holds layout and timing
-   numbers, so it belongs in a deck or journal, outside web/ (Builder D3). */
+   with their approval (Manim Lab T8). Changes from the original: every word the
+   reader sees comes from <script type="application/json" id="flow-labels">;
+   <div data-flow="ID"> reads its scene from an inline
+   <script type="application/json" data-flow-scene="ID"> (so a journal works opened
+   from disk), else loads flows/ID.json; reduced motion is read at every step, not
+   once; a scene stops playing when it leaves the screen or the tab is hidden; and
+   one scene that fails to load does not stop the others. The same file is
+   template/tools/journal/flowscene/engine.js (scripts/check-sync.sh). It holds
+   layout and timing numbers, so it belongs in a deck or journal, outside web/
+   (Builder D3). */
 (function () {
   "use strict";
   const NS = "http://www.w3.org/2000/svg";
@@ -41,7 +47,8 @@
     const W = scene.boxW || 150, H = scene.boxH || 44;
     const N = scene.nodes, VIA = scene.via || {};
     const flows = scene.flows;
-    const reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const motion = window.matchMedia ? matchMedia("(prefers-reduced-motion: reduce)") : null;
+    const reduced = () => !!(motion && motion.matches);
     let flow = flows[0], at = 0, playing = false, timer = null, anim = null;
 
     root.classList.add("fx");
@@ -188,7 +195,7 @@
         const a = it.pts[i], b = it.pts[i + 1], r = it.lens[i] ? d / it.lens[i] : 1;
         it.g.setAttribute("transform", `translate(${a[0] + (b[0] - a[0]) * r},${a[1] + (b[1] - a[1]) * r})`);
       };
-      if (reduce) { items.forEach(it => place(it, 1)); done(); return; }
+      if (reduced()) { items.forEach(it => place(it, 1)); done(); return; }
       const longest = Math.max(...items.map(it => it.total));
       const dur = Math.max(700, longest * 2.2) / +speed.value;
       const t0 = performance.now();
@@ -252,19 +259,37 @@
         (e.key === "ArrowRight" ? bNext : bPrev).click();
       }
     });
+    if (motion && motion.addEventListener) motion.addEventListener("change", () => { if (reduced()) stop(); });
+    if (window.IntersectionObserver) {
+      new IntersectionObserver(es => es.forEach(e => { if (!e.isIntersecting && playing) stop(); })).observe(root);
+    }
+    document.addEventListener("visibilitychange", () => { if (document.hidden && playing) stop(); });
     choose(flows.find(f => f.id === scene.start) || flows[0]);
     return { stop, choose: id => choose(flows.find(f => f.id === id) || flows[0]) };
   }
   window.FlowScene = FlowScene;
 
-  // <div data-flow="ID"> loads flows/ID.json: the scene, with its code excerpts, if
+  // <div data-flow="ID"> plays the scene in <script type="application/json"
+  // data-flow-scene="ID"> when the page holds one (a journal: tools/journal/animate.py
+  // puts it there), else loads flows/ID.json: the scene, with its code excerpts, if
   // any, under "code". The root's data-flow-base names the folder that holds flows/.
+  const start = (root, scene) => {
+    try { root.flowScene = FlowScene(root, scene, scene.code || null); root.dataset.ready = "true"; }
+    catch (e) { root.textContent = L.failed; root.dataset.failed = "true"; }
+  };
   document.querySelectorAll("[data-flow]").forEach(root => {
+    const inline = [...document.querySelectorAll("script[data-flow-scene]")].find(s => s.dataset.flowScene === root.dataset.flow);
+    if (inline) {
+      let scene = null;
+      try { scene = JSON.parse(inline.textContent); } catch (e) { root.textContent = L.failed; root.dataset.failed = "true"; return; }
+      start(root, scene);
+      return;
+    }
     const at = root.closest("[data-flow-base]");
     const pre = at ? at.dataset.flowBase : "";
     fetch(pre + "flows/" + root.dataset.flow + ".json")
       .then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(scene => { root.flowScene = FlowScene(root, scene, scene.code || null); root.dataset.ready = "true"; })
+      .then(scene => start(root, scene))
       .catch(() => { root.textContent = L.failed; root.dataset.failed = "true"; });
   });
 })();

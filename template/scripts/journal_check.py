@@ -29,7 +29,12 @@ about whether an entry is right:
 - a *research* entry links at least one source, and an *intake* entry quotes
   the input it reads (a blockquote);
 - every project named under BRIEF.md's References is named in the opening entry;
-- every card the journal cites (card:spec.D20) exists (tools/ask.py).
+- every card the journal cites (card:spec.D20) exists (tools/ask.py);
+- every animation placed with <!--FLOW id=...--> has a scene in flows/ that
+  FlowScene's check accepts, with a status and, when measured, where its steps
+  came from; the page is up to date with flows/ (tools/journal/animate.py), and
+  no scene file is left unplaced;
+- every *plan* and *mockups* entry holds a picture or an animation.
 
 On CI the journal is usually absent, since it is never pushed; a missing
 journal is then reported and not failed. Everywhere else it fails.
@@ -167,6 +172,13 @@ def mockup_and_live_problems(found_blocks, page):
     return out
 
 
+def animation_problems(where):
+    """The journal's animations against their scene files (tools/journal/animate.py)."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "tools" / "journal"))
+    import animate  # noqa: E402
+    return animate.problems(where)
+
+
 def references(brief):
     """Names in bold under BRIEF.md's References section."""
     return [n.strip() for n in re.findall(r"^\s*[-*]\s+\*\*(.+?)\*\*", "\n".join(section(brief, "references") or []), re.M)]
@@ -272,6 +284,11 @@ def main(root):
         if choice != default and not re.search(rf"(?<![\w-]){re.escape(qid)}(?![\w.])", triage_text):
             problems.append(f"{qid} was answered {choice}, not the default {default}, and no TRIAGE.md row cites it")
     problems += mockup_and_live_problems(found_blocks, page)
+    problems += animation_problems(where)
+    for a, body, _ in found_blocks:
+        if a.get("data-kind") in ("plan", "mockups") and "<figure" not in body and 'role="figure"' not in body and "<!--FLOW id=" not in body:
+            problems.append(f"{a.get('data-kind')} entry {a.get('id')} has no picture or animation: draw the plan from the "
+                            "numbers the code will use (an animation in flows/, tools/journal/animate.py, or a figure)")
     for a, body, _ in found_blocks:
         if a.get("data-kind") == "research" and not re.search(r'href="https?://', body):
             problems.append(f"research entry {a.get('id')} links no source")

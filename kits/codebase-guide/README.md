@@ -18,7 +18,7 @@ Two projects built the same tools separately: the ToyTalk maintenance journal (i
 
 Then, in the project:
 
-1. Write the codebase's path in `notes/target` (one line). `tools/ask.py --target "question"` reads the same file, so the agent asks the codebase for cards before it greps.
+1. Write the codebase's path in `notes/target` (one line). `tools/guide/excerpts.py` and `scripts/target_unchanged.py` read it.
 2. Run `python3 scripts/target_unchanged.py --write` once, before reading anything, and commit `notes/target.sha256`.
 3. Keep excerpts in `data/excerpts.json`: `"key": ["path/in/codebase", first, last, "text on the first line"]`.
 4. Mark each journal tab or entry about the codebase `data-guide="measured"` or `data-guide="proposed"`, and give each excerpt shown on a page `data-excerpt="key"`.

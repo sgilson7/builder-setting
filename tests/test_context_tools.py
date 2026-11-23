@@ -1,19 +1,17 @@
-"""Tests for the work index and the context hooks (template/tools/ask.py,
-template/tools/context/). scripts/prove-checks.sh breaks each behaviour in a
+"""Tests for the context hooks (template/tools/context/) and the template's
+compaction cap. scripts/prove-checks.sh breaks each behaviour in a
 copy of the tools ($BUILDER_TOOLS) and requires these tests to fail.
 
     python3 -m unittest tests/test_context_tools.py
 """
 
 import importlib.util
-import io
 import json
 import os
 import subprocess
 import sys
 import tempfile
 import unittest
-from contextlib import redirect_stdout
 from pathlib import Path
 
 TOOLS = Path(os.environ.get("BUILDER_TOOLS") or Path(__file__).resolve().parents[1] / "template" / "tools")
@@ -35,56 +33,6 @@ def run_hook(name, data, env=None):
     return r.stdout.strip()
 
 
-class Vectors(unittest.TestCase):
-    def test_changed_text_is_embedded_again_and_unchanged_text_never(self):
-        v = ask.Vectors.__new__(ask.Vectors)
-        v.py, v.cache, v.dirty = "python", {}, False
-        calls = []
-        v._run = lambda texts, mode="doc": calls.append(list(texts)) or [[1.0, 0.0] for _ in texts]
-        card = {"id": "a", "title": "A", "text": "one"}
-        v.for_cards([card])
-        v.for_cards([card])
-        self.assertEqual(len(calls), 1)
-        v.for_cards([{**card, "text": "two"}])
-        self.assertEqual(len(calls), 2)
-
-
-class Fusion(unittest.TestCase):
-    def test_a_card_first_by_keywords_stays_in_the_top_three(self):
-        cards = [{"id": f"c{i}", "title": f"card {i}", "text": f"word{i} filler"} for i in range(8)]
-        cards[0]["text"] = "rollback netcode for online play"
-        idx = ask.Index(cards)
-        idx.vecs = [[0.0, 1.0]] + [[1.0, 0.0]] * 7      # the model ranks c0 last
-        idx.vectors = type("V", (), {"query": lambda self, q: [1.0, 0.0]})()
-        got = [c["id"] for c in idx.search("rollback netcode", 3)]
-        self.assertIn("c0", got)
-
-
-class Memory(unittest.TestCase):
-    def test_memory_off_answers_with_a_note(self):
-        out = subprocess.run([sys.executable, str(TOOLS / "ask.py"), "--mine", "anything"], capture_output=True, text=True,
-                             env={**os.environ, "BUILDER_MEMORY": "off"}).stdout
-        self.assertIn("work index is off", out)
-
-    def test_a_file_still_as_the_template_has_it_is_not_this_projects_work(self):
-        home = ask.builder_home()
-        if not home:
-            self.skipTest("Builder not on disk")
-        with tempfile.TemporaryDirectory() as d:
-            proj = Path(d) / "p"
-            (proj / "scripts").mkdir(parents=True)
-            (proj / "scripts" / "quiet.sh").write_bytes((home / "template" / "scripts" / "quiet.sh").read_bytes())
-            (proj / "scripts" / "mine.sh").write_text("#!/bin/sh\n# my own script\nhello() { echo hi; }\n")
-            old = ask.PROJECT
-            ask.PROJECT = proj
-            try:
-                ids = [c["id"] for c in ask.mine_cards()]
-            finally:
-                ask.PROJECT = old
-            self.assertTrue(any(i.startswith("mine.code.scripts.mine") for i in ids))
-            self.assertFalse(any(i.startswith("mine.code.scripts.quiet") for i in ids))
-
-
 class ContextWarning(unittest.TestCase):
     def transcript(self, d, ctx):
         p = Path(d) / "s.jsonl"
@@ -97,7 +45,7 @@ class ContextWarning(unittest.TestCase):
             (proj / "tools").mkdir(parents=True)
             (proj / "STATE.md").write_text("# State\n")
             (proj / "tools" / "ask.py").write_text("")
-            env = {"BUILDER_PROJECT": str(proj), "BUILDER_EMBED": "off", "CLAUDE_CODE_AUTO_COMPACT_WINDOW": ""}
+            env = {"BUILDER_PROJECT": str(proj), "CLAUDE_CODE_AUTO_COMPACT_WINDOW": ""}
             low = {"session_id": "s", "transcript_path": str(self.transcript(d, 150_000)), "tool_name": "Bash", "tool_input": {}}
             self.assertEqual(run_hook("after_tool.py", low, env), "")
             high = {**low, "transcript_path": str(self.transcript(d, 250_000))}
@@ -111,46 +59,44 @@ class ContextWarning(unittest.TestCase):
             (proj / "tools").mkdir(parents=True)
             (proj / "STATE.md").write_text("# State\n")
             (proj / "tools" / "ask.py").write_text("")
-            env = {"BUILDER_PROJECT": str(proj), "BUILDER_EMBED": "off", "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "200000"}
+            env = {"BUILDER_PROJECT": str(proj), "CLAUDE_CODE_AUTO_COMPACT_WINDOW": "200000"}
             at = {"session_id": "s", "transcript_path": str(self.transcript(d, 140_000)), "tool_name": "Bash", "tool_input": {}}
             self.assertIn("past the 133k mark", run_hook("after_tool.py", at, env))
 
 
-class PushRecall(unittest.TestCase):
-    def test_after_a_compaction_the_next_steps_cards_come_with_state(self):
-        # the platformer pair: the index arm asked --mine once in 208 calls, so the hook asks for it
+class AfterCompaction(unittest.TestCase):
+    def test_state_comes_back_and_no_index_is_asked(self):
         with tempfile.TemporaryDirectory() as d:
             proj = Path(d)
             (proj / "tools").mkdir()
             (proj / "STATE.md").write_text("# State\n\n## What is next\n\nTune the vine release boost.\n")
-            (proj / "tools" / "ask.py").write_text("import sys\nprint('── card:mine.code.vine.release  ' + ' '.join(sys.argv[1:]))\n")
+            (proj / "tools" / "ask.py").write_text("import sys\nprint('── card:mine.code.vine.release')\n")
             r = subprocess.run([sys.executable, str(TOOLS / "context" / "after_compact.py")], input="{}", capture_output=True,
-                               text=True, cwd=proj, env={**os.environ, "BUILDER_MEMORY": "on"}, timeout=60)
-            self.assertIn("card:mine.code.vine.release  --mine Tune the vine release boost.", r.stdout)
-            off = subprocess.run([sys.executable, str(TOOLS / "context" / "after_compact.py")], input="{}", capture_output=True,
-                                 text=True, cwd=proj, env={**os.environ, "BUILDER_MEMORY": "off"}, timeout=60)
-            self.assertIn("Tune the vine release boost.", off.stdout)
-            self.assertNotIn("card:mine", off.stdout)
+                               text=True, cwd=proj, timeout=60)
+            self.assertIn("Tune the vine release boost.", r.stdout)
+            self.assertNotIn("card:mine", r.stdout)
 
 
-class ReadAdvice(unittest.TestCase):
-    def test_long_whole_read_gets_its_parts_and_a_range_read_gets_nothing(self):
+class CompactionCap(unittest.TestCase):
+    SETTINGS = TOOLS.parent / ".claude" / "settings.json"
+
+    def test_the_template_compacts_at_300k_and_the_warning_comes_at_200k(self):
+        env = json.loads(self.SETTINGS.read_text()).get("env", {})
+        self.assertEqual(env.get("CLAUDE_CODE_AUTO_COMPACT_WINDOW"), "300000")
         with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "big.py"
-            f.write_text("\n".join(f"def f{i}():\n    return {i}\n" for i in range(200)))
-            out = run_hook("before_read.py", {"tool_name": "Read", "tool_input": {"file_path": str(f)}})
-            advice = json.loads(out)["hookSpecificOutput"]["additionalContext"]
-            self.assertIn("def f0 (line 1)", advice)
-            self.assertIn("def f11 (line 34)", advice)
-            self.assertEqual(run_hook("before_read.py", {"tool_name": "Read", "tool_input": {"file_path": str(f), "offset": 10}}), "")
-            self.assertEqual(run_hook("before_read.py", {"tool_name": "Read", "tool_input": {"file_path": str(f)}},
-                                      {"BUILDER_MEMORY": "off"}), "")
+            proj = Path(d) / "p"
+            (proj / "tools").mkdir(parents=True)
+            (proj / "STATE.md").write_text("# State\n")
+            (proj / "tools" / "ask.py").write_text("")
+            t = Path(d) / "s.jsonl"
+            t.write_text(json.dumps({"type": "assistant", "message": {"usage": {"input_tokens": 1, "cache_read_input_tokens": 210_000}}}) + "\n")
+            out = run_hook("after_tool.py", {"session_id": "s", "transcript_path": str(t), "tool_name": "Bash", "tool_input": {}},
+                           {"BUILDER_PROJECT": str(proj), "CLAUDE_CODE_AUTO_COMPACT_WINDOW": env["CLAUDE_CODE_AUTO_COMPACT_WINDOW"]})
+            self.assertIn("past the 200k mark", out)
 
-    def test_an_image_gets_no_advice(self):
-        with tempfile.TemporaryDirectory() as d:
-            f = Path(d) / "shot.png"
-            f.write_bytes(b"\x89PNG\r\n\x1a\n\0\0" + b"\n" * 2000)
-            self.assertEqual(run_hook("before_read.py", {"tool_name": "Read", "tool_input": {"file_path": str(f)}}), "")
+    def test_no_hook_reads_files_before_the_agent_does(self):
+        hooks = json.loads(self.SETTINGS.read_text())["hooks"]
+        self.assertNotIn("PreToolUse", hooks)
 
 
 if __name__ == "__main__":
