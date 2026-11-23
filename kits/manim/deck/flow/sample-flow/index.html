@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>From a scene file to the deck · Manim kit sample animations</title>
+<meta name="description" content="A scene file is rendered once, then played in the deck.">
+<link rel="stylesheet" href="../../manim/theme.css">
+<link rel="stylesheet" href="../../manim/deck.css">
+<link rel="stylesheet" href="../../manim/player.css">
+<link rel="stylesheet" href="../../manim/page.css">
+</head>
+<body data-theme-key="manim-kit-sample-theme" data-manim-base="../../">
+<header class="top">
+  <nav class="crumbs" aria-label="Where this page is"><a href="../../">Sample animations</a> <span aria-hidden="true">›</span> <a href="../">Scene files</a> <span aria-hidden="true">›</span> <span>1 of 1</span></nav>
+  <select id="nav-theme" class="pick" aria-label="Theme">
+    <option value="auto">Theme: system</option>
+    <option value="light">Theme: light</option>
+    <option value="dark">Theme: dark</option>
+  </select>
+</header>
+<main class="page">
+  <div class="eyebrow">Scene files · 1 of 1</div>
+  <h1>From a scene file to the deck</h1>
+  <p class="lead">A scene file is rendered once, then played in the deck.</p>
+  <div data-manim="sample-flow"></div>
+  <p class="from"><a href="../#sample-flow">This animation in the Scene files deck</a></p>
+
+  <h2>What it shows</h2>
+  <p>A scene file is rendered once into a clip and a final frame per step, and the player shows them in the deck.</p>
+
+  <h2>Every step</h2>
+  <ol class="steps">
+    <li>Write the animation as a scene file: boxes, lines and steps, in whole pixels and milliseconds.</li>
+    <li>Render it once, in light and dark: one clip and one final frame per step, and a manifest of what made them.</li>
+    <li>The player shows each clip in turn, or only the final frames when the reader asks for less motion.</li>
+  </ol>
+
+  <nav class="pager" aria-label="Other animations">
+    <span></span>
+    <a class="next" href="../../code/sample-dots/"><span>Next ›</span>Twelve dots, three ways</a>
+  </nav>
+</main>
+<footer class="foot">
+  <p>Rendered with <a href="https://www.manim.community/">Manim Community Edition</a> (MIT licence). Set in Public Sans and JetBrains Mono, under the SIL Open Font License; the licence texts are in <a href="../../fonts/PublicSans-OFL.txt">fonts/PublicSans-OFL.txt</a> and <a href="../../fonts/JetBrainsMono-OFL.txt">fonts/JetBrainsMono-OFL.txt</a>.</p>
+</footer>
+<script type="application/json" id="manim-labels">
+{"play": "Play", "pause": "Pause", "back": "‹ Back", "backName": "Previous step", "next": "Next ›", "nextName": "Next step", "restart": "Restart", "count": "step {n} of {of}", "everyStep": "Every step, as text", "failed": "This animation could not load its files. Open the page through a web server, not from disk."}
+</script>
+<script src="../../manim/page.js"></script>
+<script src="../../manim/player.js"></script>
+</body>
+</html>

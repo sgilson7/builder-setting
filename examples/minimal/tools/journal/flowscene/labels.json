@@ -1,0 +1,6 @@
+{"pick": "Flows", "picture": "Animation", "codePanel": "The code or contract for this step",
+ "back": "◀", "backName": "Previous step", "next": "▶", "nextName": "Next step", "play": "Play", "pause": "Pause",
+ "restart": "Restart", "speed": "Speed", "slow": "slow", "normal": "normal", "fast": "fast",
+ "kinds": {"req": "a request", "res": "a reply", "stream": "a stream (kept open)", "msg": "an event or queued message"},
+ "everyStep": "Every step as text", "noCode": "No code for this step", "count": "Step {n} of {of}",
+ "failed": "This animation could not load its scene."}

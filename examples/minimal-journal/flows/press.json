@@ -1,0 +1,224 @@
+{
+ "id": "press",
+ "title": "One press of Add, from the button to the screen",
+ "status": "measured",
+ "from": "examples/minimal: web/app.js, crates/shim/src/lib.rs, crates/core/src/api.rs act()",
+ "viewBox": "0 0 900 260",
+ "zones": [
+  {
+   "x": 20,
+   "y": 30,
+   "w": 250,
+   "h": 200,
+   "label": "Page (web/)",
+   "tone": "a"
+  },
+  {
+   "x": 300,
+   "y": 30,
+   "w": 180,
+   "h": 200,
+   "label": "Shim",
+   "tone": "b"
+  },
+  {
+   "x": 510,
+   "y": 30,
+   "w": 370,
+   "h": 200,
+   "label": "Core (crates/core)",
+   "tone": "c"
+  }
+ ],
+ "nodes": {
+  "btn": [
+   145,
+   90,
+   "Add button",
+   "client"
+  ],
+  "draw": [
+   145,
+   180,
+   "draw()",
+   "client"
+  ],
+  "shim": [
+   390,
+   130,
+   "act()",
+   "mod"
+  ],
+  "act": [
+   600,
+   90,
+   "api::act"
+  ],
+  "apply": [
+   790,
+   90,
+   "counter::apply"
+  ],
+  "view": [
+   700,
+   180,
+   "counter::view",
+   "store"
+  ]
+ },
+ "edges": [
+  [
+   "btn",
+   "shim"
+  ],
+  [
+   "shim",
+   "act"
+  ],
+  [
+   "act",
+   "apply"
+  ],
+  [
+   "apply",
+   "view"
+  ],
+  [
+   "view",
+   "shim"
+  ],
+  [
+   "shim",
+   "draw"
+  ]
+ ],
+ "code": {
+  "act": {
+   "file": "crates/core/src/api.rs",
+   "first": 47,
+   "lines": [
+    "pub fn act(settings_json: &str, state_json: &str, action: &str) -> String {",
+    "    let run = || -> Result<String, String> {",
+    "        let s = settings(settings_json)?;",
+    "        let state: State =",
+    "            serde_json::from_str(state_json).map_err(|e| format!(\"The state could not be read: {e}\"))?;",
+    "        let action: Action = serde_json::from_value(serde_json::Value::String(action.to_string()))",
+    "            .map_err(|_| format!(\"Unknown action \\\"{action}\\\".\"))?;",
+    "        let next = counter::apply(&s, state, action);",
+    "        Ok(ok(&Screen {",
+    "            view: counter::view(&s, next),",
+    "            settings: &s,",
+    "            state: next,",
+    "        }))",
+    "    };",
+    "    run().unwrap_or_else(error)"
+   ]
+  }
+ },
+ "flows": [
+  {
+   "id": "add",
+   "title": "Add",
+   "sum": "The page sends the action; the core decides the new count and describes the screen; the page draws it.",
+   "steps": [
+    {
+     "t": "The Add button calls act with the settings, the state the page holds and the action \"add\".",
+     "go": [
+      {
+       "path": [
+        "btn",
+        "shim"
+       ],
+       "kind": "req"
+      }
+     ]
+    },
+    {
+     "t": "The shim passes the three strings to the core unchanged; it decides nothing.",
+     "go": [
+      {
+       "path": [
+        "shim",
+        "act"
+       ],
+       "kind": "req"
+      }
+     ],
+     "c": "act",
+     "hl": [
+      47,
+      47
+     ]
+    },
+    {
+     "t": "The core reads the settings and the state, and refuses an action it does not know.",
+     "work": [
+      "act"
+     ],
+     "c": "act",
+     "hl": [
+      [
+       49,
+       53
+      ]
+     ]
+    },
+    {
+     "t": "counter::apply works out the next count, stopping at the maximum.",
+     "go": [
+      {
+       "path": [
+        "act",
+        "apply"
+       ],
+       "kind": "req"
+      }
+     ],
+     "c": "act",
+     "hl": [
+      54,
+      54
+     ]
+    },
+    {
+     "t": "counter::view describes the screen for that count: the number and which buttons are on.",
+     "go": [
+      {
+       "path": [
+        "apply",
+        "view"
+       ],
+       "kind": "req"
+      }
+     ],
+     "c": "act",
+     "hl": [
+      [
+       55,
+       59
+      ]
+     ]
+    },
+    {
+     "t": "The screen goes back through the shim to the page as JSON.",
+     "go": [
+      {
+       "path": [
+        "view",
+        "shim",
+        "draw"
+       ],
+       "kind": "res"
+      }
+     ]
+    },
+    {
+     "t": "draw() shows what the core described, and keeps the new state for the next press.",
+     "work": [
+      "draw"
+     ]
+    }
+   ]
+  }
+ ]
+}

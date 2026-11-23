@@ -1,0 +1,28 @@
+/* A deck of Manim players: one slide at a time, headings, the bottom bar. After the
+   MerryQuery deck's styles (the author's own deck, carried into Builder with their
+   approval, Manim Lab T8). Colours and fonts come from theme.css; --mark is the
+   eyebrow's colour, which theme.json does not carry. */
+:root { --mark: #a8521b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --mark: #f0a46d; } }
+:root[data-theme="dark"] { --mark: #f0a46d; }
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 17px/1.55 var(--body); }
+#deck > section { display: none; max-width: 1180px; margin: 0 auto; padding-block: 28px 120px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+#deck > section.cur { display: block; }
+.eyebrow { font: 600 .76em var(--mono); color: var(--mark); letter-spacing: .06em; text-transform: uppercase; }
+h1 { font: 700 2.4em/1.12 var(--body); margin: 10px 0 14px; text-wrap: balance; max-width: 900px; }
+h2 { font: 700 1.7em/1.2 var(--body); margin: 6px 0 10px; text-wrap: balance; }
+.lead { font-size: 1.12em; max-width: 780px; color: var(--muted); margin: 0 0 18px; }
+p { max-width: 75ch; }
+code { font: .86em var(--mono); overflow-wrap: anywhere; }
+a { color: var(--accent); }
+ol.units { margin: 0 0 14px; padding-left: 1.4em; } ol.units li { margin: 4px 0; }
+ol.units a { text-decoration: none; } ol.units a:hover { text-decoration: underline; }
+.from { font: .82em var(--mono); color: var(--muted); margin: 14px 0 0; max-width: 75ch; }
+.pnav { position: fixed; left: 0; right: 0; bottom: 0; z-index: 6; display: flex; gap: 10px; align-items: center; justify-content: center;
+  flex-wrap: wrap; background: var(--bg); border-top: 1px solid var(--line);
+  padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+.pnav .count { font: .88em var(--mono); color: var(--muted); min-width: 5.5em; text-align: center; }
+.pnav select { font: inherit; font-size: .88em; color: var(--fg); background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 5px 8px; max-width: 46vw; }

@@ -5,8 +5,12 @@
 #
 #   ./scripts/quick-check.sh [BASE] [--dry-run]
 #   ./scripts/quick-check.sh --full
+# Quiet by default, like check.sh; BUILDER_LOUD=1 prints everything.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+if [ -z "${BUILDER_LOUD:-}${CI:-}${BUILDER_QUIET_INNER:-}" ]; then
+  BUILDER_QUIET_INNER=1 exec ./scripts/quiet.sh ./scripts/quick-check.sh "$@"
+fi
 PY="${BUILDER_PYTHON:-}"
 if [ -z "$PY" ]; then
   if [ -x .venv/bin/python ]; then PY=.venv/bin/python; else PY=python3; fi

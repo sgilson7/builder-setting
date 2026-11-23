@@ -1,0 +1,32 @@
+{
+  "about": "One palette for the Manim renders and the deck's player. The colours come from two decks built alongside Builder, the SnapClass guide's FlowScene engine and the MerryQuery deck, by way of Manim Lab. tools/manim/theme.py writes deck/manim/theme.css from this file; the renderer reads it directly. Text sizes are SVG pixels in the scene's own units. Change the palette here, run theme.py, and render again: every manifest goes stale until you do.",
+  "fonts": {
+    "body": {"family": "Public Sans", "file": "deck/fonts/PublicSans-wght.ttf", "licence": "deck/fonts/PublicSans-OFL.txt"},
+    "mono": {"family": "JetBrains Mono", "file": "deck/fonts/JetBrainsMono-wght.ttf", "licence": "deck/fonts/JetBrainsMono-OFL.txt"}
+  },
+  "render": {"scale": 2, "fps": 50},
+  "text": {
+    "node": {"font": "body", "px": 12.5, "weight": "normal", "colour": "fg"},
+    "zone": {"font": "body", "px": 12, "weight": "semibold", "colour": "muted", "upper": true},
+    "lab": {"font": "body", "px": 13, "weight": "bold", "colour": "fg"},
+    "small": {"font": "body", "px": 11, "weight": "normal", "colour": "muted"},
+    "mono": {"font": "mono", "px": 11, "weight": "normal", "colour": "muted"},
+    "note": {"font": "body", "px": 13, "weight": "normal", "colour": "fg"}
+  },
+  "stroke": {"zone": 1, "edge": 1.5, "box": 1.2, "store": 2, "lit": 2.4, "live": 3, "mark": 1.5},
+  "opacity": {"later": 22, "live": 55},
+  "light": {
+    "bg": "#fbfcfc", "panel": "#ffffff", "fg": "#1c2629", "muted": "#5a6a6e", "line": "#d6dfe0",
+    "accent": "#0f6b6b", "ok": "#2f7d4f", "bad": "#b8452f",
+    "lit": "#fff4c9", "lit_line": "#c79a12",
+    "req": "#2b62a0", "res": "#2f7d4f", "stream": "#b8452f", "msg": "#7a4fb0",
+    "zone_a": ["#2b62a0", 6], "zone_b": ["#2f7d4f", 7], "zone_c": ["#7a4fb0", 7], "zone_d": ["#b8452f", 6]
+  },
+  "dark": {
+    "bg": "#121819", "panel": "#182123", "fg": "#e2eaea", "muted": "#9db0b2", "line": "#2b3a3d",
+    "accent": "#6cc4c0", "ok": "#7fcf9c", "bad": "#ec8b74",
+    "lit": "#3b3415", "lit_line": "#e0c15a",
+    "req": "#86b2e4", "res": "#7fcf9c", "stream": "#ec8b74", "msg": "#c3a3ef",
+    "zone_a": ["#86b2e4", 8], "zone_b": ["#7fcf9c", 8], "zone_c": ["#c3a3ef", 8], "zone_d": ["#ec8b74", 8]
+  }
+}

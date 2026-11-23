@@ -10,6 +10,7 @@
 #
 #   ./scripts/prove-checks.sh
 set -euo pipefail
+export BUILDER_LOUD=1   # each planted defect is judged on the full output
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SRC="$ROOT/examples/minimal"
 WORK="$(mktemp -d "${TMPDIR:-/tmp}/builder-prove.XXXXXX")"
@@ -374,7 +375,7 @@ add_entry agreed "" 2026-10-20 "<h3>Your answers</h3><p>MC-Q1: B.</p>"
 expect_failure "an answer that overrides the default with no triage row" "not the default A, and no TRIAGE.md row cites it" journal
 
 fresh
-add_entry mockups "" 2026-10-20 "<h3>The counter, drawn</h3>"
+add_entry mockups "" 2026-10-20 "<h3>The counter, drawn</h3><figure><img src=\"img/counter.svg\" alt=\"The counter\"></figure>"
 add_entry live 'data-commit="abc1234"' 2026-10-21 "<h3>Published</h3>"
 "$PY" - "$WORK/p-journal/index.html" <<'EOF2'
 import sys; p = sys.argv[1]; s = open(p).read()
@@ -387,6 +388,14 @@ expect_failure "a deploy after mockups with no against-the-mockup entry" "with n
 fresh
 add_entry live 'data-commit="abc1234"' 2026-10-21 "<h3>Published</h3>"
 expect_failure "a Live now page that names an older deploy" "Live now says nothing is deployed" journal
+
+fresh
+add_entry plan "" 2026-10-20 "<h3>The plan</h3><p>Build the counter, then the reset.</p>"
+expect_failure "a plan entry with no picture or animation" "plan entry plan-2026-10-20 has no picture or animation" journal
+
+fresh
+add_entry plan "" 2026-10-20 "<h3>The plan</h3><!--FLOW id=nowhere--><!--/FLOW-->"
+expect_failure "an animation placed with no scene file" "flows/nowhere.json does not exist" journal
 
 fresh
 add_entry research "" 2026-10-20 "<h3>What other counters do</h3><p>Two counters, unnamed.</p>"
@@ -527,6 +536,248 @@ with zipfile.ZipFile(p) as zin, zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) 
 shutil.move(tmp, p)
 EOF2
 expect_failure "a blank template that carries an author's name" "test_the_blank_templates_carry_no_author" kit_tests
+
+# Context (D24-D26): cards, STATE.md, digests and quiet runs
+context() { "$PY" scripts/context_check.py; }
+
+fresh
+add_entry research '' 2026-11-06 '<h3>Read</h3><p>From <a href="https://example.org/">a source</a>, held by card:claude.r99.</p>'
+expect_failure "a journal entry citing a card that does not exist" "cites card:claude.r99, which does not exist" journal
+
+fresh
+"$PY" -c "import sys; open(sys.argv[1], 'a').write('\n' + 'Too much carried over. ' * 400)" "$WORK/p/STATE.md"
+expect_failure "a STATE.md longer than two pages" "STATE.md is" context
+
+fresh
+(cd "$WORK/p" && git init -q && git add -A && git -c user.name=p -c user.email=p@p commit -qm planted)
+sed -i.bak 's/^Commit: .*/Commit: 0123abc/' "$WORK/p/STATE.md" && rm "$WORK/p/STATE.md.bak"
+expect_failure "a STATE.md naming a commit the repository does not have" "names commit 0123abc, which this repository does not have" context
+
+fresh
+printf '\n`card:claude.r99`\n' >> "$WORK/p/STATE.md"
+expect_failure "a STATE.md citing a card that does not exist" "STATE.md cites card:claude.r99" context
+
+fresh
+mkdir -p "$WORK/refs"
+(cd "$WORK/p" && "$PY" tools/digest.py "$WORK/p" --out "$WORK/refs/planted.md" >/dev/null)
+"$PY" - "$WORK/p/BRIEF.md" <<'EOF2'
+import sys; p = sys.argv[1]; s = open(p).read()
+s += "\n## References\n\n- **Planted** (../refs/planted.md): its counter\n"
+open(p, "w").write(s)
+EOF2
+expect_failure "a digest named in the brief whose What to copy was never written" "still says TO FILL" context
+
+fresh
+expect_failure "a quiet run that would hide a failing command" "FAILED (exit 3)" ./scripts/quiet.sh sh -c 'echo planted failure; exit 3'
+
+# the next two need Builder itself on disk: a copy of this repository, minus builds
+builder_copy() {
+  rm -rf "$WORK/b"; mkdir -p "$WORK/b"
+  (cd "$ROOT" && tar --exclude=./template/target --exclude=./template/dist --exclude=./template/.venv \
+     --exclude=./examples --exclude=./.venv --exclude=./.git --exclude='*/target' -cf - .) | (cd "$WORK/b" && tar -xf -)
+}
+cards_in_copy() { BUILDER_HOME="$WORK/b" "$PY" "$WORK/b/template/tools/ask.py" "$@"; }
+
+fresh; builder_copy
+sed -i.bak 's/^## How to read Builder$/## Reading Builder/' "$WORK/b/docs/context.md" && rm "$WORK/b/docs/context.md.bak"
+expect_failure "a renamed heading that drops a card from the start pack" "the start pack names card docs.context.how-to-read-builder" cards_in_copy --check
+
+fresh; builder_copy
+sed -i.bak 's/^## Copying a kit$/## Bringing one in/' "$WORK/b/kits/README.md" && rm "$WORK/b/kits/README.md.bak"
+expect_failure "a renamed heading that BuilderQA's answer depended on" "names card kits.readme.copying-a-kit, which does not exist" cards_in_copy --qa "$WORK/b/tests/builderqa.json"
+
+# Round four (D28-D29): quiet checks, a STATE.md kept current, the deck, the context hooks
+# and the codebase-guide kit; round five: the 300k compaction cap
+plant() {  # plant FILE OLD NEW: a scripted edit that asserts it matched
+  "$PY" - "$1" "$2" "$3" <<'EOF2'
+import sys; p, old, new = sys.argv[1:]; s = open(p).read()
+assert old in s, (p, old)
+open(p, "w").write(s.replace(old, new, 1))
+EOF2
+}
+
+fresh
+printf '\npub fn   badly_formatted( ) {}\n' >> "$WORK/p/crates/core/src/counter.rs"
+expect_failure "a failing step in a quiet check.sh still names itself" "last step: == 1/9 format" env -u BUILDER_LOUD -u CI ./scripts/check.sh
+
+fresh
+(cd "$WORK/p" && git init -q && git add -A && git -c user.name=p -c user.email=p@p commit -qm planted \
+  && printf '| T9 | "make the counter count by twos" | planted | | | | |\n' >> TRIAGE.md \
+  && git -c user.name=p -c user.email=p@p commit -qam "planted request")
+expect_failure "a request recorded after STATE.md was last rewritten" "TRIAGE.md changed in" context
+
+fresh
+(cd "$WORK/p" && "$PY" tools/journal/present.py >/dev/null)
+add_entry research '' 2026-11-07 '<h3>Later</h3><p>From <a href="https://example.org/">a source</a>.</p>'
+expect_failure "a deck built before the journal's newest entry" "the deck is out of date" "$PY" tools/journal/present.py --check
+
+tools_copy() { rm -rf "$WORK/t"; mkdir -p "$WORK/t"; (cd "$ROOT/template" && tar --exclude=__pycache__ -cf - tools .claude) | (cd "$WORK/t" && tar -xf -); }
+tools_tests() { BUILDER_HOME="$ROOT" BUILDER_TOOLS="$WORK/t/tools" "$PY" -m unittest discover -s "$ROOT/tests" -p test_context_tools.py; }
+tools_copy; plant "$WORK/t/tools/context/after_tool.py" 'if band <= seen.get(sid, -1):' 'if False:'
+expect_failure "a context warning repeated on every call" "test_warns_once_past_200k" tools_tests
+tools_copy; plant "$WORK/t/tools/context/after_tool.py" 'return min(mark, cap * 2 // 3) if cap > 0 else mark' 'return mark'
+expect_failure "a warning mark the compaction cap never lets the context reach" "test_under_a_200k_cap" tools_tests
+
+tools_copy; plant "$WORK/t/tools/context/after_compact.py" '        print(state.read_text())' '        pass'
+expect_failure "STATE.md left out after a compaction" "test_state_comes_back_and_no_index_is_asked" tools_tests
+tools_copy; plant "$WORK/t/.claude/settings.json" '"300000"' '"200000"'
+expect_failure "the template's compaction cap set back to 200k" "test_the_template_compacts_at_300k" tools_tests
+
+# Round five: the journal's animations (tools/journal/animate.py), each test against a planted defect
+anim_tests() { BUILDER_TOOLS="$WORK/t/tools" "$PY" -m unittest discover -s "$ROOT/tests" -p test_journal_animate.py; }
+tools_copy; plant "$WORK/t/tools/journal/animate.py" 'for s in f["steps"])' 'for s in [])'
+expect_failure "an animation with no step list as text" "test_a_placed_scene_becomes_a_figure" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '.replace("</", "<\\/")' ''
+expect_failure "a step whose words end the scene's script early" "test_closing_script_text" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '    if fresh != page:' '    if False:'
+expect_failure "a page left out of date with its scene files" "test_an_edited_scene_leaves" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '            page = page.rstrip("\n") + "\n" + block + "\n"' '            pass'
+expect_failure "a page with no </body> left without the engine" "test_a_page_without_a_closing_body_tag" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '        if p.stem not in placed:' '        if False:'
+expect_failure "a scene file placed in no entry" "test_a_scene_placed_in_no_entry" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '    if status == "measured" and not' '    if False and not'
+expect_failure "a measured scene that does not say where its steps came from" "test_a_measured_scene_says" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/animate.py" '    if status not in STATUS:' '    if False:'
+expect_failure "a scene with no status" "test_a_scene_without_a_status" anim_tests
+tools_copy; plant "$WORK/t/tools/journal/flowscene/check.py" '                    if (a, b) not in drawn:' '                    if False:'
+expect_failure "the journal's copy of the scene check lets a mark cross empty space" "test_a_mark_between_unjoined_boxes" anim_tests
+
+guide_copy() { rm -rf "$WORK/g"; mkdir -p "$WORK/g"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - codebase-guide) | (cd "$WORK/g" && tar -xf -); }
+guide_tests() { "$PY" -m unittest discover -s "$WORK/g/codebase-guide/tests"; }
+guide_copy; plant "$WORK/g/codebase-guide/tools/guide/excerpts.py" "if must not in lines[first - 1]:" "if False:"
+expect_failure "an excerpt whose function moved" "test_moved_function_fails" guide_tests
+guide_copy; plant "$WORK/g/codebase-guide/scripts/target_unchanged.py" "added = sorted(set(now) - set(then))" "added = []"
+expect_failure "an install inside the read-only codebase" "test_edit_addition_and_install_fail" guide_tests
+guide_copy; plant "$WORK/g/codebase-guide/scripts/target_unchanged.py" "        if manifest.exists():" "        if False:"
+expect_failure "a manifest written over" "test_manifest_is_written_once" guide_tests
+guide_copy; plant "$WORK/g/codebase-guide/tools/guide/labels.py" 'elif kind == "proposed":' 'elif False:'
+expect_failure "a proposed part that shows code" "test_proposed_part_with_code_fails" guide_tests
+guide_copy; plant "$WORK/g/codebase-guide/tools/guide/labels.py" "            if not cited:" "            if False:"
+expect_failure "a measured part with no code" "test_measured_part_without_code_fails" guide_tests
+
+
+# The Manim kit's tests, each against a planted defect in a copy of the kit.
+manim_copy() { rm -rf "$WORK/m" "$WORK/p"; mkdir -p "$WORK/m" "$WORK/p"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - manim) | (cd "$WORK/m" && tar -xf -); }
+manim_tests() { "$PY" -m unittest discover -s "$WORK/m/manim/tests/manim"; }
+manim_page() { BUILDER_ENGINES=chromium "$PY" "$WORK/m/manim/tests/manim/page_check.py"; }
+M="$WORK/m/manim"
+manim_copy; plant "$M/deck/scenes/sample-flow.json" '"move_ms": 800' '"move_ms": 810'
+expect_failure "a committed scene file whose move is not whole frames" "test_the_committed_scenes_are_valid" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" "if nid not in nodes:" "if False:"
+expect_failure "a scene naming a missing node" "test_a_scene_naming_a_missing_node_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'for nid in s.get("light", []):' "for nid in []:"
+expect_failure "a lit node the scene lacks" "test_a_lit_node_that_does_not_exist_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if not s["t"].strip():' "if False:"
+expect_failure "a step without words" "test_a_step_without_words_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" "    if isinstance(value, float):" "    if False:"
+expect_failure "a fraction in a scene file" "test_a_scene_with_a_fraction_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if s["move_ms"] % fm:' "if False:"
+expect_failure "a move that is not whole frames" "test_a_move_that_is_not_whole_frames_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if s["move_ms"] < scene["fade_ms"]:' "if False:"
+expect_failure "a move shorter than the fade" "test_a_move_shorter_than_the_fade_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" "            if style not in styles:" "            if False:"
+expect_failure "a text style the theme lacks" "test_a_text_style_the_theme_lacks_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" "sort_keys=True" "sort_keys=False"
+expect_failure "a scene hash that depends on key order" "test_the_scene_hash_ignores_key_order" manim_tests
+manim_copy; plant "$M/tools/manim/geometry.py" "s = min(sx, sy)" "s = max(sx, sy)"
+expect_failure "an edge that leaves its box at the farther edge" "test_the_border_point_by_hand" manim_tests
+manim_copy; plant "$M/tools/manim/geometry.py" "return 3 * u * u * t * p1 + 3 * u * t * t * p2 + t ** 3" "return 3 * u * u * t * p1 + 3 * u * t * t * p2"
+expect_failure "an ease without its cubic term" "test_the_css_ease_by_hand" manim_tests
+manim_copy; plant "$M/tools/manim/mp4.py" "for k in range(n))" "for k in range(n)) + 1"
+expect_failure "an MP4 reader that counts one frame too many" "test_the_reader_counts_frames_in_a_hand_built_file" manim_tests
+manim_copy; plant "$M/tools/manim/mp4.py" '        raise ValueError("not an MP4 file: no ftyp box first")' "        return {}"
+expect_failure "an MP4 reader that accepts any file" "test_the_reader_refuses_a_file_that_is_not_mp4" manim_tests
+manim_copy; plant "$M/deck/media/sample-flow/manifest.json" '"clip": "light/step-03.mp4"' '"clip": "light/step-04.mp4"'
+expect_failure "a manifest naming a clip that does not exist" "test_every_step_has_a_clip_and_a_final_frame_in_each_theme" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if m["scene_sha256"] != scenefile.scene_hash(scene):' "if False:"
+expect_failure "a scene edited after its render, unseen" "test_a_scene_edited_after_its_render_is_stale" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if m["theme_sha256"] != scenefile.scene_hash(theme):' "if False:"
+expect_failure "a changed theme, unseen" "test_a_changed_theme_makes_the_render_stale" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if scenefile.sha256(data) != row["sha256"] or len(data) != row["bytes"]:' "if False:"
+expect_failure "a swapped clip, unseen" "test_a_swapped_clip_fails_its_hash" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" "if not clip.exists() or not png.exists():" "if not clip.exists():"
+expect_failure "a missing final frame, unseen" "test_a_missing_final_frame_fails" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if info["frames"] != step["move_ms"] // fm or info["ms"] != step["move_ms"]:' "if False:"
+expect_failure "a clip whose length disagrees with the scene" "test_a_clip_whose_length_disagrees_with_the_scene_fails" manim_tests
+manim_copy; plant "$M/data/manim/budget.json" '"clip_bytes": 1048576' '"clip_bytes": 40000'
+expect_failure "a clip over the budget" "test_the_media_fits_the_budget" manim_tests
+manim_copy; plant "$M/tools/manim/manifest.py" 'if biggest > budget["clip_bytes"]:' "if False:"
+expect_failure "a clip budget that is not checked" "test_a_tight_budget_fails" manim_tests
+manim_copy; plant "$M/tools/manim/theme.py" 'name = "--" + k.replace("_", "-")' 'name = "--" + k'
+expect_failure "theme CSS that is not what theme.json writes" "test_the_theme_css_matches_theme_json" manim_tests
+manim_copy; plant "$M/README.md" '`deck/fonts/PublicSans-wght.ttf`' '`deck/fonts/PublicSans.ttf`'
+expect_failure "a font without its licence row" "test_every_font_the_renderer_registers_is_in_licenses" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if not (ROOT / scene["code"]).is_file():' "if False:"
+expect_failure "a code scene without its code" "test_a_code_scene_whose_code_is_missing_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" 'if s["move_ms"] <= 0 or s["move_ms"] % fm:' 'if s["move_ms"] <= 0:'
+expect_failure "a code step that is not whole frames" "test_a_code_step_that_is_not_whole_frames_is_refused" manim_tests
+manim_copy; plant "$M/tools/manim/scene.py" '        scene["code_sha256"] = sha256((ROOT / scene["code"]).read_bytes())' "        pass"
+expect_failure "code left out of its scene's hash" "test_the_code_is_part_of_the_render_it_made" manim_tests
+manim_copy; plant "$M/tests/manim/test_manim.py" "lambda m: \" \" if m[0].startswith(\"/\") else '\"\"'" 'lambda m: ""'
+expect_failure "a JavaScript scanner that blanks code too" "test_code_of_blanks_comments_and_strings" manim_tests
+manim_copy; plant "$M/deck/manim/player.js" "const steps = scene.steps, last = steps.length - 1;" "const steps = scene.steps, last = steps.length - 2;"
+expect_failure "a number in the player" "test_the_player_holds_no_number_but_0_and_1" manim_tests
+manim_copy; plant "$M/deck/manim/player.js" "      words(now, steps[i].t);" "      now.innerHTML += steps[i].t;"
+expect_failure "step words set as HTML" "test_the_player_parses_no_html" manim_tests
+manim_copy; plant "$M/deck/manim/player.js" "if (!animate || reduceQ.matches) {" "if (!animate) {"
+expect_failure "a player that plays clips under reduced motion" "reduced motion: sample-flow's Next plays no clip" manim_page
+manim_copy; plant "$M/deck/manim/player.js" $'      clearTimeout(timer);\n      vid.pause();\n' ""
+expect_failure "a Pause that leaves the clip playing" "FAIL Pause stops the clip and the timer" manim_page
+
+manim_site() { "$PY" -m unittest discover -s "$WORK/m/manim/tests/manim" -p "test_site.py"; }
+manim_copy; printf '<!-- edited by hand -->\n' >> "$M/deck/flow/index.html"
+expect_failure "a site page edited by hand" "test_the_pages_on_disk_are_current" manim_site
+manim_copy; plant "$M/tools/manim/sitepages.py" "base = f' data-manim-base=\"{pre}\"' if pre else ''" "base = ''"
+expect_failure "an animation's page without data-manim-base" "test_every_animation_has_its_own_route" manim_site
+manim_copy; plant "$M/tools/manim/sitepages.py" "own = f'{s[\"scene\"]}/' if unit else f'{u[\"id\"]}/{s[\"scene\"]}/'" "own = f'{s[\"scene\"]}/'"
+expect_failure "the deck links to a page by the wrong folder" "test_every_link_on_the_site_resolves" manim_site
+manim_copy; plant "$M/tools/manim/sitepages.py" "n = rows[i + 1]" "n = rows[i]"
+expect_failure "the pager's Next points at its own page" "test_the_pager_walks_every_animation_in_deck_order" manim_site
+manim_copy; plant "$M/tools/manim/sitepages.py" "if dupes or missing or unlisted:" "if dupes or missing:"
+expect_failure "a scene in no unit" "test_a_scene_in_no_unit_is_refused" manim_site
+manim_copy; plant "$M/data/manim/site.json" '"All {n} animations as one deck"' '"All 2 animations as one deck"'
+expect_failure "a count typed into site.json" "test_counts_are_computed" manim_site
+manim_copy; plant "$M/tools/manim/publish.py" "kept = {k: scene[k] for k in SCENE_KEEP}" "kept = scene"
+expect_failure "scene files published whole, source and all" "test_nothing_published_names_a_source" manim_site
+manim_copy; plant "$M/tools/manim/publish.py" '"manim/page.js", ' ''
+expect_failure "page.js left out of the published site" "test_every_file_a_page_needs_is_published" manim_site
+manim_copy; plant "$M/deck/manim/deck.js" "if (k < 0 || k > slides.length - 1) return;" "if (k < 0 || k > slides.length - 2) return;"
+expect_failure "a number in the slide script" "test_the_player_holds_no_number_but_0_and_1" manim_tests
+manim_copy; plant "$M/deck/manim/page.js" "else localStorage.setItem(key, pick.value);" "else localStorage.removeItem(key);"
+expect_failure "a theme forgotten between pages" "FAIL the theme chosen on one page holds on the next" manim_page
+
+# The FlowScene kit's tests, each against a planted defect in a copy of the kit.
+flow_copy() { rm -rf "$WORK/f" "$WORK/p"; mkdir -p "$WORK/f" "$WORK/p"; (cd "$ROOT/kits" && tar --exclude=__pycache__ -cf - flowscene) | (cd "$WORK/f" && tar -xf -); }
+flow_tests() { "$PY" -m unittest discover -s "$WORK/f/flowscene/tests/flowscene"; }
+flow_page() { BUILDER_ENGINES=chromium "$PY" "$WORK/f/flowscene/tests/flowscene/page_check.py"; }
+F="$WORK/f/flowscene"
+flow_copy; plant "$F/deck/flows/sample.json" '{"path": ["page", "api"], "kind": "req"}], "t": "The page sends' '{"path": ["page", "db"], "kind": "req"}], "t": "The page sends'
+expect_failure "a committed scene with a mark between unjoined boxes" "test_the_committed_scenes_are_valid" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" "                for nid in path:" "                for nid in []:"
+expect_failure "a path through a missing node" "test_a_path_through_a_missing_node_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" "for a, b in zip(path, path[1:]):" "for a, b in []:"
+expect_failure "a mark between unjoined boxes" "test_a_mark_between_unjoined_nodes_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" 'if not (c["first"] <= a <= b <= last):' "if False:"
+expect_failure "a highlight outside its excerpt" "test_a_highlight_outside_its_excerpt_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" 'if s["c"] not in code:' "if False:"
+expect_failure "an excerpt the scene lacks" "test_an_excerpt_the_scene_lacks_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" "if not isinstance(v, str) or not v.strip():" "if not isinstance(v, str):"
+expect_failure "a step without words" "test_a_step_without_words_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" 'if m.get("kind") not in MARK_KINDS:' "if False:"
+expect_failure "an unknown mark kind" "test_an_unknown_mark_kind_is_refused" flow_tests
+flow_copy; plant "$F/tools/flowscene/check.py" "if isinstance(v, bool) or not isinstance(v, int):" "if False:"
+expect_failure "a fraction in a node" "test_a_fraction_in_a_node_is_refused" flow_tests
+flow_copy; plant "$F/deck/flowscene/engine.js" "L.restart)" "L.restartNow)"
+expect_failure "a label the sample page lacks" "test_every_label_the_engine_reads_is_on_the_sample_page" flow_tests
+flow_copy; plant "$F/deck/flowscene/engine.js" 'htmlEl("button", "fx-play", ctl, L.play)' 'htmlEl("button", "fx-play", ctl, "Play")'
+expect_failure "a word written into the engine" "test_the_engine_holds_no_words_of_its_own" flow_tests
+flow_copy; plant "$F/deck/flowscene/engine.js" 'now.textContent = (at + 1) + ". " + step.t;' 'now.innerHTML = (at + 1) + ". " + step.t;'
+expect_failure "step words set as HTML" "test_the_engine_parses_no_html" flow_tests
+flow_copy; plant "$F/deck/flowscene/engine.js" "      if (reduced()) { items.forEach(it => place(it, 1)); done(); return; }
+" ""
+expect_failure "an engine that ignores reduced motion" "FAIL reduced motion: the mark is placed at once" flow_page
+flow_copy; plant "$F/deck/flowscene/engine.js" "function stop() { playing = false; clearTimeout(timer); bPlay.textContent = L.play; }" "function stop() { bPlay.textContent = L.play; }"
+expect_failure "a Pause that leaves the timer running" "FAIL Pause holds the step" flow_page
 
 echo
 echo "caught $pass, missed $fail"

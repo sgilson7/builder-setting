@@ -20,10 +20,25 @@ scripts/quick_check.py
 scripts/quick-check.sh
 tests/tags.toml
 scripts/journal_check.py
+scripts/context_check.py
+scripts/quiet.sh
+tools/ask.py
+tools/tokens.py
+tools/digest.py
+tools/context/after_compact.py
+tools/context/after_tool.py
+tools/context/hooklib.py
+tools/journal/present.py
+.claude/settings.json
 tools/journal/index.html
 tools/journal/ENTRIES.md
 tools/journal/new_journal.py
 tools/journal/decisions.py
+tools/journal/animate.py
+tools/journal/flowscene/engine.js
+tools/journal/flowscene/engine.css
+tools/journal/flowscene/check.py
+tools/journal/flowscene/labels.json
 .claude/skills/design-journal/SKILL.md
 scripts/count-tests.sh
 scripts/publish.sh
@@ -44,6 +59,13 @@ for f in $SHARED; do
   if ! cmp -s "template/$f" "examples/minimal/$f"; then
     echo "differs: template/$f examples/minimal/$f"; bad=1
   fi
+done
+# the FlowScene kit and the journal play the same engine and check the same scenes
+for pair in "kits/flowscene/deck/flowscene/engine.js template/tools/journal/flowscene/engine.js" \
+            "kits/flowscene/deck/flowscene/engine.css template/tools/journal/flowscene/engine.css" \
+            "kits/flowscene/tools/flowscene/check.py template/tools/journal/flowscene/check.py"; do
+  set -- $pair
+  if ! cmp -s "$1" "$2"; then echo "differs: $1 $2"; bad=1; fi
 done
 if ! cmp -s BUILDER-SPEC.md template/BUILDER-SPEC.md; then
   echo "differs: BUILDER-SPEC.md template/BUILDER-SPEC.md"; bad=1

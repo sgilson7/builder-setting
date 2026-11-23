@@ -30,7 +30,7 @@ from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-ORDER = ["fmt", "clippy", "core", "build", "wasm", "art", "notebook", "journal", "browser"]
+ORDER = ["fmt", "clippy", "core", "build", "wasm", "art", "notebook", "context", "journal", "browser"]
 
 
 def py():
@@ -49,6 +49,7 @@ COMMANDS = {
     "wasm": lambda: [py(), "scripts/wasm_imports.py", "dist"],
     "art": lambda: [py(), "tests/art_check.py"] if (ROOT / "tests/art_check.py").exists() else ["true"],
     "notebook": lambda: [py(), "scripts/notebook_check.py"],
+    "context": lambda: [py(), "scripts/context_check.py"],
     "journal": lambda: [py(), "scripts/journal_check.py"],
     "browser": lambda: [py(), "tests/browser/check.py"],
 }

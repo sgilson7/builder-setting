@@ -1,0 +1,478 @@
+[
+ {
+  "q": "where do application rules go",
+  "cards": [
+   "spec.R1",
+   "claude.r2",
+   "docs.architecture.core"
+  ]
+ },
+ {
+  "q": "can the core read the clock or use random numbers",
+  "cards": [
+   "spec.R2",
+   "spec.D2",
+   "code.core.tests.boundary.NONDETERMINISM_IDENTIFIERS"
+  ]
+ },
+ {
+  "q": "which test stops the core doing input or output",
+  "cards": [
+   "code.core.tests.boundary.core_source_has_no_io_and_no_nondeterminism",
+   "spec.R2",
+   "code.core.tests.boundary.IO_IDENTIFIERS"
+  ]
+ },
+ {
+  "q": "what crates may the core depend on",
+  "cards": [
+   "spec.R3",
+   "spec.D1",
+   "code.core.tests.boundary.ALLOWED_DEPENDENCIES",
+   "code.core.tests.boundary.core_dependencies_are_on_the_allowlist"
+  ]
+ },
+ {
+  "q": "what is the shim allowed to do",
+  "cards": [
+   "spec.R5",
+   "claude.r3",
+   "docs.architecture.shim",
+   "code.core.tests.boundary.shim_decides_nothing"
+  ]
+ },
+ {
+  "q": "can the page JavaScript hold numbers or use Math",
+  "cards": [
+   "spec.D3",
+   "code.core.tests.boundary.PAGE_FORBIDDEN_IDENTIFIERS",
+   "code.core.tests.boundary.page_keeps_no_rule_and_names_no_other_origin"
+  ]
+ },
+ {
+  "q": "content security policy every page must set",
+  "cards": [
+   "spec.D4",
+   "code.core.tests.boundary.every_page_sets_the_content_security_policy",
+   "kits.privacy.the-csp"
+  ]
+ },
+ {
+  "q": "floats are banned, how do I do physics geometry",
+  "cards": [
+   "spec.D2",
+   "kits.realtime.integer-maths-and-chance"
+  ]
+ },
+ {
+  "q": "how does the page get the screen from the core ui and act",
+  "cards": [
+   "spec.R4",
+   "claude.r4",
+   "docs.architecture.page"
+  ]
+ },
+ {
+  "q": "where do presentation numbers sizes durations go",
+  "cards": [
+   "spec.D3",
+   "claude.r4",
+   "docs.architecture.data"
+  ]
+ },
+ {
+  "q": "may the agent deploy to github pages",
+  "cards": [
+   "claude.r9",
+   "spec.R9",
+   "docs.procedure.who-deploys",
+   "brief.autonomy"
+  ]
+ },
+ {
+  "q": "what does check.sh run before a handoff",
+  "cards": [
+   "spec.R8",
+   "claude.r10",
+   "code.scripts.check",
+   "docs.checks"
+  ]
+ },
+ {
+  "q": "the nine stage procedure",
+  "cards": [
+   "docs.procedure",
+   "docs.procedure.p2",
+   "spec.R9"
+  ]
+ },
+ {
+  "q": "approve the plan in advance autonomy",
+  "cards": [
+   "docs.procedure.approving-the-plan-in-advance",
+   "brief.autonomy"
+  ]
+ },
+ {
+  "q": "what goes in the second-order notebook",
+  "cards": [
+   "claude.r7",
+   "docs.procedure.the-second-order-notebook"
+  ]
+ },
+ {
+  "q": "numbered triage rows for later requests",
+  "cards": [
+   "docs.procedure.numbered-requests-and-experiments",
+   "claude.r15"
+  ]
+ },
+ {
+  "q": "each new test must fail with its behaviour broken, breaks.json",
+  "cards": [
+   "claude.r6",
+   "docs.checks.break-each-test-once",
+   "code.scripts.break_tests"
+  ]
+ },
+ {
+  "q": "how do I run only the tests my change touches",
+  "cards": [
+   "claude.r18",
+   "docs.checks.the-quick-check",
+   "spec.D21",
+   "code.scripts.quick_check"
+  ]
+ },
+ {
+  "q": "test tags guard every file covered by a rule",
+  "cards": [
+   "code.scripts.quick_check.guard",
+   "docs.checks.the-quick-check",
+   "claude.r18"
+  ]
+ },
+ {
+  "q": "can I use subagents to work in parallel",
+  "cards": [
+   "claude.r17",
+   "spec.D21",
+   "docs.procedure.several-agents-at-once"
+  ]
+ },
+ {
+  "q": "how do I start the design journal",
+  "cards": [
+   "claude.r13",
+   "code.tools.journal.new_journal",
+   "docs.journal"
+  ]
+ },
+ {
+  "q": "what does the opening entry of the journal hold",
+  "cards": [
+   "docs.journal.the-opening-entry",
+   "claude.r14"
+  ]
+ },
+ {
+  "q": "how do I ask the person a question with answer chips",
+  "cards": [
+   "claude.r16",
+   "spec.D20",
+   "docs.journal.answer-chips",
+   "code.tools.journal.decisions"
+  ]
+ },
+ {
+  "q": "record the person's answers from the journal",
+  "cards": [
+   "claude.r16",
+   "code.tools.journal.decisions",
+   "code.tools.journal.decisions.parse_line"
+  ]
+ },
+ {
+  "q": "kinds of journal entries",
+  "cards": [
+   "entries.kinds",
+   "entries.kinds.p2",
+   "entries.kinds.p3",
+   "docs.journal.entries"
+  ]
+ },
+ {
+  "q": "mockups and the against entry after building",
+  "cards": [
+   "entries.rules",
+   "entries.rules.p2",
+   "entries.kinds.p2",
+   "code.scripts.journal_check.mockup_and_live_problems"
+  ]
+ },
+ {
+  "q": "live now page deploy commit",
+  "cards": [
+   "docs.journal.live-now-and-a-page-per-round",
+   "entries.rules.p2",
+   "entries.rules"
+  ]
+ },
+ {
+  "q": "never remove a journal entry",
+  "cards": [
+   "claude.r15",
+   "code.scripts.journal_check.committed_ids",
+   "entries.rules"
+  ]
+ },
+ {
+  "q": "what the journal check verifies",
+  "cards": [
+   "docs.journal.what-the-check-establishes",
+   "code.scripts.journal_check"
+  ]
+ },
+ {
+  "q": "references to earlier projects in the brief",
+  "cards": [
+   "brief.references",
+   "claude.r14",
+   "code.scripts.journal_check.references"
+  ]
+ },
+ {
+  "q": "write the brief from the person's description word for word",
+  "cards": [
+   "brief.the-description-word-for-word",
+   "prompts.start-from-description.what-the-agent-does",
+   "docs.procedure.starting-from-a-description"
+  ]
+ },
+ {
+  "q": "start in a new folder clone builder",
+  "cards": [
+   "prompts.start-in-a-folder",
+   "prompts.start-in-a-folder.what-the-agent-does",
+   "prompts.start-in-a-folder.what-the-person-does"
+  ]
+ },
+ {
+  "q": "glossary terms and the Not line",
+  "cards": [
+   "claude.r11",
+   "docs.glossary.the-format",
+   "code.core.tests.copy.no_reader_string_uses_a_word_the_glossary_rules_out"
+  ]
+ },
+ {
+  "q": "tone rules for reader-visible strings",
+  "cards": [
+   "claude.r12",
+   "tone.rules",
+   "code.core.tests.copy.no_text_uses_a_phrase_the_tone_file_rules_out"
+  ]
+ },
+ {
+  "q": "can the page use localStorage",
+  "cards": [
+   "code.core.tests.no_storage.the_page_names_no_browser_storage",
+   "spec.D17",
+   "kits.saves.what-it-changes"
+  ]
+ },
+ {
+  "q": "save the player's progress and load an old version of a save",
+  "cards": [
+   "kits.saves",
+   "kits.saves.what-it-changes",
+   "kits.saves.before-each-deploy",
+   "code.kits.saves.core.save.migrate"
+  ]
+ },
+ {
+  "q": "playtest file events milestones",
+  "cards": [
+   "kits.saves.playtest-files",
+   "code.kits.saves.core.playtest"
+  ]
+ },
+ {
+  "q": "online multiplayer rollback netcode",
+  "cards": [
+   "spec.D23",
+   "kits.online",
+   "kits.online.the-core-side",
+   "docs.online"
+  ]
+ },
+ {
+  "q": "what happens when a late input differs from the guess",
+  "cards": [
+   "code.kits.online.core.online.a_late_input_that_differs_rolls_back_to_the_world_of_a_copy_fed_on_time",
+   "kits.online.the-core-side",
+   "spec.D23"
+  ]
+ },
+ {
+  "q": "off-origin requests allowed for online play",
+  "cards": [
+   "spec.R7",
+   "docs.online.the-rule",
+   "kits.online.the-fence"
+  ]
+ },
+ {
+  "q": "draw a canvas game from a draw list",
+  "cards": [
+   "kits.canvas",
+   "kits.canvas.how-the-list-works",
+   "spec.D3"
+  ]
+ },
+ {
+  "q": "real-time input between ticks and pointer lock",
+  "cards": [
+   "kits.realtime.input-between-ticks",
+   "kits.realtime.pointer-lock-and-its-fallback"
+  ]
+ },
+ {
+  "q": "phones touch controls mobile",
+  "cards": [
+   "kits.mobile",
+   "kits.mobile.what-it-changes",
+   "kits.mobile.m2-a-touch-baseline-in-css"
+  ]
+ },
+ {
+  "q": "which kits exist and what each changes",
+  "cards": [
+   "kits.readme.the-kits",
+   "kits.readme"
+  ]
+ },
+ {
+  "q": "copy a kit into my project",
+  "cards": [
+   "kits.readme.copying-a-kit"
+  ]
+ },
+ {
+  "q": "several views 2D and 3D of one core",
+  "cards": [
+   "spec.D22",
+   "docs.architecture.several-views-of-one-core",
+   "code.scripts.wasm_imports"
+  ]
+ },
+ {
+  "q": "make art pictures with tikz style pack",
+  "cards": [
+   "docs.art.draw-a-picture",
+   "docs.art",
+   "docs.art.supply-your-own-style"
+  ]
+ },
+ {
+  "q": "house style of the author's earlier projects",
+  "cards": [
+   "docs.house-styles",
+   "docs.house-styles.the-author-s-projects"
+  ]
+ },
+ {
+  "q": "what the browser check cannot see",
+  "cards": [
+   "docs.checks.things-the-browser-check-cannot-see"
+  ]
+ },
+ {
+  "q": "mutation testing score",
+  "cards": [
+   "docs.checks.mutation-testing",
+   "code.scripts.mutants"
+  ]
+ },
+ {
+  "q": "how do I read Builder without reading every file",
+  "cards": [
+   "docs.context.how-to-read-builder",
+   "claude.r19",
+   "spec.D24",
+   "docs.context"
+  ]
+ },
+ {
+  "q": "what is STATE.md and when do I rewrite it",
+  "cards": [
+   "claude.r21",
+   "spec.D25",
+   "docs.context.state-md-and-compaction",
+   "state"
+  ]
+ },
+ {
+  "q": "after the context is compacted what do I read",
+  "cards": [
+   "docs.context.state-md-and-compaction",
+   "claude.r21",
+   "code.tools.context.after_compact"
+  ]
+ },
+ {
+  "q": "run a long command and see only a summary",
+  "cards": [
+   "claude.r22",
+   "code.scripts.quiet"
+  ]
+ },
+ {
+  "q": "measure token use of a session",
+  "cards": [
+   "claude.r23",
+   "spec.D26",
+   "docs.context.measuring",
+   "code.tools.tokens"
+  ]
+ },
+ {
+  "q": "digest of an earlier project instead of transcripts",
+  "cards": [
+   "claude.r20",
+   "docs.context.digests-of-earlier-projects",
+   "code.tools.digest"
+  ]
+ },
+ {
+  "q": "rules agreed with the person go where",
+  "cards": [
+   "claude.rules-agreed-for-this-project",
+   "claude.r14"
+  ]
+ },
+ {
+  "q": "record a change to a reference default",
+  "cards": [
+   "spec.changes-to-the-defaults-in-this-project",
+   "spec.reference-defaults",
+   "spec"
+  ]
+ },
+ {
+  "q": "publish the journal as an artifact with the db capability",
+  "cards": [
+   "entries.publishing",
+   "prompts.start-in-a-folder.what-the-agent-does",
+   "entries.rules.p2"
+  ]
+ },
+ {
+  "q": "what stays with a person after the checks pass",
+  "cards": [
+   "docs.checks.what-stays-with-a-person",
+   "prompts.start-from-description.what-the-person-still-owns",
+   "brief.decisions-that-stay-with-the-person"
+  ]
+ }
+]

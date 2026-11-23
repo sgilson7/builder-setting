@@ -151,7 +151,18 @@ figcaption b { color: var(--fg); }
       <div class="entry-body">
         <h3>How I read Builder, and how I will build {{TITLE}}</h3>
         <h4>What Builder asks of me</h4>
-        <p class="blank">In your own words: where each kind of code lives and what holds it there; the nine stages, which are the person's and which are yours; what you will stop for.</p>
+        <p>Builder's rules are the same for every project, so they come written; each names the card that holds it (<code>python3 tools/ask.py --card ID</code>). I hold to all of them. What follows this list is particular to this project.</p>
+        <ul>
+          <li>Every application rule lives in the core, which does no input or output; the shim only translates; the page only draws what the core returns (card:spec.R1, card:spec.R2, card:spec.R5, card:spec.R6).</li>
+          <li>Nine stages: the description, the approval of the plan and every deploy are yours; I stop where they need you (card:docs.procedure, card:spec.R9, card:claude.r9).</li>
+          <li>Each new behaviour test is shown to fail with its behaviour broken, and <code>./scripts/check.sh</code> passes before a handoff (card:claude.r6, card:spec.R8, card:claude.r10).</li>
+          <li><code>SECOND-ORDER.md</code> records what I decide alone, as I decide it; later requests become <code>TRIAGE.md</code> rows (card:claude.r7, card:docs.procedure.numbered-requests-and-experiments).</li>
+          <li>Words follow <code>GLOSSARY.md</code> and <code>TONE.md</code> (card:claude.r11, card:claude.r12).</li>
+          <li>This journal gets an entry for every decision, visible change, divergence and deploy, and questions come as answer chips (card:claude.r15, card:claude.r16).</li>
+          <li>One agent, and the quick check while iterating (card:claude.r17, card:claude.r18).</li>
+          <li>Builder is read through cards, <code>STATE.md</code> is rewritten at each milestone, and long output goes through <code>quiet.sh</code> (card:claude.r19, card:claude.r21, card:claude.r22).</li>
+        </ul>
+        <p class="blank">Anything in that list that does not fit this project, and why; delete this line if nothing.</p>
         <h4>What this project adds or changes</h4>
         <p class="blank">Any row in BUILDER-SPEC.md's change table, any kit copied, anything the brief allows that the reference defaults do not.</p>
         <h4>Measured before any edit</h4>

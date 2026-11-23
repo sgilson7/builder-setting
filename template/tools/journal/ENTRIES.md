@@ -8,7 +8,7 @@ The design journal is where the person reads the build. Each entry reports one t
 2. Every decision put to the person, every visible change, every divergence from the plan and every deploy gets an entry, written when it happens.
 3. Entries are newest first on their page, and never removed. A correction is a new entry, or a note added to the old one ("replaced by …, T7").
 4. An entry cites the rows it reports: `T4` for a triage row, `R2.3` for a notebook row, `XX-Q5` for a question. Every *person* row in `SECOND-ORDER.md` is named somewhere in the journal.
-5. Pictures are of the running build, or drawn from the same numbers the code uses. A picture made separately from the build can disagree with it.
+5. Pictures are of the running build, or drawn from the same numbers the code uses. A picture made separately from the build can disagree with it. A moving part of the build is an animation, not a still (see Animations below).
 6. Each entry says what still looks wrong and what has not been done ("Nothing is pushed").
 7. An entry written after the fact has the kind *retrospective* and names its sources.
 8. Questions for the person are answer chips, never a list to answer in chat. Each one goes in the journal's `decisions.json` with exactly one default, and `python3 tools/journal/decisions.py` draws it. When the person says the answers are in the journal, read them (from the page's store where it has one, or from the line the person pastes from "Copy answers"), record them with `decisions.py --answers`, and write an *agreed* entry citing each. An answer that differs from the default also becomes a `TRIAGE.md` row citing the question. "Go with the defaults" is an answer: record it with `decisions.py --defaults`.
@@ -17,8 +17,9 @@ The design journal is where the person reads the build. Each entry reports one t
 11. On every deploy, rewrite the Live now page and set its `data-commit` to the deployed commit, and add a *live* entry with the same `data-commit`.
 12. A request with more than a few points, or a pasted transcript, chat or a co-designer's notes, gets an *intake* entry and a stop before any code. A small fix goes straight to `TRIAGE.md`.
 13. When the journal has a published address, republish it after every entry. The person reads the published page, and a stale one ("it still says the town is not on main") costs a round of asking.
+14. Cite Builder by card, not by restating it: `card:spec.D20`, `card:claude.r14` (`python3 tools/ask.py --ids "..."` finds one). The opening entry's "What Builder asks of me" comes written with its cards; write only what is particular to this project. `scripts/journal_check.py` fails on a card that does not exist.
 
-`scripts/journal_check.py` checks the form of rules 1, 3, 4, 8, 10 and 11, and that a *research* entry links a source and an *intake* entry quotes its input. Whether an entry is right is the person's reading.
+`scripts/journal_check.py` checks the form of rules 1, 3, 4, 8, 10 and 11, that a *research* entry links a source and an *intake* entry quotes its input, that a *plan* or *mockups* entry holds a picture or an animation, and that every animation is current with its scene file. Whether an entry is right is the person's reading.
 
 ## Kinds
 
@@ -31,7 +32,7 @@ The kind goes in the stamp and in `data-kind`. The label is the AI-literacy step
 | brief | 1 | C1, A1 | the description word for word; a table from each requirement to where it lands, with question numbers |
 | research | 1–2 | B1, C3 | before a design that leans on other work (a genre, a game, a paper, an interface): each source with a link, what it shows, and what this project takes from it and leaves |
 | intake | 1, 9 | C1, A1 | a large input (a transcript, a co-designer's notes, a long request) word for word in a blockquote, then one row per point: how the agent reads it, and the T row or `XX-Q` it becomes; mockups where a point changes the look; then a stop |
-| plan | 2 | B2 | the build order; diagrams drawn from the numbers the code will use; files touched and why |
+| plan | 2 | B2 | the build order; diagrams and animations drawn from the numbers the code will use; files touched and why |
 | mockups | 2 | B2 | what the tool will look like, drawn before it is built |
 | for you | 3 | A0, B2 | each decision as `XX-Qn` answer chips drawn from `decisions.json`: the default the agent builds on, the alternatives, and what waits on the answer (`blocks:`). An answer that differs becomes a TRIAGE row citing the question |
 | measured | 4 | B2 | the baseline check, step by step |
@@ -89,6 +90,26 @@ An *against* entry and a *live* entry carry their links as attributes:
 ```
 
 Give each entry an `id` that will not change (the date and a word or two), add its row to the home page's timeline, and update the page's card. For a decision that waits on the person, use `<span class="you">for you</span>` in the stamp.
+
+## Animations
+
+Show how the build moves, not only how it looks: a request through the system, a turn of the game loop, a deploy and its rollback, a behaviour tree choosing, a branch of a story opening. Each is a FlowScene: boxes for the parts, grouped in zones, and marks (a request, a reply, a stream, an event, told apart by shape as well as colour) that move along the lines between them, one step at a time, with the words of each step and the code that runs at it.
+
+Keep the scene in the journal's `flows/ID.json` and say where it goes in an entry:
+
+```html
+<!--FLOW id=press-->
+<!--/FLOW-->
+```
+
+Then run `python3 tools/journal/animate.py`. It checks the scene, and fills the marker with the animation, the scene as inline data, a caption and every step as text, so the page works opened from disk and published. Edit the scene file and run it again; never edit the figure by hand. `tools/journal/flowscene/check.py` documents every field. Two more say what the reader is looking at:
+
+- `"status"`: `measured` (traced from the code or a run), `proposed` (a design not built yet) or `illustrative` (made up to explain);
+- `"from"`: for a measured scene, the file, command or commit its steps came from.
+
+Take a scene's steps from the code, a test's output or a harness trace wherever you can, and quote the code a step runs (`"code"`, with the lines it lights); a scene typed from memory is `illustrative` and says so. Write each step's words as the person would read them; they are strings you wrote, listed in `SECOND-ORDER.md` like the rest. Draw a plan's moving parts before they are built (`proposed`), and redraw them from the build once it runs (`measured`), keeping the first. Each entry with an animation says what it does not show.
+
+Use Manim (`kits/manim/`) instead when the picture itself has to move: mathematics, shapes that turn into other shapes, hundreds of objects. It needs a Python environment, LaTeX and FFmpeg, and an animation costs megabytes where a FlowScene costs kilobytes.
 
 ## Pictures
 

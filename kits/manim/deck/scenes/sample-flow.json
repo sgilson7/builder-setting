@@ -1,0 +1,33 @@
+{
+ "id": "sample-flow",
+ "title": "From a scene file to the deck",
+ "summary": "A scene file is rendered once into a clip and a final frame per step, and the player shows them in the deck.",
+ "source": "The kit's sample scene, written by hand for kits/manim. hold_ms = 900 + 28 per character of the step's words, as FlowScene times its steps.",
+ "width": 720,
+ "height": 180,
+ "fade_ms": 300,
+ "ease": [400, 100, 300, 1000],
+ "token_r": 9,
+ "nodes": {
+  "file": {"x": 120, "y": 80, "w": 200, "h": 90, "r": 14, "kind": "svc", "leading": 24, "dy": 7, "from": 0,
+   "lines": [["lab", "Scene file"], ["mono", "deck/scenes/"]]},
+  "render": {"x": 360, "y": 80, "w": 200, "h": 90, "r": 14, "kind": "svc", "leading": 24, "dy": 7, "from": 1,
+   "lines": [["lab", "Render"], ["mono", "tools/manim/"]]},
+  "player": {"x": 600, "y": 80, "w": 200, "h": 90, "r": 14, "kind": "svc", "leading": 24, "dy": 7, "from": 2,
+   "lines": [["lab", "Player"], ["mono", "deck/manim/"]]}
+ },
+ "edges": [
+  {"a": "file", "b": "render", "from": 1},
+  {"a": "render", "b": "player", "from": 2}
+ ],
+ "dots": [],
+ "labels": [],
+ "steps": [
+  {"t": "Write the animation as a scene file: boxes, lines and steps, in whole pixels and milliseconds.",
+   "light": ["file"], "token": {"x": 120, "y": 150}, "move_ms": 800, "hold_ms": 3532},
+  {"t": "Render it once, in light and dark: one clip and one final frame per step, and a manifest of what made them.",
+   "light": ["render"], "token": {"x": 360, "y": 150}, "move_ms": 800, "hold_ms": 3896},
+  {"t": "The player shows each clip in turn, or only the final frames when the reader asks for less motion.",
+   "light": ["player"], "token": {"x": 600, "y": 150}, "move_ms": 800, "hold_ms": 3644}
+ ]
+}

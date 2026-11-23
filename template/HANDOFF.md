@@ -2,6 +2,8 @@
 
 Stage 9, written by the agent. `C5 Consolidate in your own words`. A fresh session starts from this file, not from memory.
 
+Commit: (none yet)
+
 ## What this is
 
 Five sentences at most: what the tool does, for whom, and where it lives.

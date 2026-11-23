@@ -1,0 +1,6 @@
+{
+  "about": "Size limits for deck/media, checked by tests/manim. A clip loads only when its step plays; 1 MiB is about 0.4 s at 20 Mbit/s. In Manim Lab one clip of 500 moving dots was 739,704 bytes, and a node-and-edge animation of 8 steps was 4.5 MB, three quarters of it final-frame PNGs. A claude.ai artifact holds 16 MB; GitHub Pages refuses files over 100 MB and sites over 1 GB.",
+  "clip_bytes": 1048576,
+  "animation_bytes": 6000000,
+  "deck_bytes": 16000000
+}

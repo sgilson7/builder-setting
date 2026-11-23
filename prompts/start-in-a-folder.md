@@ -25,9 +25,12 @@ Earlier projects built with Builder, to read for what works:
 lends: "the lobby from Ape Race", "Lowballer's 2D style"]. List them under
 References in BRIEF.md.
 
-First, read Builder and write the design journal's opening entry: how you
-will use Builder for this [game | tool], the rules you will hold to and what
-holds each, and your questions as answer chips. Use [MODEL JOURNAL: e.g.
+First, read Builder through its cards (python3 <project>/tools/ask.py
+--start, then ask.py "question"; open no file under builder/, its
+CLAUDE.md included, except where a card points) and write the design journal's opening entry: how you will use
+Builder for this [game | tool], the rules you will hold to and what holds
+each, and your questions as answer chips. Read an earlier project through
+its digest in refs/ when it has one. Use [MODEL JOURNAL: e.g.
 ../ApeRaceMapMaking/ape-race-journal] as the model of a good journal.
 
 [PERMISSIONS: e.g. "You may create a public repository named ____ and
@@ -51,7 +54,10 @@ Each slot changes what the agent does:
    as the reference (docs/, kits/, prompts/). Copy builder/template/ to a
    new folder beside it named after the project (lowercase, hyphens), run
    git init there, and work only there. Read that project's CLAUDE.md in
-   full; its rules govern everything below. Start the journal from inside
+   full; its rules govern everything below. Then read Builder through its
+   cards, not its files: python3 tools/ask.py --start, and ask.py
+   "question" (--code for code) before opening anything under builder/
+   (rule 19, docs/context.md). Start the journal from inside
    the project: python3 tools/journal/new_journal.py, which makes
    <name>-journal/ beside it. The folder then holds builder/, <name>/ and
    <name>-journal/, the layout Idle Game and ToyTalk ended up with.
@@ -61,8 +67,10 @@ Each slot changes what the agent does:
    where its files are and what it lends, and the permissions under
    Autonomy, word for word.
 
-3. Open every reference. Read its journal if it has one, and the files the
-   person pointed at. Write the opening entry: what Builder asks of you,
+3. Open every reference: its digest in refs/ when it has one (rule 20);
+   otherwise write the digest first (python3 tools/digest.py ../<ref> --out
+   ../refs/<ref>.md, then fill in What to copy), and read the project only
+   for what the digest names. Write the opening entry: what Builder asks of you,
    what this project changes, what each reference lends and how you will
    use it, numbered rules with what holds each, the question prefix, where
    you stop. Put each question in the journal's decisions.json with a
