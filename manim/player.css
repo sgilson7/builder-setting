@@ -1,0 +1,23 @@
+/* The Manim player (deck/manim/player.js). Uses deck/manim/theme.css's tokens, which
+   tools/manim/theme.py writes from data/manim/theme.json, so the page around a clip
+   and the clip share one palette. The controls follow the MerryQuery stepper's. */
+.mp { display: grid; gap: 8px; min-width: 0; }
+.mp-stage { position: relative; width: 100%; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 12px; overflow: hidden; }
+.mp-pic, .mp-vid { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.mp-vid[hidden] { display: none; }
+.mp-now { min-height: 3.2em; margin: 0; font-size: 1.08em; }
+.mp-now b { color: var(--accent); }
+.mp-ctl { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.mp-btn { font: 600 .9em var(--body); color: var(--accent); background: var(--panel); border: 1px solid var(--accent);
+  border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+.mp-btn.mp-solid { background: var(--accent); color: var(--bg); }
+.mp-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mp-count { font: .88em var(--mono); color: var(--muted); font-variant-numeric: tabular-nums; }
+.mp-list summary { cursor: pointer; color: var(--accent); font-size: .92em; }
+.mp-list ol { margin: 8px 0 0; padding-left: 1.6em; font-size: .92em; }
+.mp-list li { margin: 3px 0; padding: 1px 6px; border-radius: 6px; }
+.mp-list li.mp-cur { background: var(--lit); }
+.mp-jump { all: unset; cursor: pointer; display: block; }
+.mp-jump:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+.mp code { font: .86em var(--mono); overflow-wrap: anywhere; }

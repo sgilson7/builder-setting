@@ -1,0 +1,534 @@
+{
+  "code": "animations/replay.py",
+  "height": 238,
+  "id": "example-add",
+  "source": "Written by crates/export from tool_core::api::worked_examples; every glyph and sentence is the core's own. Replayed in Manim by animations/replay.py.",
+  "steps": [
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "+",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Write 478 above 356, lining up the ones."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "+",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 132,
+          "y": 24
+        },
+        {
+          "id": "a0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "answer",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "from": [
+            146,
+            196
+          ],
+          "id": "c1",
+          "kind": "small",
+          "text": "1",
+          "tone": "carry",
+          "x": 110,
+          "y": 31
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Ones: 8 + 6 = 14. Write 4 and carry 1 to the tens."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "+",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 96,
+          "y": 24
+        },
+        {
+          "id": "a0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "answer",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "c1",
+          "kind": "small",
+          "text": "1",
+          "tone": "carry",
+          "x": 110,
+          "y": 31
+        },
+        {
+          "id": "a1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "from": [
+            110,
+            196
+          ],
+          "id": "c2",
+          "kind": "small",
+          "text": "1",
+          "tone": "carry",
+          "x": 74,
+          "y": 31
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Tens: 7 + 5 + 1 carried = 13. Write 3 and carry 1 to the hundreds."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "+",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 60,
+          "y": 24
+        },
+        {
+          "id": "a0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "answer",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "c1",
+          "kind": "small",
+          "text": "1",
+          "tone": "carry",
+          "x": 110,
+          "y": 31
+        },
+        {
+          "id": "a1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "id": "c2",
+          "kind": "small",
+          "text": "1",
+          "tone": "carry",
+          "x": 74,
+          "y": 31
+        },
+        {
+          "id": "a2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 74,
+          "y": 196
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Hundreds: 4 + 3 + 1 carried = 8. Write 8."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "+",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "id": "a0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "answer",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "c1",
+          "kind": "small",
+          "text": "1",
+          "tone": "carry",
+          "x": 110,
+          "y": 31
+        },
+        {
+          "id": "a1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "id": "c2",
+          "kind": "small",
+          "text": "1",
+          "tone": "carry",
+          "x": 74,
+          "y": 31
+        },
+        {
+          "id": "a2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 74,
+          "y": 196
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "478 + 356 = 834."
+    }
+  ],
+  "summary": "478 + 356, worked by the calculator's own rules and rendered with Manim.",
+  "title": "Column addition: 478 + 356",
+  "width": 184
+}

@@ -1,44 +1,53 @@
 /**
- * @param {string} settings_json
  * @param {string} state_json
- * @param {string} action
+ * @param {string} glossary_md
+ * @param {string} name
+ * @param {string} value
  * @returns {string}
  */
-export function act(settings_json, state_json, action) {
+export function act(state_json, glossary_md, name, value) {
+    let deferred5_0;
+    let deferred5_1;
+    try {
+        const ptr0 = passStringToWasm0(state_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len0 = WASM_VECTOR_LEN;
+        const ptr1 = passStringToWasm0(glossary_md, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len1 = WASM_VECTOR_LEN;
+        const ptr2 = passStringToWasm0(name, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len2 = WASM_VECTOR_LEN;
+        const ptr3 = passStringToWasm0(value, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const len3 = WASM_VECTOR_LEN;
+        const ret = wasm.act(ptr0, len0, ptr1, len1, ptr2, len2, ptr3, len3);
+        deferred5_0 = ret[0];
+        deferred5_1 = ret[1];
+        return getStringFromWasm0(ret[0], ret[1]);
+    } finally {
+        wasm.__wbindgen_free(deferred5_0, deferred5_1, 1);
+    }
+}
+
+/**
+ * @param {string} strings_json
+ * @param {string} glossary_md
+ * @param {string} stage_json
+ * @returns {string}
+ */
+export function start(strings_json, glossary_md, stage_json) {
     let deferred4_0;
     let deferred4_1;
     try {
-        const ptr0 = passStringToWasm0(settings_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr0 = passStringToWasm0(strings_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len0 = WASM_VECTOR_LEN;
-        const ptr1 = passStringToWasm0(state_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr1 = passStringToWasm0(glossary_md, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len1 = WASM_VECTOR_LEN;
-        const ptr2 = passStringToWasm0(action, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
+        const ptr2 = passStringToWasm0(stage_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
         const len2 = WASM_VECTOR_LEN;
-        const ret = wasm.act(ptr0, len0, ptr1, len1, ptr2, len2);
+        const ret = wasm.start(ptr0, len0, ptr1, len1, ptr2, len2);
         deferred4_0 = ret[0];
         deferred4_1 = ret[1];
         return getStringFromWasm0(ret[0], ret[1]);
     } finally {
         wasm.__wbindgen_free(deferred4_0, deferred4_1, 1);
-    }
-}
-
-/**
- * @param {string} settings_json
- * @returns {string}
- */
-export function start(settings_json) {
-    let deferred2_0;
-    let deferred2_1;
-    try {
-        const ptr0 = passStringToWasm0(settings_json, wasm.__wbindgen_malloc, wasm.__wbindgen_realloc);
-        const len0 = WASM_VECTOR_LEN;
-        const ret = wasm.start(ptr0, len0);
-        deferred2_0 = ret[0];
-        deferred2_1 = ret[1];
-        return getStringFromWasm0(ret[0], ret[1]);
-    } finally {
-        wasm.__wbindgen_free(deferred2_0, deferred2_1, 1);
     }
 }
 function __wbg_get_imports() {
@@ -220,7 +229,7 @@ async function __wbg_init(module_or_path) {
     }
 
     if (module_or_path === undefined) {
-        module_or_path = new URL('tool_shim_bg.wasm?v=e0e2fe798de5', import.meta.url);
+        module_or_path = new URL('tool_shim_bg.wasm?v=c6883075f633', import.meta.url);
     }
     const imports = __wbg_get_imports();
 

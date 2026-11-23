@@ -1,0 +1,1354 @@
+{
+  "code": "animations/replay.py",
+  "height": 568,
+  "id": "example-div",
+  "source": "Written by crates/export from tool_core::api::worked_examples; every glyph and sentence is the core's own. Replayed in Manim by animations/replay.py.",
+  "steps": [
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Write 952 under the bracket and 4 to its left."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 96,
+          "y": 90
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "4 goes into 9 2 times: 2 × 4 = 8. Write 2 on top."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 96,
+          "y": 90
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "h": 3,
+          "id": "u0",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 36,
+          "x": 92,
+          "y": 218
+        },
+        {
+          "id": "r0_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "9 − 8 = 1."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 64,
+          "x": 96,
+          "y": 222
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "h": 3,
+          "id": "u0",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 36,
+          "x": 92,
+          "y": 218
+        },
+        {
+          "id": "r0_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "from": [
+            146,
+            130
+          ],
+          "id": "bd1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 262
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Bring down the 5: the number to divide is now 15."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 64,
+          "x": 96,
+          "y": 222
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "h": 3,
+          "id": "u0",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 36,
+          "x": 92,
+          "y": 218
+        },
+        {
+          "id": "r0_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "id": "bd1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "id": "q1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "p1_3",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 146,
+          "y": 328
+        },
+        {
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 328
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "4 goes into 15 3 times: 3 × 4 = 12. Write 3 on top."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 64,
+          "x": 96,
+          "y": 222
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "h": 3,
+          "id": "u0",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 36,
+          "x": 92,
+          "y": 218
+        },
+        {
+          "id": "r0_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "id": "bd1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "id": "q1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "p1_3",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 146,
+          "y": 328
+        },
+        {
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 328
+        },
+        {
+          "h": 3,
+          "id": "u1",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 72,
+          "x": 92,
+          "y": 350
+        },
+        {
+          "id": "r1_3",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 394
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "15 − 12 = 3."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 64,
+          "x": 132,
+          "y": 354
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "h": 3,
+          "id": "u0",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 36,
+          "x": 92,
+          "y": 218
+        },
+        {
+          "id": "r0_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "id": "bd1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "id": "q1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "p1_3",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 146,
+          "y": 328
+        },
+        {
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 328
+        },
+        {
+          "h": 3,
+          "id": "u1",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 72,
+          "x": 92,
+          "y": 350
+        },
+        {
+          "id": "r1_3",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 394
+        },
+        {
+          "from": [
+            182,
+            130
+          ],
+          "id": "bd2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 394
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Bring down the 2: the number to divide is now 32."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 64,
+          "x": 132,
+          "y": 354
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "h": 3,
+          "id": "u0",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 36,
+          "x": 92,
+          "y": 218
+        },
+        {
+          "id": "r0_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "id": "bd1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "id": "q1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "p1_3",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 146,
+          "y": 328
+        },
+        {
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 328
+        },
+        {
+          "h": 3,
+          "id": "u1",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 72,
+          "x": 92,
+          "y": 350
+        },
+        {
+          "id": "r1_3",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 394
+        },
+        {
+          "id": "bd2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 394
+        },
+        {
+          "id": "q2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 182,
+          "y": 64
+        },
+        {
+          "id": "p2_4",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 460
+        },
+        {
+          "id": "p2_3",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 460
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "4 goes into 32 8 times: 8 × 4 = 32. Write 8 on top."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 64,
+          "x": 132,
+          "y": 354
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "h": 3,
+          "id": "u0",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 36,
+          "x": 92,
+          "y": 218
+        },
+        {
+          "id": "r0_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "id": "bd1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "id": "q1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "p1_3",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 146,
+          "y": 328
+        },
+        {
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 328
+        },
+        {
+          "h": 3,
+          "id": "u1",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 72,
+          "x": 92,
+          "y": 350
+        },
+        {
+          "id": "r1_3",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 394
+        },
+        {
+          "id": "bd2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 394
+        },
+        {
+          "id": "q2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 182,
+          "y": 64
+        },
+        {
+          "id": "p2_4",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 460
+        },
+        {
+          "id": "p2_3",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 460
+        },
+        {
+          "h": 3,
+          "id": "u2",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 72,
+          "x": 128,
+          "y": 482
+        },
+        {
+          "id": "r2_4",
+          "kind": "digit",
+          "text": "0",
+          "tone": "plain",
+          "x": 182,
+          "y": 526
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "32 − 32 = 0."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "d0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "id": "bracket",
+          "kind": "digit",
+          "text": ")",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "x0",
+          "kind": "digit",
+          "text": "9",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "x1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "x2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "bar",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 108,
+          "x": 92,
+          "y": 86
+        },
+        {
+          "id": "q0",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "h": 3,
+          "id": "u0",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 36,
+          "x": 92,
+          "y": 218
+        },
+        {
+          "id": "r0_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "id": "bd1",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "id": "q1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "answer",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "p1_3",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 146,
+          "y": 328
+        },
+        {
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "1",
+          "tone": "plain",
+          "x": 110,
+          "y": 328
+        },
+        {
+          "h": 3,
+          "id": "u1",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 72,
+          "x": 92,
+          "y": 350
+        },
+        {
+          "id": "r1_3",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 394
+        },
+        {
+          "id": "bd2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 394
+        },
+        {
+          "id": "q2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 182,
+          "y": 64
+        },
+        {
+          "id": "p2_4",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 182,
+          "y": 460
+        },
+        {
+          "id": "p2_3",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 460
+        },
+        {
+          "h": 3,
+          "id": "u2",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 72,
+          "x": 128,
+          "y": 482
+        },
+        {
+          "id": "r2_4",
+          "kind": "digit",
+          "text": "0",
+          "tone": "plain",
+          "x": 182,
+          "y": 526
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "952 ÷ 4 = 238."
+    }
+  ],
+  "summary": "952 ÷ 4, worked by the calculator's own rules and rendered with Manim.",
+  "title": "Long division: 952 ÷ 4",
+  "width": 220
+}

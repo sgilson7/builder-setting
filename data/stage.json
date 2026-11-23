@@ -1,0 +1,12 @@
+{
+  "cell_w": 36,
+  "cell_h": 44,
+  "small_h": 22,
+  "margin": 20,
+  "rule_h": 3,
+  "box_pad": 4,
+  "move_ms": 600,
+  "hold_ms": 1600,
+  "max_digits": 6,
+  "max_answer_digits": 12
+}

@@ -1,0 +1,1002 @@
+{
+  "code": "animations/replay.py",
+  "height": 238,
+  "id": "example-sub",
+  "source": "Written by crates/export from tool_core::api::worked_examples; every glyph and sentence is the core's own. Replayed in Manim by animations/replay.py.",
+  "steps": [
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "−",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Write 503 above 278, lining up the ones."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "5",
+          "tone": "plain",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "−",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 132,
+          "y": 24
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Ones: 3 is less than 8, so borrow from the hundreds."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "struck",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "5",
+          "tone": "struck",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "−",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 132,
+          "y": 24
+        },
+        {
+          "h": 3,
+          "id": "s2",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 60,
+          "y": 63
+        },
+        {
+          "id": "n2",
+          "kind": "small",
+          "text": "4",
+          "tone": "borrow",
+          "x": 74,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s1",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 96,
+          "y": 63
+        },
+        {
+          "id": "n1",
+          "kind": "small",
+          "text": "10",
+          "tone": "borrow",
+          "x": 110,
+          "y": 31
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Take 1 from the hundreds: 5 becomes 4, and the tens become 10."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "3",
+          "tone": "struck",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "struck",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "5",
+          "tone": "struck",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "−",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 132,
+          "y": 24
+        },
+        {
+          "h": 3,
+          "id": "s2",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 60,
+          "y": 63
+        },
+        {
+          "id": "n2",
+          "kind": "small",
+          "text": "4",
+          "tone": "borrow",
+          "x": 74,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s1",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 96,
+          "y": 63
+        },
+        {
+          "id": "n1",
+          "kind": "small",
+          "text": "9",
+          "tone": "borrow",
+          "x": 110,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s0",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 132,
+          "y": 63
+        },
+        {
+          "id": "n0",
+          "kind": "small",
+          "text": "13",
+          "tone": "borrow",
+          "x": 146,
+          "y": 31
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Take 1 from the tens: 10 becomes 9, and the ones become 13."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "3",
+          "tone": "struck",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "struck",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "5",
+          "tone": "struck",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "−",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 132,
+          "y": 24
+        },
+        {
+          "h": 3,
+          "id": "s2",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 60,
+          "y": 63
+        },
+        {
+          "id": "n2",
+          "kind": "small",
+          "text": "4",
+          "tone": "borrow",
+          "x": 74,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s1",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 96,
+          "y": 63
+        },
+        {
+          "id": "n1",
+          "kind": "small",
+          "text": "9",
+          "tone": "borrow",
+          "x": 110,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s0",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 132,
+          "y": 63
+        },
+        {
+          "id": "n0",
+          "kind": "small",
+          "text": "13",
+          "tone": "borrow",
+          "x": 146,
+          "y": 31
+        },
+        {
+          "id": "a0",
+          "kind": "digit",
+          "text": "5",
+          "tone": "answer",
+          "x": 146,
+          "y": 196
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Ones: 13 − 8 = 5."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "3",
+          "tone": "struck",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "struck",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "5",
+          "tone": "struck",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "−",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 96,
+          "y": 24
+        },
+        {
+          "h": 3,
+          "id": "s2",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 60,
+          "y": 63
+        },
+        {
+          "id": "n2",
+          "kind": "small",
+          "text": "4",
+          "tone": "borrow",
+          "x": 74,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s1",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 96,
+          "y": 63
+        },
+        {
+          "id": "n1",
+          "kind": "small",
+          "text": "9",
+          "tone": "borrow",
+          "x": 110,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s0",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 132,
+          "y": 63
+        },
+        {
+          "id": "n0",
+          "kind": "small",
+          "text": "13",
+          "tone": "borrow",
+          "x": 146,
+          "y": 31
+        },
+        {
+          "id": "a0",
+          "kind": "digit",
+          "text": "5",
+          "tone": "answer",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "a1",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 196
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Tens: 9 − 7 = 2."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "3",
+          "tone": "struck",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "struck",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "5",
+          "tone": "struck",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "−",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 124,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 60,
+          "y": 24
+        },
+        {
+          "h": 3,
+          "id": "s2",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 60,
+          "y": 63
+        },
+        {
+          "id": "n2",
+          "kind": "small",
+          "text": "4",
+          "tone": "borrow",
+          "x": 74,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s1",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 96,
+          "y": 63
+        },
+        {
+          "id": "n1",
+          "kind": "small",
+          "text": "9",
+          "tone": "borrow",
+          "x": 110,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s0",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 132,
+          "y": 63
+        },
+        {
+          "id": "n0",
+          "kind": "small",
+          "text": "13",
+          "tone": "borrow",
+          "x": 146,
+          "y": 31
+        },
+        {
+          "id": "a0",
+          "kind": "digit",
+          "text": "5",
+          "tone": "answer",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "a1",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "id": "a2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 74,
+          "y": 196
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Hundreds: 4 − 2 = 2."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "3",
+          "tone": "struck",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "struck",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "t2",
+          "kind": "digit",
+          "text": "5",
+          "tone": "struck",
+          "x": 74,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "7",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "b2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "−",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 3,
+          "id": "s2",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 60,
+          "y": 63
+        },
+        {
+          "id": "n2",
+          "kind": "small",
+          "text": "4",
+          "tone": "borrow",
+          "x": 74,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s1",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 96,
+          "y": 63
+        },
+        {
+          "id": "n1",
+          "kind": "small",
+          "text": "9",
+          "tone": "borrow",
+          "x": 110,
+          "y": 31
+        },
+        {
+          "h": 3,
+          "id": "s0",
+          "kind": "rule",
+          "tone": "struck",
+          "w": 28,
+          "x": 132,
+          "y": 63
+        },
+        {
+          "id": "n0",
+          "kind": "small",
+          "text": "13",
+          "tone": "borrow",
+          "x": 146,
+          "y": 31
+        },
+        {
+          "id": "a0",
+          "kind": "digit",
+          "text": "5",
+          "tone": "answer",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "a1",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "id": "a2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "answer",
+          "x": 74,
+          "y": 196
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "503 − 278 = 225."
+    }
+  ],
+  "summary": "503 − 278, worked by the calculator's own rules and rendered with Manim.",
+  "title": "Column subtraction: 503 − 278",
+  "width": 184
+}

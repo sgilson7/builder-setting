@@ -1,22 +1,89 @@
+/* The page around the stage is plain, in light and dark. The stage takes
+   Manim's own look (CM-Q5): a black ground, white digits, and Manim
+   Community's standard colours for the parts of the method. Each part also
+   has its own size or shape: carries and borrows are small and raised, the
+   worked column has a box round it, a lent digit is struck through. */
 :root {
   --ink: #1d232a;
   --paper: #ffffff;
-  --muted: #5a646e;
-  --accent: #9b1c1c;
+  --soft: #5a646e;
+  --edge: #c9d0d6;
+  --key: #eef1f4;
+  --warn: #9b1c1c;
+  --move: 0ms;
+  --manim-black: #000000;
+  --manim-white: #ffffff;
+  --manim-yellow: #ffff00;
+  --manim-red: #fc6255;
+  --manim-grey: #888888;
+  --manim-teal: #5cd0b3;
+  --manim-green: #83c167;
+  --manim-blue: #58c4dd;
 }
 @media (prefers-color-scheme: dark) {
-  :root { --ink: #e8eaed; --paper: #15181c; --muted: #a9b1ba; --accent: #f08c8c; }
+  :root { --ink: #e8eaed; --paper: #15181c; --soft: #a9b1ba; --edge: #3a434c; --key: #222a31; --warn: #f08c8c; }
 }
 * { box-sizing: border-box; }
+/* A display rule elsewhere must not show what the page hid. */
+[hidden] { display: none !important; }
 body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
   font: 1rem/1.5 system-ui, sans-serif;
 }
-main { max-width: 44rem; margin: 0 auto; padding: 2rem 1rem; }
-h1 { font-size: 1.6rem; margin: 0 0 0.5rem; }
-#message:not(:empty) { color: var(--accent); }
-.count { font-size: 3rem; font-variant-numeric: tabular-nums; margin: 1rem 0; }
-.buttons { display: flex; gap: 0.5rem; }
-button { font: inherit; padding: 0.4rem 1rem; }
+main { max-width: 72rem; margin: 0 auto; padding: 1.5rem 16px 3rem; }
+h1 { font-size: 1.6rem; margin: 0 0 0.25rem; }
+h2 { font-size: 1.2rem; margin: 0 0 0.5rem; }
+h3 { font-size: 1rem; margin: 0 0 0.4rem; }
+header p { margin: 0 0 1.25rem; color: var(--soft); max-width: 60ch; }
+.layout { display: grid; grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr); gap: 1.5rem; align-items: start; }
+@media (max-width: 720px) { .layout { grid-template-columns: minmax(0, 1fr); } }
+
+.display { border: 1px solid var(--edge); border-radius: 8px; padding: 0.5rem 0.75rem; text-align: right; font-variant-numeric: tabular-nums; }
+#expr { min-height: 1.5em; color: var(--soft); }
+#value { display: block; font-size: 2rem; line-height: 1.2; overflow-wrap: anywhere; }
+#message { min-height: 1.5em; margin: 0.5rem 0; }
+#message:not(:empty) { color: var(--warn); }
+#keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; }
+#keypad button { font: inherit; font-size: 1.25rem; padding: 0.6rem 0; border: 1px solid var(--edge); border-radius: 8px; background: var(--key); color: var(--ink); cursor: pointer; touch-action: manipulation; }
+#keypad button:focus-visible, .controls button:focus-visible { outline: 3px solid var(--manim-blue); outline-offset: 2px; }
+#key-equals { grid-row: span 2; }
+#key-d0 { grid-column: span 3; }
+
+.stage-box { background: var(--manim-black); border-radius: 8px; padding: 0.5rem; min-height: 8rem; display: grid; place-items: center; }
+#stage { display: block; width: 100%; max-height: min(26rem, 70vh); }
+#stage-empty { color: var(--manim-grey); margin: 0; padding: 1rem; text-align: center; }
+#words { min-height: 3em; margin: 0.6rem 0; font-size: 1.05rem; }
+.controls { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+#controls { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.controls button { font: inherit; padding: 0.3rem 0.9rem; border: 1px solid var(--edge); border-radius: 999px; background: var(--key); color: var(--ink); cursor: pointer; }
+.controls button:disabled { opacity: 0.45; cursor: default; }
+#count { color: var(--soft); font-variant-numeric: tabular-nums; }
+
+/* Glyphs on the stage. A move is a transition, so the page computes nothing. */
+.g { transition: transform var(--move) ease-in-out, opacity var(--move) ease-in-out, fill var(--move); }
+.g.gone { opacity: 0; }
+text.g { font-family: "JetBrains Mono", ui-monospace, Menlo, monospace; text-anchor: middle; dominant-baseline: central; fill: var(--manim-white); }
+text.digit { font-size: 30px; }
+text.small { font-size: 17px; }
+rect.rule { fill: var(--manim-white); }
+rect.box { fill: none; stroke: var(--manim-blue); stroke-width: 2.5px; }
+text.g.carry { fill: var(--manim-yellow); }
+text.g.borrow { fill: var(--manim-red); }
+text.g.struck { fill: var(--manim-grey); }
+rect.struck { fill: var(--manim-red); }
+text.g.place { fill: var(--manim-teal); }
+text.g.answer { fill: var(--manim-green); }
+@media (prefers-reduced-motion: reduce) { .g { transition: none; } }
+
+/* The Manim renders, on Manim's black whatever the page's theme. */
+.examples { margin-top: 2.5rem; --bg: #000000; --panel: #000000; --fg: #ffffff; --muted: #bbbbbb; --line: #333333; --accent: #58c4dd; --lit: #1d3a44; }
+.examples > p { color: var(--soft); margin-top: 0; }
+.example-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr)); gap: 1.25rem; }
+.example-grid .mp { background: #000000; color: #ffffff; padding: 0.6rem; border-radius: 10px; }
+#terms { margin-top: 2rem; }
+#terms summary { cursor: pointer; color: var(--soft); }
+#terms dt { font-weight: 600; margin-top: 0.5rem; }
+#terms dd { margin: 0 0 0 1rem; color: var(--soft); }
+[data-term] { text-decoration: underline dotted; cursor: help; }

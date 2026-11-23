@@ -1,0 +1,69 @@
+{
+  "title": "Manim Calc",
+  "intro": "Type a sum on the keys or the keyboard. Each answer comes with the written method that reaches it, worked on your numbers.",
+  "stage_heading": "How the answer is worked",
+  "stage_empty": "Press = to see the method for your sum here.",
+  "examples_heading": "Worked examples, rendered with Manim",
+  "terms_heading": "Words used here",
+  "example_summary": "{sum}, worked by the calculator's own rules and rendered with Manim.",
+  "examples_intro": "The same steps for four fixed sums, rendered ahead of time with Manim.",
+  "examples": [
+    {"id": "example-add", "method": "Column addition", "a": 478, "op": "add", "b": 356},
+    {"id": "example-sub", "method": "Column subtraction", "a": 503, "op": "sub", "b": 278},
+    {"id": "example-mul", "method": "Long multiplication", "a": 34, "op": "mul", "b": 26},
+    {"id": "example-div", "method": "Long division", "a": 952, "op": "div", "b": 4}
+  ],
+  "player": {
+    "play": "Play", "pause": "Pause", "back": "‹ Back", "backName": "Previous step", "next": "Next ›", "nextName": "Next step",
+    "restart": "Restart", "count": "step {n} of {of}", "everyStep": "Every step, as text",
+    "failed": "The animation could not load its files. Open this page through a web server, not from disk."
+  },
+  "keys": {
+    "add": "+", "sub": "−", "mul": "×", "div": "÷", "equals": "=", "clear": "C", "back": "⌫",
+    "add_name": "add", "sub_name": "subtract", "mul_name": "multiply", "div_name": "divide",
+    "equals_name": "equals", "clear_name": "clear", "back_name": "delete the last digit"
+  },
+  "controls": {
+    "play": "Play", "pause": "Pause", "back": "‹ Back", "next": "Next ›", "restart": "Restart",
+    "count": "step {n} of {of}"
+  },
+  "messages": {
+    "too_many_digits": "A number holds at most {max} digits. Press an operator or = to use this one.",
+    "divide_by_zero": "Dividing by zero has no answer. Delete the 0 and type another number.",
+    "too_big": "The answer would have more than {max} digits. Press C to start again.",
+    "need_number": "Type a number first, then the operator.",
+    "need_second": "Type the second number, then press =."
+  },
+  "places": ["ones", "tens", "hundreds", "thousands", "ten thousands", "hundred thousands", "millions", "ten millions", "hundred millions", "billions", "ten billions", "hundred billions", "trillions"],
+  "words": {
+    "setup": "Write {a} above {b}, lining up the ones.",
+    "result": "{a} {op} {b} = {answer}.",
+    "result_remainder": "{a} {op} {b} = {answer} remainder {remainder}.",
+    "minus_sign": "Put a minus sign in front: the answer is {answer}.",
+    "add_column": "{place}: {x} + {y} = {sum}.",
+    "add_column_carried": "{place}: {x} + {y} + {carry} carried = {sum}.",
+    "write_digit": "Write {digit}.",
+    "write_carry": "Write {digit} and carry {carry} to the {next}.",
+    "add_last_carry": "Write the carried {carry} at the front.",
+    "sub_column": "{place}: {x} − {y} = {diff}.",
+    "sub_leading_zero": "{place}: {x} − {y} = {diff}. A zero at the front is left out.",
+    "sub_need": "{place}: {x} is less than {y}, so borrow from the {from}.",
+    "sub_take": "Take 1 from the {from}: {old} becomes {new}, and the {to} become {got}.",
+    "mul_ones": "Multiply {a} by the {d} ones: {a} × {d} = {p}.",
+    "mul_shift": "Multiply {a} by the {d} {place}: write {zeros} on the right, then {a} × {d} = {q}, so the row is {p}.",
+    "mul_zero_digit": "The {place} digit is 0, so its row is 0.",
+    "mul_add": "Add the partial products: {sum} = {answer}.",
+    "div_setup": "Write {a} under the bracket and {b} to its left.",
+    "div_skip": "{cur} is less than {b}, so take the next digit too: {next}.",
+    "div_digit": "{b} goes into {cur} {q} times: {q} × {b} = {p}. Write {q} on top.",
+    "div_zero_digit": "{b} goes into {cur} 0 times. Write 0 on top.",
+    "div_subtract": "{cur} − {p} = {r}.",
+    "div_bring": "Bring down the {d}: the number to divide is now {cur}.",
+    "swap_sub": "{b} is larger than {a}, so work {b} − {a} and give the answer a minus sign.",
+    "neg_add_smaller": "{a} + {b} is the same as {b} − {size}.",
+    "neg_add_larger": "{a} + {b} is the same as −({size} − {b}).",
+    "neg_sub": "{a} − {b} is the same as −({size} + {b}).",
+    "neg_mul": "{a} is below zero, so multiply {size} and give the answer a minus sign.",
+    "neg_div": "{a} is below zero, so divide {size} and give the quotient and the remainder a minus sign."
+  }
+}

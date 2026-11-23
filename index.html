@@ -5,26 +5,49 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <!-- Reference default. connect-src 'self' keeps fetches on this origin;
        'wasm-unsafe-eval' lets the page compile its own WebAssembly module;
-       form-action 'none' blocks form posts. A meta policy cannot stop data
-       leaving by navigation, so the browser check still watches requests. -->
+       form-action 'none' blocks form posts. media-src 'self' (inside
+       default-src) lets the Manim player load its clips from this origin. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; connect-src 'self'; style-src 'self'; img-src 'self' data:; object-src 'none'; base-uri 'none'; form-action 'none'">
-  <title>Bounded counter</title>
-  <link rel="stylesheet" href="style.css?v=e0e2fe798de5">
+  <title>Manim Calc</title>
+  <link rel="stylesheet" href="manim/theme.css?v=c6883075f633">
+  <link rel="stylesheet" href="manim/player.css?v=c6883075f633">
+  <link rel="stylesheet" href="style.css?v=c6883075f633">
 </head>
 <body data-ready="false">
   <main>
-    <h1 id="title"></h1>
-    <p id="intro"></p>
-    <p class="count" aria-live="polite"><output id="count"></output></p>
-    <p class="buttons">
-      <button id="remove" type="button"></button>
-      <button id="add" type="button"></button>
-      <button id="reset" type="button"></button>
-    </p>
-    <p id="note"></p>
-    <p id="message" role="status"></p>
+    <header>
+      <h1 id="title"></h1>
+      <p id="intro"></p>
+    </header>
+    <div class="layout">
+      <section class="calc">
+        <div class="display">
+          <div id="expr"></div>
+          <output id="value"></output>
+        </div>
+        <p id="message" role="status"></p>
+        <div id="keypad"></div>
+      </section>
+      <section class="method">
+        <h2 id="stage-heading"></h2>
+        <div class="stage-box">
+          <svg id="stage" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="words"></svg>
+          <p id="stage-empty"></p>
+        </div>
+        <p id="words" aria-live="polite"></p>
+        <div class="controls">
+          <div id="controls"></div>
+          <span id="count"></span>
+        </div>
+      </section>
+    </div>
+    <section id="examples" class="examples"></section>
+    <details id="terms">
+      <summary id="terms-heading"></summary>
+      <dl id="terms-list"></dl>
+    </details>
   </main>
   <noscript><p>This page needs JavaScript and WebAssembly.</p></noscript>
-  <script type="module" src="app.js?v=e0e2fe798de5"></script>
+  <script type="module" src="app.js?v=c6883075f633"></script>
 </body>
 </html>

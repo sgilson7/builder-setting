@@ -1,0 +1,579 @@
+{
+  "code": "animations/replay.py",
+  "height": 370,
+  "id": "example-mul",
+  "source": "Written by crates/export from tool_core::api::worked_examples; every glyph and sentence is the core's own. Replayed in Manim by animations/replay.py.",
+  "steps": [
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "×",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Write 34 above 26, lining up the ones."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "×",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 132,
+          "y": 90
+        },
+        {
+          "from": [
+            146,
+            64
+          ],
+          "id": "p0_0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "from": [
+            110,
+            64
+          ],
+          "id": "p0_1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "from": [
+            146,
+            130
+          ],
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 196
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Multiply 34 by the 6 ones: 34 × 6 = 204."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "×",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "h": 58,
+          "id": "box",
+          "kind": "box",
+          "tone": "focus",
+          "w": 28,
+          "x": 96,
+          "y": 90
+        },
+        {
+          "id": "p0_0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "p0_1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 196
+        },
+        {
+          "id": "p1_0",
+          "kind": "digit",
+          "text": "0",
+          "tone": "place",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "from": [
+            146,
+            64
+          ],
+          "id": "p1_1",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "from": [
+            110,
+            64
+          ],
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 74,
+          "y": 262
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Multiply 34 by the 2 tens: write 0 on the right, then 34 × 2 = 68, so the row is 680."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "×",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "id": "p0_0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "p0_1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 196
+        },
+        {
+          "id": "p1_0",
+          "kind": "digit",
+          "text": "0",
+          "tone": "place",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "id": "p1_1",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 74,
+          "y": 262
+        },
+        {
+          "id": "op2",
+          "kind": "digit",
+          "text": "+",
+          "tone": "plain",
+          "x": 38,
+          "y": 262
+        },
+        {
+          "h": 3,
+          "id": "rule2",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 284
+        },
+        {
+          "id": "a3",
+          "kind": "digit",
+          "text": "4",
+          "tone": "answer",
+          "x": 146,
+          "y": 328
+        },
+        {
+          "id": "a2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 110,
+          "y": 328
+        },
+        {
+          "id": "a1",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 74,
+          "y": 328
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "Add the partial products: 204 + 680 = 884."
+    },
+    {
+      "glyphs": [
+        {
+          "id": "t0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 64
+        },
+        {
+          "id": "t1",
+          "kind": "digit",
+          "text": "3",
+          "tone": "plain",
+          "x": 110,
+          "y": 64
+        },
+        {
+          "id": "b0",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 146,
+          "y": 130
+        },
+        {
+          "id": "b1",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 110,
+          "y": 130
+        },
+        {
+          "id": "op",
+          "kind": "digit",
+          "text": "×",
+          "tone": "plain",
+          "x": 38,
+          "y": 130
+        },
+        {
+          "h": 3,
+          "id": "rule",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 152
+        },
+        {
+          "id": "p0_0",
+          "kind": "digit",
+          "text": "4",
+          "tone": "plain",
+          "x": 146,
+          "y": 196
+        },
+        {
+          "id": "p0_1",
+          "kind": "digit",
+          "text": "0",
+          "tone": "plain",
+          "x": 110,
+          "y": 196
+        },
+        {
+          "id": "p0_2",
+          "kind": "digit",
+          "text": "2",
+          "tone": "plain",
+          "x": 74,
+          "y": 196
+        },
+        {
+          "id": "p1_0",
+          "kind": "digit",
+          "text": "0",
+          "tone": "place",
+          "x": 146,
+          "y": 262
+        },
+        {
+          "id": "p1_1",
+          "kind": "digit",
+          "text": "8",
+          "tone": "plain",
+          "x": 110,
+          "y": 262
+        },
+        {
+          "id": "p1_2",
+          "kind": "digit",
+          "text": "6",
+          "tone": "plain",
+          "x": 74,
+          "y": 262
+        },
+        {
+          "id": "op2",
+          "kind": "digit",
+          "text": "+",
+          "tone": "plain",
+          "x": 38,
+          "y": 262
+        },
+        {
+          "h": 3,
+          "id": "rule2",
+          "kind": "rule",
+          "tone": "plain",
+          "w": 144,
+          "x": 20,
+          "y": 284
+        },
+        {
+          "id": "a3",
+          "kind": "digit",
+          "text": "4",
+          "tone": "answer",
+          "x": 146,
+          "y": 328
+        },
+        {
+          "id": "a2",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 110,
+          "y": 328
+        },
+        {
+          "id": "a1",
+          "kind": "digit",
+          "text": "8",
+          "tone": "answer",
+          "x": 74,
+          "y": 328
+        }
+      ],
+      "hold_ms": 1600,
+      "move_ms": 600,
+      "t": "34 × 26 = 884."
+    }
+  ],
+  "summary": "34 × 26, worked by the calculator's own rules and rendered with Manim.",
+  "title": "Long multiplication: 34 × 26",
+  "width": 184
+}
