@@ -4,3 +4,5 @@ dist/
 __pycache__/
 mutants.out*/
 .DS_Store
+# the codebase-guide kit's test fixture is a codebase named target, not build output
+!kits/codebase-guide/tests/fixture/target/
